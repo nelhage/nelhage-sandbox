@@ -26,6 +26,13 @@
               pkgs.elan
             ];
           };
+          verso2docset = pkgs.mkShell {
+            packages = [
+              pkgs.python3
+              pkgs.uv
+              pkgs.ruff
+            ];
+          };
         }
       );
     };

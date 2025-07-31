@@ -7,7 +7,11 @@ import subprocess
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from urllib.parse import urlparse
 from xml.sax.saxutils import escape
+
+from lxml.html import html5parser, tostring
+from lxml.html.html5parser import XHTML_NAMESPACE
 
 INFO_TEMPLATE = """\
 <?xml version="1.0" encoding="UTF-8"?>
@@ -26,58 +30,7 @@ INFO_TEMPLATE = """\
 </plist>
 """
 
-
-def main(
-    html_zip: Path,
-    outpath: Path,
-    *,
-    overwrite: bool = False,
-    bundle_id: str | None = None,
-    bundle_name: str | None = None,
-    bundle_platform: str = "unknown",
-):
-    if not html_zip.is_file():
-        raise ValueError(f"input zip file must exist!")
-    if outpath.exists():
-        if not overwrite:
-            raise ValueError(
-                f"Output path {outpath} exists, and --overwrite was not passed!"
-            )
-        shutil.rmtree(outpath)
-
-    contents = outpath / "Contents"
-    docdir = contents / "Resources/Documents/"
-    docdir.parent.mkdir(parents=True)
-
-    subprocess.check_call(["unzip", "-q", html_zip, "-d", str(docdir.parent)])
-    (docdir.parent / "html-multi").rename(docdir)
-
-    bundle_id = bundle_id or html_zip.with_suffix("").name
-
-    index_html = docdir / "index.html"
-    if bundle_name is None and index_html.is_file():
-        title_re = re.compile(r"<title>(.*)</title>")
-        with index_html.open("r") as fh:
-            for line in fh:
-                if (m := title_re.search(line)) is not None:
-                    bundle_name = m.group(1)
-                    break
-    if bundle_name is None:
-        bundle_name = bundle_id
-
-    info_dict = {
-        "id": bundle_id,
-        "name": bundle_name,
-        "platform": bundle_platform,
-    }
-
-    (contents / "Info.plist").write_text(
-        INFO_TEMPLATE.format(**{k: escape(v) for k, v in info_dict.items()})
-    )
-
-    dbpath = contents / "Resources/docSet.dsidx"
-
-    write_index(docdir, dbpath)
+HTML_DOCTYPE = "<!DOCTYPE html>"
 
 
 @dataclass
@@ -92,8 +45,10 @@ class IndexEntry:
         data = entry.get("data", None)
         name = key
         if isinstance(data, dict):
-            if (userName := data.get("userName", None)) is not None:
-                name = userName
+            for nameKey in ["userName", "title"]:
+                v = data.get(nameKey, None)
+                if v is not None:
+                    name = v
         return cls(name=name, type=type, path=path)
 
 
@@ -125,14 +80,16 @@ def classify_doc_entry(key: str, entries: list) -> list[IndexEntry]:
 
     entry = entries[0]
 
-    if (
-        "id" in entry
-        and not entry["id"].endswith(localname)
-        and entry["id"].endswith("__mk")
-    ):
-        type = "Type"
-    else:
+    if ns:
         type = "Method"
+    else:
+        type = "Function"
+
+    if "id" in entry and not entry["id"].endswith(localname):
+        if entry["id"].endswith("__mk"):
+            type = "Type"
+        if entry["id"].endswith("__intro"):
+            type = "Struct"
 
     return [IndexEntry.from_entry(entry, key=key, type=type)]
 
@@ -200,6 +157,90 @@ def write_index(docdir: Path, dbpath: Path):
     send_batch()
 
     db.commit()
+
+
+def rewrite_one_page(path: Path) -> int:
+    with path.open("r") as fh:
+        tree = html5parser.HTMLParser(namespaceHTMLElements=False).parse(fh)
+
+    links = tree.xpath("//a")
+    changed = 0
+    for a in links:
+        parsed = urlparse(a.attrib["href"])
+        if (not parsed.scheme) and parsed.path.endswith("/"):
+            newurl = parsed._replace(path=parsed.path + "index.html")
+            a.attrib["href"] = newurl.geturl()
+            changed += 1
+
+    if changed:
+        html = tostring(tree, pretty_print=True, doctype=HTML_DOCTYPE)
+        path.write_bytes(html)
+    return changed
+
+
+def rewrite_links(docdir: Path):
+    for dirpath, dirs, files in docdir.walk():
+        for filename in files:
+            if not filename.endswith(".html"):
+                continue
+            fullpath = dirpath / filename
+            changed = rewrite_one_page(fullpath)
+            print(f"Rewrote {fullpath.relative_to(docdir)} ({changed} links)...")
+
+
+def main(
+    html_zip: Path,
+    outpath: Path,
+    *,
+    overwrite: bool = False,
+    bundle_id: str | None = None,
+    bundle_name: str | None = None,
+    bundle_platform: str = "unknown",
+):
+    if not html_zip.is_file():
+        raise ValueError(f"input zip file must exist!")
+    if outpath.exists():
+        if not overwrite:
+            raise ValueError(
+                f"Output path {outpath} exists, and --overwrite was not passed!"
+            )
+        shutil.rmtree(outpath)
+
+    contents = outpath / "Contents"
+    docdir = contents / "Resources/Documents/"
+    docdir.parent.mkdir(parents=True)
+
+    subprocess.check_call(["unzip", "-q", html_zip, "-d", str(docdir.parent)])
+    (docdir.parent / "html-multi").rename(docdir)
+
+    rewrite_links(docdir)
+
+    bundle_id = bundle_id or html_zip.with_suffix("").name
+
+    index_html = docdir / "index.html"
+    if bundle_name is None and index_html.is_file():
+        title_re = re.compile(r"<title>(.*)</title>")
+        with index_html.open("r") as fh:
+            for line in fh:
+                if (m := title_re.search(line)) is not None:
+                    bundle_name = m.group(1)
+                    break
+    if bundle_name is None:
+        bundle_name = bundle_id
+
+    info_dict = {
+        "id": bundle_id,
+        "name": bundle_name,
+        "platform": bundle_platform,
+    }
+
+    (contents / "Info.plist").write_text(
+        INFO_TEMPLATE.format(**{k: escape(v) for k, v in info_dict.items()})
+    )
+
+    print("Building symbol index...")
+    dbpath = contents / "Resources/docSet.dsidx"
+    write_index(docdir, dbpath)
 
 
 if __name__ == "__main__":

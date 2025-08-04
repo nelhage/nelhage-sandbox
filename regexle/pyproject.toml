@@ -1,0 +1,15 @@
+[project]
+name = "regexle"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cyclopts>=3.22.5",
+    "greenery>=4.2.2",
+    "httpx>=0.28.1",
+    "numpy>=2.3.2",
+    "pandas>=2.3.1",
+    "ruff>=0.12.7",
+    "z3-solver==4.13.0.0",
+]

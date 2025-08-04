@@ -33,6 +33,13 @@
               pkgs.ruff
             ];
           };
+          regexle = pkgs.mkShell {
+            packages = [
+              pkgs.python3
+              pkgs.uv
+              pkgs.ruff
+            ];
+          };
         }
       );
     };

@@ -1,5 +1,6 @@
 import datetime
 import string
+import time
 from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urlencode
@@ -62,11 +63,23 @@ def one_of(var, values):
     return z3.Or(*(var == v for v in values))
 
 
+def dead_states(fsm):
+    loop = {s for s, m in fsm.map.items() if set(m.values()) == {s}}
+    return loop - fsm.finals
+
+
 def assert_matches(solv, fsm, state_func, chars, name):
     nchar = len(chars)
+    nstate = len(fsm.states)
+    dead = dead_states(fsm)
+
     states = z3.IntVector(name + "_state", 1 + nchar)
     for i, ch in enumerate(chars):
         solv.add(state_func(states[i], ch) == states[i + 1])
+    for st in states:
+        solv.add(0 <= st)
+        solv.add(st < nstate)
+        solv.add(z3.Not(one_of(st, dead)))
     solv.add(states[0] == fsm.initial)
     solv.add(one_of(states[-1], fsm.finals))
 
@@ -170,8 +183,11 @@ def main(
 
     print(f"Querying z3...")
 
+    a = time.time()
     if solv.check() != z3.sat:
         raise AssertionError("Weird: we failed to solve")
+    b = time.time()
+    print(f"check() took: {b - a:.1f}s")
 
     model = solv.model()
     solved = [[model.eval(ch) for ch in row] for row in grid]

@@ -45,7 +45,7 @@ class IndexEntry:
         data = entry.get("data", None)
         name = key
         if isinstance(data, dict):
-            for nameKey in ["userName", "title"]:
+            for nameKey in ["userName", "title", "term"]:
                 v = data.get(nameKey, None)
                 if v is not None:
                     name = v

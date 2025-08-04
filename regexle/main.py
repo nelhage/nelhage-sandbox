@@ -69,13 +69,27 @@ def dead_states(fsm):
 
 
 def assert_matches(solv, fsm, state_func, chars, name):
+    flat = flatten_fsm(fsm)
+    nstate, nvocab = flat.shape
+
     nchar = len(chars)
-    nstate = len(fsm.states)
     dead = dead_states(fsm)
 
     states = z3.IntVector(name + "_state", 1 + nchar)
     for i, ch in enumerate(chars):
         solv.add(state_func(states[i], ch) == states[i + 1])
+
+    dead_init = set()
+    dead_all = set()
+
+    for d in dead:
+        dead_init |= set((flat[0] == d).nonzero()[0])
+        dead_all |= set((flat == d).all(0).nonzero()[0])
+
+    for ch in chars:
+        solv.add(z3.Not(one_of(ch, dead_all)))
+    solv.add(z3.Not(one_of(chars[0], dead_init - dead_all)))
+
     for st in states:
         solv.add(0 <= st)
         solv.add(st < nstate)

@@ -5,53 +5,111 @@ inductive Vect (α : Type u) : Nat → Type u where
 example : Vect String 3 :=
   .cons "one" (.cons "two" (.cons "three" .nil))
 
-def Vect.reverse_append (lhs : Vect α n) (rhs : Vect α m) : (Vect α (n + m)) :=
-  match lhs with
-    | .nil         => Nat.zero_add _ ▸ rhs
-    | .cons x xs   => Nat.add_assoc .. ▸ reverse_append xs (Nat.add_comm .. ▸ .cons x rhs)
+namespace Vect
 
-def Vect.reverse (v : Vect α n) : (Vect α n) :=
+def cast {m n : Nat} (xs : Vect α m) (he : m = n) : (Vect α n) :=
+  _root_.cast (congrArg (Vect α) he) xs
+
+@[simp]
+theorem cast_cast {m n p : Nat} (v : Vect α m) (he₁ : m = n) (he₂ : n = p) :
+  (v.cast he₁).cast he₂ = v.cast (Eq.trans he₁ he₂) := by
+  simp [cast]
+
+@[simp]
+theorem cast_eq {n : Nat} {xs: Vect α n} : xs.cast rfl = xs := by
+  rfl
+
+def reverse_append (lhs : Vect α n) (rhs : Vect α m) : (Vect α (n + m)) :=
+  match lhs with
+    | .nil         => cast rhs (by omega)
+    | .cons x xs   => cast (reverse_append xs (.cons x rhs)) (by omega)
+
+def reverse (v : Vect α n) : (Vect α n) :=
   reverse_append v nil
 
-def Vect.append (lhs : Vect α n) (rhs : Vect α m) : Vect α (n + m) :=
+def append (lhs : Vect α n) (rhs : Vect α m) : Vect α (n + m) :=
   reverse_append (reverse lhs) rhs
 
-instance {α : Type} {m n : Nat} : HAppend (Vect α n) (Vect α m) (Vect α (n + m)) where
-  hAppend := Vect.append
+def head : (v : Vect α (Nat.succ n)) → α
+  | cons a _ => a
 
-def Vect.zip : Vect α n → Vect β n → Vect (α × β) n
+def head' : (v : Vect α n) → (hn : n = Nat.succ m) → α
+  | cons a _, _ => a
+
+def tail : {n: Nat} → (v : Vect α (Nat.succ n)) → α
+  | 0,     cons a nil  => a
+  | _ + 1, cons _ rest => rest.tail
+
+instance {α : Type} {m n : Nat} : HAppend (Vect α n) (Vect α m) (Vect α (n + m)) where
+  hAppend := append
+
+def zip : Vect α n → Vect β n → Vect (α × β) n
   | .nil, .nil => .nil
   | .cons x xs, .cons y ys => .cons (x, y) (zip xs ys)
 
-def Vect.map : (α → β) → Vect α n → Vect β n
+def map : (α → β) → Vect α n → Vect β n
   | _, .nil => .nil
   | f, .cons x xs => .cons (f x) (.map f xs)
 
-def Vect.zipWith : (α → β → γ) → Vect α n → Vect β n → Vect γ n
+def zipWith : (α → β → γ) → Vect α n → Vect β n → Vect γ n
   | f, .nil, .nil => .nil
   | f, .cons x xs, .cons y ys => .cons (f x y) (.zipWith f xs ys)
 
-def peaks : Vect String 3 := .cons "Rainier" (.cons "Hood" (.cons "Denali" .nil))
 
-#eval peaks.map fun x => "Mount " ++ x
-#eval peaks.reverse
+-- def peaks : Vect String 3 := .cons "Rainier" (.cons "Hood" (.cons "Denali" .nil))
+-- #eval peaks.tail
+-- #eval peaks.map fun x => "Mount " ++ x
+-- #eval peaks.reverse
 
-def Vect.push : Vect α n -> α -> Vect α (n + 1)
+def push : Vect α n -> α -> Vect α (n + 1)
   | .nil, x       => .cons x nil
   | .cons x xs, a => .cons x (.push xs a)
 
-#check Vect.push
+-- #check Vect.push
 
 -- Naive definitions
 
-def Vect.append_notail : Vect α n → Vect α m → Vect α (n + m)
+def append_notail : Vect α n → Vect α m → Vect α (n + m)
   | .nil,       bs => Nat.zero_add _ ▸ bs
   | .cons a as, bs => let rest := append_notail as bs
                       Nat.add_assoc .. ▸ Nat.add_comm _ 1 ▸ cons a rest
 
-def Vect.reverse_notail : Vect α n -> Vect α n
-  | .nil       => .nil
-  | .cons x xs => .push xs.reverse_notail x
+theorem reverse_nil {α : Type} :
+  reverse (nil : Vect α 0) = nil := by
+  rfl
+
+theorem zero_is_nil.{u} {α : Type u} (v : Vect α 0) : v = nil := by
+  cases v
+  rfl
+
+protected theorem move_add1 (n m : Nat) : (n + 1) + m = (n + m) + 1 := by
+  omega
+
+@[simp]
+theorem cast_head {m n : Nat} (h : (Nat.succ m) = (Nat.succ n)) (v : Vect α (Nat.succ m)) :
+  head (v.cast h : Vect α (Nat.succ n)) = head v := by
+  cases h
+  simp [head]
+
+@[simp]
+theorem head_cons (a : α) (v : Vect α n) :
+  head (cons a v) = a := by
+  simp [head]
+
+theorem reverse_append_head (v : Vect α (Nat.succ n)) : {m : Nat} → (b : Vect α m) → (c : Vect α m) →
+  ((v.reverse_append b).cast (by omega) : Vect α (n + m + 1)).head =
+  ((v.reverse_append c).cast (by omega) : Vect α (n + m + 1)).head := by
+  induction n
+  have (.cons a nil) := v
+  simp [reverse_append]
+  case succ ih =>
+    have (.cons v vs) := v
+    intros m' b c
+    simp only [reverse_append, cast_cast]
+    have ihv := (ih vs (m := m'.succ) (cons v b) (cons v c))
+    simp
+    simp at ihv
+    exact ihv
 
 -- reverse.go todo acc == (reverse todo) ++ acc
 

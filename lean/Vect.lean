@@ -105,9 +105,8 @@ theorem reverse_append_head (v : Vect α (Nat.succ n)) : {m : Nat} → (b : Vect
   case succ ih =>
     have (.cons v vs) := v
     intros m' b c
-    simp only [reverse_append, cast_cast]
+    simp [reverse_append]
     have ihv := (ih vs (m := m'.succ) (cons v b) (cons v c))
-    simp
     simp at ihv
     exact ihv
 

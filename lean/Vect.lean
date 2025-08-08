@@ -16,7 +16,7 @@ theorem cast_cast {m n p : Nat} (v : Vect α m) (he₁ : m = n) (he₂ : n = p) 
   simp [cast]
 
 @[simp]
-theorem cast_eq {n : Nat} {xs: Vect α n} : xs.cast rfl = xs := by
+theorem cast_rfl {n : Nat} {xs: Vect α n} : xs.cast rfl = xs := by
   rfl
 
 def reverse_append (lhs : Vect α n) (rhs : Vect α m) : (Vect α (n + m)) :=
@@ -65,25 +65,23 @@ def push : Vect α n -> α -> Vect α (n + 1)
   | .nil, x       => .cons x nil
   | .cons x xs, a => .cons x (.push xs a)
 
--- #check Vect.push
+-- #check push
 
 -- Naive definitions
 
-def append_notail : Vect α n → Vect α m → Vect α (n + m)
-  | .nil,       bs => Nat.zero_add _ ▸ bs
-  | .cons a as, bs => let rest := append_notail as bs
-                      Nat.add_assoc .. ▸ Nat.add_comm _ 1 ▸ cons a rest
+def append_notail : Vect α n → Vect α m → Vect α (m + n)
+  | .nil,       bs => bs
+  | .cons a as, bs => cons a (append_notail as bs)
 
+@[simp]
 theorem reverse_nil {α : Type} :
   reverse (nil : Vect α 0) = nil := by
   rfl
 
+@[simp]
 theorem zero_is_nil.{u} {α : Type u} (v : Vect α 0) : v = nil := by
   cases v
   rfl
-
-protected theorem move_add1 (n m : Nat) : (n + 1) + m = (n + m) + 1 := by
-  omega
 
 @[simp]
 theorem cast_head {m n : Nat} (h : (Nat.succ m) = (Nat.succ n)) (v : Vect α (Nat.succ m)) :
@@ -96,48 +94,167 @@ theorem head_cons (a : α) (v : Vect α n) :
   head (cons a v) = a := by
   simp [head]
 
-theorem reverse_append_head (v : Vect α (Nat.succ n)) : {m : Nat} → (b : Vect α m) → (c : Vect α m) →
-  ((v.reverse_append b).cast (by omega) : Vect α (n + m + 1)).head =
-  ((v.reverse_append c).cast (by omega) : Vect α (n + m + 1)).head := by
+theorem reverse_append_head (v : Vect α (Nat.succ n)) :
+  {o p : Nat} → (b : Vect α o) → (c : Vect α p) →
+  let vb := (cast (v.reverse_append b) (by omega) : Vect α (n + o + 1));
+  let vc := (cast (v.reverse_append c) (by omega) : Vect α (n + p + 1));
+    vb.head = vc.head := by
   induction n
   have (.cons a nil) := v
   simp [reverse_append]
   case succ ih =>
     have (.cons v vs) := v
-    intros m' b c
+    intros _ _ b c
     simp [reverse_append]
-    have ihv := (ih vs (m := m'.succ) (cons v b) (cons v c))
+    have ihv := (ih vs (cons v b) (cons v c))
     simp at ihv
     exact ihv
 
--- reverse.go todo acc == (reverse todo) ++ acc
+@[simp]
+theorem cons_reverse_head (a : α) (v : Vect α (n + 1)) :
+  (cons a v).reverse.head = v.reverse.head := by
+  simp [reverse, reverse_append]
+  have rah := reverse_append_head v (cons a nil) nil
+  simp at rah
+  assumption
 
-/-
-theorem Vect.reverse_append_lemma (a : α) (v : Vect α m) (acc : Vect α n) :
-  (cons a v).reverse_notail.append_notail acc =
-    Nat.add_assoc .. ▸ append_notail v.reverse_notail (Nat.add_comm .. ▸ cons a acc) := by
-  sorry
-
-theorem Vect.reverse_go_lemma (v : Vect α m) : (n : Nat) → (acc : Vect α n) →
-  reverse.go v acc = (v.reverse_notail).append_notail acc := by
-  induction v with
-  | nil =>
-    intros
+@[simp]
+theorem head_reverse {α : Type} {n : Nat} :
+  (v : Vect α (n + 1)) → (head (reverse v)) = (tail v) := by
+  intro v
+  induction n with
+  | zero =>
+    cases v
+    simp [zero_is_nil] at *
     rfl
-  -- unfold append_notail reverse_notail
-  | cons a' _ ih =>
-    simp [reverse.go]
-    intros n acc
-    rewrite [reverse_append_lemma]
-    simp [*]
--/
+  | succ n' ih =>
+    have (.cons a xs) : Vect α (n' + 1 + 1) := v
+    rewrite [tail, cons_reverse_head]
+    apply ih
 
+@[simp]
+theorem reverse_append_cons {n m : Nat} (a : α) (v : Vect α n) : (rhs : Vect α m) →
+  (cons a v).reverse_append rhs =
+    (cast (v.reverse_append (cons a rhs)) (by omega)) := by
+  simp [reverse_append]
 
-/-
-theorem vect_reverse_equiv (α : Type) {n : Nat} (v: Vect α n) : (Vect.reverse v) = (Vect.reverse' v) := by
-  cases v
-  rewrite [Vect.reverse, Vect.reverse', Vect.reverse'.go]
+@[simp]
+theorem cast_reverse_append {n m o: Nat} (v : Vect α n) (w : Vect α o) (h : n = m) :
+  (v.cast h).reverse_append w = (v.reverse_append w).cast (by omega) := by
+  subst_vars
+  simp [reverse_append]
+
+@[simp]
+theorem cons_cast {n m : Nat} (a : α) (v : Vect α n) (h : n = m) :
+  (cons a (cast v h)) = (cons a v).cast (by omega) := by
+  subst_vars
+  simp
+
+theorem cast_eq_symm {n m : Nat} (lhs : Vect α n) (rhs : Vect α m) (h : n = m) :
+  lhs.cast h = rhs ↔ lhs = rhs.cast h.symm := by
+  subst_vars
   rfl
-  unfold Vect.reverse'
-  sorry
--/
+
+theorem cons_push {n : Nat} : (a b : α) → (v : Vect α n) →
+  push (cons a v) b  = cons a (push v b) := by
+  induction n
+  simp [push]
+  case succ ih =>
+  intro a b v
+  have (.cons v vs) := v
+  rewrite [push]
+  congr
+
+theorem push_reverse_append {n m : Nat} (a : α) (xs : Vect α n) (ys : Vect α m) :
+  (xs.push a).reverse_append ys = (cons a (xs.reverse_append ys)).cast (by omega) := by
+  revert m
+  induction n
+  cases xs
+  simp [reverse_append, push]
+  case succ ih =>
+  have (.cons x xs') := xs
+  intro m ys
+  unfold push
+  unfold reverse_append
+  have ihv := ih xs' (cons x ys)
+  simp [cast_eq_symm]
+  assumption
+
+theorem reverse_append_push_reverse_append {n : Nat} (a : α)
+  (xs : Vect α n) : {m o : Nat} → (ys : Vect α m) → (zs: Vect α o) →
+  (xs.reverse_append (push ys a)).reverse_append zs =
+    (cast (cons a ((xs.reverse_append ys).reverse_append zs)) (by omega)) := by
+  induction n
+  cases xs
+  intros
+  simp [reverse_append]
+  simp [cast_eq_symm]
+  rewrite [push_reverse_append]
+  simp
+
+  case succ ih =>
+  intros m o ys zs
+  have (.cons x xs') := xs
+  simp [reverse_append]
+  rewrite [← cons_push]
+  have ihv := ih xs' (cons x ys) zs
+  rewrite [cast_eq_symm]
+  simp
+  exact ihv
+
+
+@[simp]
+theorem reverse_append_nil {n : Nat} (xs : Vect α n) :
+  (xs.reverse_append nil).reverse_append nil = xs := by
+  induction n
+  simp [reverse_append]
+  case succ ih =>
+  have (.cons x xs') := xs
+  simp [reverse_append]
+  rewrite [← push]
+  rewrite [reverse_append_push_reverse_append]
+  rewrite [cast_eq_symm]
+  rewrite [ih]
+  simp
+
+
+theorem reverse_append_is_reverse_append {n m : Nat} (xs : Vect α n) (ys : Vect α m) :
+  xs.reverse_append ys = (xs.reverse) ++ ys := by
+  simp [(· ++ ·)]
+  simp [reverse, append]
+
+theorem reverse_reverse {n : Nat} (v : Vect α n) :
+  v.reverse.reverse = v := by
+  unfold reverse
+  simp
+
+
+theorem append_equivalent : {n m : Nat} → (lhs : Vect α n) → (rhs : Vect α m) →
+  lhs.append rhs = cast (lhs.append_notail rhs) (Nat.add_comm ..) := by
+  intro n
+  induction n
+  intros _ lhs
+  cases lhs
+  simp [append, reverse_append, append_notail]
+
+  case succ ih =>
+  intro m lhs rhs
+  have (.cons l ls) := lhs
+  unfold append reverse
+  simp [reverse_append_cons]
+  rewrite [← push]
+  rewrite [reverse_append_push_reverse_append]
+  rewrite [← reverse, ← append, cast_eq_symm]
+  unfold append_notail
+  rewrite [ih ls rhs]
+  simp
+
+-- Theorems we'd like to prove:
+-- xs.append ys = xs.append_notail ys
+-- (reverse (reverse v)) = v
+
+
+-- (x.reverse_append y).reverse_append z
+--  = ((x.reverse) ++ y).reverse ++ z
+--  = (y.reverse ++ x) ++ z
+--  = y.reverse_append (x ++ z)

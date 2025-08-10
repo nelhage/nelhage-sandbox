@@ -1,0 +1,14 @@
+name = "VectExercises"
+version = "0.1.0"
+defaultTargets = ["vectexercises"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+
+[[lean_lib]]
+name = "VectExercises"
+
+[[lean_exe]]
+name = "vectexercises"
+root = "Main"

@@ -1,9 +1,11 @@
 import datetime
 import string
 import time
+import json
 from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urlencode
+from pathlib import Path
 
 import greenery
 import httpx
@@ -123,6 +125,23 @@ class Clue:
     def build_z3(self, solv: z3.Solver) -> z3.FuncDeclRef:
         return fsm_to_z3func(solv, self.fsm, self.name)
 
+PUZZLE_CACHE = Path(__file__).parent / 'puzzles'
+
+def fetch_puzzle(day, side):
+    print(f"Retrieving puzzle: {day=} {side=}. Interactive URL:")
+    qstring = urlencode(dict(day=day, side=side))
+    print("  https://regexle.com/?" + qstring)
+
+    cached = PUZZLE_CACHE / f"puzzle_{day}_{side}.json"
+    if not cached.is_file():
+        resp = httpx.get("https://generator.regexle.com/api?" + qstring)
+        cached.parent.mkdir(exist_ok=True)
+        cached.write_bytes(resp.content)
+    puzzle = json.loads(cached.read_text())
+
+    assert puzzle["side"] == side
+    return puzzle
+
 
 def main(
     *,
@@ -134,12 +153,8 @@ def main(
         if isinstance(date, str):
             date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
         day = (date - DAY_EPOCH).days
-    print(f"Retrieving puzzle: {day=} {side=}. Interactive URL:")
-    qstring = urlencode(dict(day=day, side=side))
-    print("  https://regexle.com/?" + qstring)
 
-    puzzle = httpx.get("https://generator.regexle.com/api?" + qstring).json()
-    assert puzzle["side"] == side
+    puzzle = fetch_puzzle(day, side)
 
     print("Solving...")
 

@@ -66,7 +66,8 @@ theorem Vec.cast_eq_symm {h : m = n} : xs.cast h = ys ↔ xs = ys.cast h.symm :=
 @[simp]
 theorem Vec.cons_cast {x : α} {h : m = n} :
     x :: Vec.cast xs h = (x :: xs).cast (by rw [h]) := by
-  sorry
+  subst_vars
+  rfl
 
 /-!
 Think: Why is there no cast theorem for `Vec.nil`?
@@ -75,33 +76,42 @@ Think: Why is there no cast theorem for `Vec.nil`?
 @[simp]
 theorem Vec.append_cast_left {h : m = m'} :
     xs.cast h +++ ys = (xs +++ ys).cast (by rw [h]) := by
-  sorry
+  subst_vars
+  rfl
 
 @[simp]
 theorem Vec.append_cast_right {h : n = n'} :
     xs +++ ys.cast h = (xs +++ ys).cast (by rw [h]) := by
-  sorry
+  subst_vars
+  rfl
 
 -- Fix this theorem statement by adding a cast to the right-hand side.
 @[simp]
 theorem Vec.append_nil :
-    xs +++ [] = xs := by
-  sorry
+    xs +++ [] = (cast xs (Nat.zero_add m).symm):= by
+  induction xs
+  rfl
+  case cons ih =>
+  simp [ih]
 
 -- Same: first fix the theorem statement.
 theorem Vec.append_assoc :
-    (xs +++ ys) +++ zs = xs +++ (ys +++ zs) := by
-  sorry
+    (xs +++ ys) +++ zs = cast (xs +++ (ys +++ zs)) (Nat.add_assoc ..) := by
+  induction xs
+  simp
+  case cons ih =>
+  simp [ih]
 
 -- We need two append lemmas since the RHSs have casts.
 -- You should be able to use `Vec.cast_eq_symm` to apply `Vec.append_assoc`.
 theorem Vec.append_assoc' :
-    xs +++ (ys +++ zs) = (xs +++ ys) +++ zs := by
-  sorry
+    xs +++ (ys +++ zs) = cast ((xs +++ ys) +++ zs) (Nat.add_assoc ..).symm := by
+  rewrite [← cast_eq_symm (h := Nat.add_assoc ..)]
+  simp [append_assoc]
 
 theorem Vec.cons_eq_append {x : α} :
     x :: xs = (x :: []) +++ xs := by
-  sorry
+  simp [append]
 
 /--
 Reverses `xs` and appends it to `ys`.
@@ -115,14 +125,14 @@ def Vec.reverseAux {m n : Nat} (xs : Vec α m) (ys : Vec α n) : Vec α (n + m) 
   | 0, [] => ys
   | m' + 1, x :: xs' =>
     let zs : Vec α ((n + 1) + m') := reverseAux xs' (x :: ys)
-    zs.cast (by sorry)
+    zs.cast (by rw [Nat.add_assoc, Nat.add_comm 1])
 
 /--
 Reverses `xs`. Tail recursive.
 -/
 -- Fix the definition by adding a cast.
 def Vec.reverse (xs : Vec α m) : Vec α m :=
-  Vec.reverseAux xs []
+  (Vec.reverseAux xs []).cast (Nat.zero_add _)
 
 -- It's not necessary to state `Vec.reverseAux_nil` and `Vec.reverseAux_cons` since they're
 -- the equation lemmas for `Vec.reverseAux`, but why not.
@@ -130,41 +140,65 @@ theorem Vec.reverseAux_nil :
     Vec.reverseAux [] ys = ys :=
   rfl
 
-theorem Vec.reveresAux_cons {x : α} :
-    Vec.reverseAux (x :: xs) ys = (reverseAux xs (x :: ys)).cast (by sorry) :=
+theorem Vec.reverseAux_cons {x : α} :
+    Vec.reverseAux (x :: xs) ys = (reverseAux xs (x :: ys)).cast (by rw [Nat.add_assoc, Nat.add_comm 1]) :=
   rfl
 
 @[simp]
 theorem Vec.reverseAux_cast_left (h : m = m') :
-    Vec.reverseAux (xs.cast h) ys = (Vec.reverseAux xs ys).cast (by sorry) := by
-  sorry
+    Vec.reverseAux (xs.cast h) ys = (Vec.reverseAux xs ys).cast (by {subst h; rw [Nat.add_comm]} ) := by
+  subst_vars
+  rfl
 
 @[simp]
 theorem Vec.reverseAux_cast_right (h : n = n') :
-    Vec.reverseAux xs (ys.cast h) = (Vec.reverseAux xs ys).cast (by sorry) := by
-  sorry
+    Vec.reverseAux xs (ys.cast h) = (Vec.reverseAux xs ys).cast (by {subst h; rw [Nat.add_comm]}) := by
+  subst_vars
+  rfl
 
 @[simp]
 theorem Vec.reverse_nil :
     Vec.reverse [] = ([] : Vec α 0) := by
-  sorry
+  unfold reverse reverseAux
+  rfl
 
 theorem Vec.reverseAux_eq :
     Vec.reverseAux xs ys = Vec.reverse xs +++ ys := by
-  sorry
+  revert n ys
+  induction xs
+  simp [reverseAux]
+  case cons xs' ih =>
+  intros
+  unfold reverse
+  simp [reverseAux_cons]
+  simp [ih, append_assoc]
 
 -- Fix and prove
 theorem Vec.reverse_cons_append {x : α} :
-    (x :: xs).reverse +++ ys = xs.reverse +++ (x :: ys) := by
-  sorry
+    (x :: xs).reverse +++ ys = cast (xs.reverse +++ (x :: ys)) (by { rw [Nat.add_assoc, Nat.add_comm 1] }) := by
+  unfold reverse
+  rewrite [reverseAux_cons]
+  simp [reverseAux_eq, append_assoc, cons_append, nil_append]
 
 theorem Vec.reverseAux_append :
-    Vec.reverseAux (xs +++ ys) zs = Vec.reverseAux ys (xs.reverse +++ zs) := by
-  sorry
+    Vec.reverseAux (xs +++ ys) zs = cast (Vec.reverseAux ys (xs.reverse +++ zs)) (by omega) := by
+  revert k zs
+  induction xs
+  intros
+  rfl
+
+  case cons ih =>
+  intro _ _
+  simp [reverseAux_cons]
+  rewrite [ih]
+  simp [reverse_cons_append]
 
 theorem Vec.reverse_append :
-    (xs +++ ys).reverse = ys.reverse +++ xs.reverse := by
-  sorry
+    (xs +++ ys).reverse = (ys.reverse +++ xs.reverse).cast (Nat.add_comm ..) := by
+  rewrite (occs := [1]) [reverse]
+  rewrite [reverseAux_append]
+  simp [reverseAux_eq]
+
 
 section Count
 variable [DecidableEq α]

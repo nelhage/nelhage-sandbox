@@ -2,6 +2,7 @@ import datetime
 import string
 import time
 import json
+import sys
 from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urlencode
@@ -148,6 +149,7 @@ def main(
     side: int = 3,
     day: int | None = None,
     date: datetime.date | str = datetime.date.today(),
+    threads: int | None = None,
 ):
     if day is None:
         if isinstance(date, str):
@@ -159,6 +161,8 @@ def main(
     print("Solving...")
 
     solv = z3.Solver()
+    if threads is not None:
+        solv.set(threads=threads)
 
     clues = {axis: [] for axis in "xyz"}
     for axis in "xyz":
@@ -214,7 +218,11 @@ def main(
 
     a = time.time()
     if solv.check() != z3.sat:
-        raise AssertionError("Weird: we failed to solve")
+        print("Failed to solve!", file=sys.stderr)
+        print("Statistics:", file=sys.stderr)
+        print(solv.statistics(), file=sys.stderr)
+        return
+
     b = time.time()
     print(f"check() took: {b - a:.1f}s")
 

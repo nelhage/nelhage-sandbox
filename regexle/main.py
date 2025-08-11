@@ -1,17 +1,19 @@
 import datetime
-import string
-import time
 import json
+import string
 import sys
+import time
 from dataclasses import dataclass
-from typing import Literal
-from urllib.parse import urlencode
 from pathlib import Path
+from typing import Annotated, Literal
+from urllib.parse import urlencode
 
+import cyclopts
 import greenery
 import httpx
 import numpy as np
 import z3
+from cyclopts import Parameter
 
 ALPHABET = string.ascii_uppercase
 
@@ -126,7 +128,9 @@ class Clue:
     def build_z3(self, solv: z3.Solver) -> z3.FuncDeclRef:
         return fsm_to_z3func(solv, self.fsm, self.name)
 
-PUZZLE_CACHE = Path(__file__).parent / 'puzzles'
+
+PUZZLE_CACHE = Path(__file__).parent / "puzzles"
+
 
 def fetch_puzzle(day, side):
     print(f"Retrieving puzzle: {day=} {side=}. Interactive URL:")
@@ -144,25 +148,36 @@ def fetch_puzzle(day, side):
     return puzzle
 
 
-def main(
-    *,
-    side: int = 3,
-    day: int | None = None,
-    date: datetime.date | str = datetime.date.today(),
-    threads: int | None = None,
-):
-    if day is None:
-        if isinstance(date, str):
-            date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
-        day = (date - DAY_EPOCH).days
+@dataclass
+class Stats:
+    side: int
+    day: int
 
-    puzzle = fetch_puzzle(day, side)
+    build_time: float
+    solve_time: float
+    z3_stats: dict[str, float]
 
-    print("Solving...")
+
+@dataclass
+class Options:
+    verbose: bool = True
+    threads: int | None = None
+
+    def log(self, msg: str):
+        if not self.verbose:
+            return
+        print(msg)
+
+
+def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
+    opts.log("Solving...")
 
     solv = z3.Solver()
-    if threads is not None:
-        solv.set(threads=threads)
+    if opts.threads is not None:
+        solv.set(threads=opts.threads)
+
+    t_start = time.time()
+    side = puzzle["side"]
 
     clues = {axis: [] for axis in "xyz"}
     for axis in "xyz":
@@ -214,33 +229,71 @@ def main(
                 clue.name,
             )
 
-    print(f"Querying z3...")
+    opts.log(f"Querying z3...")
+    t_check = time.time()
 
-    a = time.time()
     if solv.check() != z3.sat:
         print("Failed to solve!", file=sys.stderr)
         print("Statistics:", file=sys.stderr)
         print(solv.statistics(), file=sys.stderr)
-        return
+        raise AssertionError()
 
-    b = time.time()
-    print(f"check() took: {b - a:.1f}s")
+    # breakpoint()
+
+    t_done = time.time()
+    opts.log(f"check() took: {t_done - t_check:.1f}s")
 
     model = solv.model()
-    solved = [[model.eval(ch) for ch in row] for row in grid]
+    solved = [[ALPHABET[model.eval(ch).as_long()] for ch in row] for row in grid]
 
-    for y in iota:
+    stats = solv.statistics()
+    result = Stats(
+        side=side,
+        day=puzzle["day"],
+        build_time=t_check - t_start,
+        solve_time=t_done - t_check,
+        z3_stats={k: stats.get_key_value(k) for k in stats.keys()},
+    )
+
+    return solved, result
+
+
+app = cyclopts.App()
+
+
+@app.default
+def main(
+    *,
+    side: int = 3,
+    day: int | None = None,
+    date: datetime.date | str = datetime.date.today(),
+    opts: Annotated[Options, Parameter(name="*")],
+):
+    if day is None:
+        if isinstance(date, str):
+            date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+        day = (date - DAY_EPOCH).days
+
+    puzzle = fetch_puzzle(day, side)
+    diameter = puzzle["diameter"]
+
+    grid, _stats = solve_puzzle(puzzle, opts)
+
+    for y in range(diameter):
         print(" " * (2 * (side - 1) - y), end="")
-        for x in iota:
+        for x in range(diameter):
             if abs(x - y) < side:
-                char = ALPHABET[solved[x][y].as_long()]
+                char = grid[x][y]
             else:
                 char = " "
             print(char, end=" ")
         print()
 
 
-if __name__ == "__main__":
-    import cyclopts
+@app.command
+def profile(*, size: int = 3, days: str = "400..410"):
+    pass
 
-    cyclopts.run(main)
+
+if __name__ == "__main__":
+    app()

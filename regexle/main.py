@@ -3,15 +3,17 @@ import json
 import string
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Sequence
 from urllib.parse import urlencode
+from tqdm import tqdm
 
 import cyclopts
 import greenery
 import httpx
 import numpy as np
+import pandas as pd
 import z3
 from cyclopts import Parameter
 
@@ -132,10 +134,10 @@ class Clue:
 PUZZLE_CACHE = Path(__file__).parent / "puzzles"
 
 
-def fetch_puzzle(day, side):
-    print(f"Retrieving puzzle: {day=} {side=}. Interactive URL:")
+def fetch_puzzle(opts, day, side):
+    opts.log(f"Retrieving puzzle: {day=} {side=}. Interactive URL:")
     qstring = urlencode(dict(day=day, side=side))
-    print("  https://regexle.com/?" + qstring)
+    opts.log("  https://regexle.com/?" + qstring)
 
     cached = PUZZLE_CACHE / f"puzzle_{day}_{side}.json"
     if not cached.is_file():
@@ -229,7 +231,7 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
                 clue.name,
             )
 
-    opts.log(f"Querying z3...")
+    opts.log("Querying z3...")
     t_check = time.time()
 
     if solv.check() != z3.sat:
@@ -261,20 +263,38 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
 app = cyclopts.App()
 
 
+def parse_date(type_, tokens: Sequence[cyclopts.Token]) -> datetime.date:
+    date = tokens[0].value
+    return datetime.datetime.strptime(date, "%Y-%m-%d").date()
+
+
+def parse_range(type_, tokens: Sequence[cyclopts.Token]) -> list[int]:
+    arg = tokens[0].value
+    out = []
+    for bit in arg.split(","):
+        bit = bit.strip()
+        if ".." in bit:
+            start, end = (int(v) for v in bit.split(".."))
+            out.extend(list(range(start, end)))
+        else:
+            out.append(int(bit))
+    return sorted(out)
+
+
 @app.default
 def main(
     *,
     side: int = 3,
     day: int | None = None,
-    date: datetime.date | str = datetime.date.today(),
+    date: Annotated[
+        datetime.date, Parameter(converter=parse_date)
+    ] = datetime.date.today(),
     opts: Annotated[Options, Parameter(name="*")],
 ):
     if day is None:
-        if isinstance(date, str):
-            date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
         day = (date - DAY_EPOCH).days
 
-    puzzle = fetch_puzzle(day, side)
+    puzzle = fetch_puzzle(opts, day, side)
     diameter = puzzle["diameter"]
 
     grid, _stats = solve_puzzle(puzzle, opts)
@@ -291,9 +311,29 @@ def main(
 
 
 @app.command
-def profile(*, size: int = 3, days: str = "400..410"):
-    pass
+def profile(
+    *,
+    side: int = 3,
+    days: Annotated[list[int], Parameter(converter=parse_range)] = list(
+        range(400, 410)
+    ),
+    opts: Annotated[Options, Parameter(name="*")] = Options(verbose=False),
+    out: str = 'stats.json',
+):
+    all_stats = []
+    for day in tqdm(days):
+        puzzle = fetch_puzzle(opts, day=day, side=side)
+        _, stats = solve_puzzle(puzzle, opts)
+        all_stats.append(stats)
 
+    df = pd.json_normalize([
+        asdict(s) for s in all_stats
+    ])
+    df.to_json(out)
+
+    ts = df.solve_time
+    print(f"z3 time:     {ts.mean():.2f}±{ts.std():.2f}s")
+    print(f" (min, max): ({ts.min():.2f}, {ts.max():.2f})")
 
 if __name__ == "__main__":
     app()

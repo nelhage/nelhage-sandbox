@@ -225,17 +225,36 @@ variable {a : α}
 
 theorem Vec.countAux_eq {acc : Nat} :
     Vec.countAux a xs acc = Vec.count a xs + acc := by
-  sorry
+  revert acc
+  unfold count
+  induction xs <;> unfold countAux
+  intro
+  rw [Nat.zero_add]
+
+  rename_i ih
+  intro
+  conv =>
+    lhs
+    rewrite [ih]
+    rhs
+    rewrite [Nat.add_comm]
+  conv =>
+    rhs
+    rewrite [ih]
+  rw [Nat.add_assoc, Nat.zero_add]
 
 @[simp]
 theorem Vec.count_nil :
     ([] : Vec α 0).count a = 0 := by
-  sorry
+  unfold count countAux
+  rfl
 
 @[simp]
 theorem Vec.count_cons_self {x : α} :
     (x :: xs).count x = xs.count x + 1 := by
-  sorry
+  unfold count
+  rewrite [countAux]
+  simp [countAux_eq]
 
 @[simp]
 theorem Vec.count_cons_of_eq {x : α} (h : x = a) :
@@ -246,12 +265,15 @@ theorem Vec.count_cons_of_eq {x : α} (h : x = a) :
 @[simp]
 theorem Vec.count_cons_of_neq {x : α} (h : x ≠ a) :
     (x :: xs).count a = xs.count a := by
-  sorry
+  unfold count
+  rewrite [countAux]
+  simp [h]
 
 @[simp]
 theorem Vec.count_cast (h : m = m') :
     Vec.count a (xs.cast h) = Vec.count a xs := by
-  sorry
+  subst_vars
+  rfl
 
 -- Example of `split`
 @[simp]
@@ -261,7 +283,16 @@ theorem Vec.count_cons {x : α} :
 
 theorem Vec.count_append :
     (xs +++ ys).count a = xs.count a + ys.count a := by
-  sorry
+  induction xs
+  simp
+  rename_i ih
+  simp [ih]
+  conv =>
+    rhs
+    rewrite [Nat.add_assoc]
+    rhs
+    rewrite [Nat.add_comm]
+  rw [Nat.add_assoc]
 
 theorem Vec.length_reverseAux :
     (Vec.reverseAux xs ys).count a = xs.count a + ys.count a := by

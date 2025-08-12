@@ -123,11 +123,11 @@ class Clue:
 
 
 class Matcher:
-    def train(self, clues: list[Clue]):
+    def train(self, solv: z3.Solver, clues: list[Clue]):
         pass
 
     def make_char(self, solv: z3.Solver, name: str):
-        ch = z3.Int(name)
+        ch = z3.Int(name, solv.ctx)
         solv.add(0 <= ch)
         solv.add(ch < len(ALPHABET))
         return ch
@@ -140,18 +140,19 @@ class Matcher:
 
 class IntFunc(Matcher):
     def build_func(self, solv: z3.Solver, clue: Clue):
+        ctx = solv.ctx
         state_func = z3.Function(
             clue.name + "_xfer",
-            z3.IntSort(),
-            z3.IntSort(),
-            z3.IntSort(),
+            z3.IntSort(ctx),
+            z3.IntSort(ctx),
+            z3.IntSort(ctx),
         )
         pat = clue.pattern
 
         for (state, char), next_state in pat.all_transitions():
             solv.add(state_func(state, char) == next_state)
 
-        s, c = z3.Ints("s c")
+        s, c = z3.Ints("s c", ctx)
         solv.add(
             z3.ForAll(
                 [s, c],
@@ -167,7 +168,7 @@ class IntFunc(Matcher):
         nchar = len(chars)
         dead = pat.dead_states
 
-        states = z3.IntVector(clue.name + "_state", 1 + nchar)
+        states = z3.IntVector(clue.name + "_state", 1 + nchar, ctx=solv.ctx)
         for i, ch in enumerate(chars):
             solv.add(state_func(states[i], ch) == states[i + 1])
 
@@ -175,13 +176,16 @@ class IntFunc(Matcher):
         dead_init = pat.dead_from(0)
 
         for ch in chars:
-            solv.add(z3.Not(one_of(ch, dead_all)))
-        solv.add(z3.Not(one_of(chars[0], dead_init - dead_all)))
+            for d in dead_all:
+                solv.add(ch != d)
+        for d in dead_init:
+            solv.add(chars[0] != d)
 
         for st in states:
             solv.add(0 <= st)
             solv.add(st < pat.nstate)
-            solv.add(z3.Not(one_of(st, dead)))
+            for d in dead:
+                solv.add(st != d)
         solv.add(states[0] == 0)
         solv.add(one_of(states[-1], [i for i, v in enumerate(pat.accept) if v]))
 
@@ -190,17 +194,21 @@ class EnumFunc(Matcher):
     state_sort: z3.SortRef
     states: list[z3.ExprRef]
 
-    def train(self, clues: list[Clue]):
+    def train(self, solv: z3.Solver, clues: list[Clue]):
         nstates = max(c.pattern.nstate for c in clues)
         self.state_sort, self.states = z3.EnumSort(
-            "State", [f"s{i}" for i in range(nstates)]
+            "State",
+            [f"s{i}" for i in range(nstates)],
+            ctx=solv.ctx,
         )
 
     def build_func(self, solv: z3.Solver, clue: Clue):
+        ctx = solv.ctx
+
         state_func = z3.Function(
             clue.name + "_xfer",
             self.state_sort,
-            z3.IntSort(),
+            z3.IntSort(ctx),
             self.state_sort,
         )
         pat = clue.pattern
@@ -228,8 +236,11 @@ class EnumFunc(Matcher):
         dead_init = pat.dead_from(0)
 
         for ch in chars:
-            solv.add(z3.Not(one_of(ch, dead_all)))
-        solv.add(z3.Not(one_of(chars[0], dead_init - dead_all)))
+            for d in dead_all:
+                solv.add(ch != d)
+
+        for d in dead_init:
+            solv.add(chars[0] != d)
 
         for st in states:
             for d in dead:
@@ -248,13 +259,15 @@ class EnumEnumFunc(Matcher):
     state_sort: z3.SortRef
     states: list[z3.ExprRef]
 
-    def train(self, clues: list[Clue]):
+    def train(self, solv: z3.Solver, clues: list[Clue]):
         nstates = max(c.pattern.nstate for c in clues)
         self.state_sort, self.states = z3.EnumSort(
-            "State", [f"s{i}" for i in range(nstates)]
+            "State",
+            [f"s{i}" for i in range(nstates)],
+            solv.ctx,
         )
 
-        self.char_sort, self.alphabet = z3.EnumSort("Char", list(ALPHABET))
+        self.char_sort, self.alphabet = z3.EnumSort("Char", list(ALPHABET), solv.ctx)
 
     def make_char(self, solv: z3.Solver, name: str):
         return z3.Const(name, self.char_sort)
@@ -369,7 +382,8 @@ class Options:
 def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     opts.log("Solving...")
 
-    solv = z3.Solver()
+    ctx = z3.Context()
+    solv = z3.Solver(ctx=ctx)
     if opts.threads is not None:
         solv.set(threads=opts.threads)
 
@@ -392,7 +406,7 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     maxdim = (2 * side) - 1
     assert maxdim == puzzle["diameter"]
 
-    matcher.train([c for cs in clues.values() for c in cs])
+    matcher.train(solv, [c for cs in clues.values() for c in cs])
 
     grid = [
         [matcher.make_char(solv, f"grid_{x}_{y}") for y in range(maxdim)]

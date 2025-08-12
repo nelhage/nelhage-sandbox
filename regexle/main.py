@@ -3,6 +3,7 @@ import json
 import string
 import sys
 import time
+from functools import cached_property
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Annotated, Literal, Sequence
@@ -40,74 +41,63 @@ def flatten_fsm(fsm):
     return state_map
 
 
-def fsm_to_z3func(solv, fsm, name):
-    flat = flatten_fsm(fsm)
-    nstate, nvocab = flat.shape
-
-    state_func = z3.Function(
-        name + "_xfer",
-        z3.IntSort(),
-        z3.IntSort(),
-        z3.IntSort(),
-    )
-
-    it = np.nditer(flat, flags=["multi_index"])
-    for next_state in it:
-        state, char = it.multi_index
-        solv.add(state_func(state, char) == next_state)
-
-    s, c = z3.Ints("s c")
-    solv.add(
-        z3.ForAll(
-            [s, c],
-            (state_func(s, c) >= 0) & (state_func(s, c) < nstate),
-        )
-    )
-    return state_func
-
-
 def one_of(var, values):
     return z3.Or(*(var == v for v in values))
 
-
-def dead_states(fsm):
-    loop = {s for s, m in fsm.map.items() if set(m.values()) == {s}}
-    return loop - fsm.finals
-
-
-def assert_matches(solv, fsm, state_func, chars, name):
-    flat = flatten_fsm(fsm)
-    nstate, nvocab = flat.shape
-
-    nchar = len(chars)
-    dead = dead_states(fsm)
-
-    states = z3.IntVector(name + "_state", 1 + nchar)
-    for i, ch in enumerate(chars):
-        solv.add(state_func(states[i], ch) == states[i + 1])
-
-    dead_init = set()
-    dead_all = set()
-
-    for d in dead:
-        dead_init |= set((flat[0] == d).nonzero()[0])
-        dead_all |= set((flat == d).all(0).nonzero()[0])
-
-    for ch in chars:
-        solv.add(z3.Not(one_of(ch, dead_all)))
-    solv.add(z3.Not(one_of(chars[0], dead_init - dead_all)))
-
-    for st in states:
-        solv.add(0 <= st)
-        solv.add(st < nstate)
-        solv.add(z3.Not(one_of(st, dead)))
-    solv.add(states[0] == fsm.initial)
-    solv.add(one_of(states[-1], fsm.finals))
-
-
-DAY_EPOCH = datetime.date(2024, 5, 31)
-
 Axis = Literal["x", "y", "z"]
+
+@dataclass
+class Regex:
+    pattern: str
+    # vocabulary: str
+    transition: np.ndarray # (state, vocab)
+    accept: np.ndarray # (state,), bool
+
+    @property
+    def nstate(self) -> int:
+        return self.transition.shape[0]
+
+    @property
+    def nvocab(self) -> int:
+        return self.transition.shape[1]
+
+    @classmethod
+    def from_pattern(cls, pattern: str):
+        fsm = to_fsm(pattern)
+        transition = flatten_fsm(fsm)
+        nstate = transition.shape[0]
+        accept = np.zeros((nstate,), bool)
+        for st in fsm.finals:
+            accept[st] = True
+        return cls(
+            pattern=pattern,
+            transition=transition,
+            accept=accept,
+        )
+
+    def all_transitions(self):
+        it = np.nditer(self.transition, flags=["multi_index"])
+        for next_state in it:
+            state, char = it.multi_index
+            yield (state, char), next_state
+
+    @cached_property
+    def dead_states(self) -> set[int]:
+        looped = self.transition == np.arange(self.nstate)[:, None]
+        return set((looped.all(-1) &~ self.accept).nonzero()[0])
+
+    @cached_property
+    def dead_vocab(self) -> set[int]:
+        dead = set()
+        for d in self.dead_states:
+            dead |= set((self.transition == d).all(0).nonzero()[0])
+        return dead
+
+    def dead_from(self, state: int) -> set[int]:
+        dead = set()
+        for d in self.dead_states:
+            dead |= set((self.transition == d)[state].nonzero()[0])
+        return dead
 
 
 @dataclass
@@ -115,8 +105,7 @@ class Clue:
     axis: Axis
     index: int
 
-    pattern: str
-    fsm: greenery.Fsm
+    pattern: Regex
 
     @property
     def name(self):
@@ -125,10 +114,53 @@ class Clue:
     @classmethod
     def from_pattern(cls, re: str, axis: Axis, index: int):
         fsm = to_fsm(re)
-        return cls(axis=axis, index=index, pattern=re, fsm=fsm)
+        return cls(axis=axis, index=index, pattern=Regex.from_pattern(re))
 
-    def build_z3(self, solv: z3.Solver) -> z3.FuncDeclRef:
-        return fsm_to_z3func(solv, self.fsm, self.name)
+def build_z3(solv, clue: Clue):
+    state_func = z3.Function(
+        clue.name + "_xfer",
+        z3.IntSort(),
+        z3.IntSort(),
+        z3.IntSort(),
+    )
+    pat = clue.pattern
+
+    for (state, char), next_state in pat.all_transitions():
+        solv.add(state_func(state, char) == next_state)
+
+    s, c = z3.Ints("s c")
+    solv.add(
+        z3.ForAll(
+            [s, c],
+            (state_func(s, c) >= 0) & (state_func(s, c) < pat.nstate),
+        )
+    )
+    return state_func
+
+def assert_matches(solv, clue: Clue, chars):
+    state_func = build_z3(solv, clue)
+    pat = clue.pattern
+
+    nchar = len(chars)
+    dead = pat.dead_states
+
+    states = z3.IntVector(clue.name + "_state", 1 + nchar)
+    for i, ch in enumerate(chars):
+        solv.add(state_func(states[i], ch) == states[i + 1])
+
+    dead_all = pat.dead_vocab
+    dead_init = pat.dead_from(0)
+
+    for ch in chars:
+        solv.add(z3.Not(one_of(ch, dead_all)))
+    solv.add(z3.Not(one_of(chars[0], dead_init - dead_all)))
+
+    for st in states:
+        solv.add(0 <= st)
+        solv.add(st < pat.nstate)
+        solv.add(z3.Not(one_of(st, dead)))
+    solv.add(states[0] == 0)
+    solv.add(one_of(states[-1], [i for i,v in enumerate(pat.accept) if v]))
 
 
 PUZZLE_CACHE = Path(__file__).parent / "puzzles"
@@ -221,14 +253,11 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
         for clue in clues[axis]:
             coords = word_coords[clue.axis, clue.index]
             chars = [grid[x][y] for x, y in coords]
-            z3fn = clue.build_z3(solv)
 
             assert_matches(
                 solv,
-                clue.fsm,
-                z3fn,
+                clue,
                 chars,
-                clue.name,
             )
 
     opts.log("Querying z3...")
@@ -280,6 +309,7 @@ def parse_range(type_, tokens: Sequence[cyclopts.Token]) -> list[int]:
             out.append(int(bit))
     return sorted(out)
 
+DAY_EPOCH = datetime.date(2024, 5, 31)
 
 @app.default
 def main(
@@ -289,7 +319,7 @@ def main(
     date: Annotated[
         datetime.date, Parameter(converter=parse_date)
     ] = datetime.date.today(),
-    opts: Annotated[Options, Parameter(name="*")],
+    opts: Annotated[Options, Parameter(name="*")] = Options(),
 ):
     if day is None:
         day = (date - DAY_EPOCH).days
@@ -318,7 +348,7 @@ def profile(
         range(400, 410)
     ),
     opts: Annotated[Options, Parameter(name="*")] = Options(verbose=False),
-    out: str = 'stats.json',
+    out: Annotated[str, Parameter(alias='-o')] = 'stats.json',
 ):
     all_stats = []
     for day in tqdm(days):

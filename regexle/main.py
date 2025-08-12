@@ -6,7 +6,7 @@ import time
 from dataclasses import asdict, dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import Annotated, Iterator, Literal, Sequence, Type
+from typing import Annotated, Generic, Iterator, Literal, Sequence, Type, TypeVar
 from urllib.parse import urlencode
 
 import cyclopts
@@ -125,6 +125,12 @@ class Clue:
 class Matcher:
     def train(self, clues: list[Clue]):
         pass
+
+    def make_char(self, name: str):
+        return z3.Int(name)
+
+    def extract(self, ch) -> str:
+        return ALPHABET[ch.as_long()]
 
     def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]): ...
 
@@ -312,7 +318,10 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
 
     matcher.train([c for cs in clues.values() for c in cs])
 
-    grid = [[z3.Int(f"grid_{x}_{y}") for y in range(maxdim)] for x in range(maxdim)]
+    grid = [
+        [matcher.make_char(f"grid_{x}_{y}") for y in range(maxdim)]
+        for x in range(maxdim)
+    ]
 
     for row in grid:
         for ch in row:
@@ -361,7 +370,7 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     opts.log(f"check() took: {t_done - t_check:.1f}s")
 
     model = solv.model()
-    solved = [[ALPHABET[model.eval(ch).as_long()] for ch in row] for row in grid]
+    solved = [[matcher.extract(model.eval(ch)) for ch in row] for row in grid]
 
     stats = solv.statistics()
     result = Stats(

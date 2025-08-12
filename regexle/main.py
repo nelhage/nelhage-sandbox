@@ -126,11 +126,14 @@ class Matcher:
     def train(self, clues: list[Clue]):
         pass
 
-    def make_char(self, name: str):
-        return z3.Int(name)
+    def make_char(self, solv: z3.Solver, name: str):
+        ch = z3.Int(name)
+        solv.add(0 <= ch)
+        solv.add(ch < len(ALPHABET))
+        return ch
 
-    def extract(self, ch) -> str:
-        return ALPHABET[ch.as_long()]
+    def extract(self, model, ch) -> str:
+        return ALPHABET[model.eval(ch).as_long()]
 
     def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]): ...
 
@@ -238,9 +241,82 @@ class EnumFunc(Matcher):
         )
 
 
+class EnumEnumFunc(Matcher):
+    char_sort: z3.SortRef
+    alphabet: list[z3.ExprRef]
+
+    state_sort: z3.SortRef
+    states: list[z3.ExprRef]
+
+    def train(self, clues: list[Clue]):
+        nstates = max(c.pattern.nstate for c in clues)
+        self.state_sort, self.states = z3.EnumSort(
+            "State", [f"s{i}" for i in range(nstates)]
+        )
+
+        self.char_sort, self.alphabet = z3.EnumSort("Char", list(ALPHABET))
+
+    def make_char(self, solv: z3.Solver, name: str):
+        return z3.Const(name, self.char_sort)
+
+    def extract(self, model, ch) -> str:
+        return str(model.eval(ch))
+
+    def build_func(self, solv: z3.Solver, clue: Clue):
+        state_func = z3.Function(
+            clue.name + "_xfer",
+            self.state_sort,
+            self.char_sort,
+            self.state_sort,
+        )
+        pat = clue.pattern
+
+        for (state, char), next_state in pat.all_transitions():
+            solv.add(
+                state_func(self.states[state], self.alphabet[char])
+                == self.states[next_state]
+            )
+
+        return state_func
+
+    def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
+        state_func = self.build_func(solv, clue)
+        pat = clue.pattern
+
+        nchar = len(chars)
+        dead = pat.dead_states
+
+        states = [
+            z3.Const(f"{clue.name}_state_{i}", self.state_sort)
+            for i in range(nchar + 1)
+        ]
+        for i, ch in enumerate(chars):
+            solv.add(state_func(states[i], ch) == states[i + 1])
+
+        dead_all = pat.dead_vocab
+        dead_init = pat.dead_from(0)
+
+        for ch in chars:
+            for d in dead_all:
+                solv.add(ch != self.alphabet[d])
+
+        for d in dead_init:
+            solv.add(chars[0] != self.alphabet[d])
+
+        for st in states:
+            for d in dead:
+                solv.add(st != self.states[d])
+
+        solv.add(states[0] == self.states[0])
+        solv.add(
+            one_of(states[-1], [self.states[i] for i, v in enumerate(pat.accept) if v])
+        )
+
+
 STRATEGIES: dict[str, Type[Matcher]] = {
     "int_func": IntFunc,
     "enum_func": EnumFunc,
+    "enum_enum_func": EnumEnumFunc,
 }
 
 PUZZLE_CACHE = Path(__file__).parent / "puzzles"
@@ -319,14 +395,9 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     matcher.train([c for cs in clues.values() for c in cs])
 
     grid = [
-        [matcher.make_char(f"grid_{x}_{y}") for y in range(maxdim)]
+        [matcher.make_char(solv, f"grid_{x}_{y}") for y in range(maxdim)]
         for x in range(maxdim)
     ]
-
-    for row in grid:
-        for ch in row:
-            solv.add(0 <= ch)
-            solv.add(ch < len(ALPHABET))
 
     iota = np.arange(maxdim, dtype=int)
 
@@ -370,7 +441,7 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     opts.log(f"check() took: {t_done - t_check:.1f}s")
 
     model = solv.model()
-    solved = [[matcher.extract(model.eval(ch)) for ch in row] for row in grid]
+    solved = [[matcher.extract(model, ch) for ch in row] for row in grid]
 
     stats = solv.statistics()
     result = Stats(

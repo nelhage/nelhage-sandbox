@@ -13,7 +13,6 @@ import cyclopts
 import greenery
 import httpx
 import numpy as np
-import pandas as pd
 import z3
 from cyclopts import Parameter
 from tqdm import tqdm
@@ -537,6 +536,8 @@ def profile(
         puzzle = fetch_puzzle(opts, day=day, side=side)
         _, stats = solve_puzzle(puzzle, opts)
         all_stats.append(stats)
+
+    import pandas as pd
 
     df = pd.json_normalize([asdict(s) for s in all_stats])
     df.to_json(out)

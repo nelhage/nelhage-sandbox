@@ -325,10 +325,79 @@ class EnumEnumFunc(Matcher):
         )
 
 
+class EnumEnumImplies(Matcher):
+    char_sort: z3.SortRef
+    alphabet: list[z3.ExprRef]
+
+    state_sort: z3.SortRef
+    states: list[z3.ExprRef]
+
+    def train(self, solv: z3.Solver, clues: list[Clue]):
+        nstates = max(c.pattern.nstate for c in clues)
+        self.state_sort, self.states = z3.EnumSort(
+            "State",
+            [f"s{i}" for i in range(nstates)],
+            solv.ctx,
+        )
+
+        self.char_sort, self.alphabet = z3.EnumSort("Char", list(ALPHABET), solv.ctx)
+
+    def make_char(self, solv: z3.Solver, name: str):
+        return z3.Const(name, self.char_sort)
+
+    def extract(self, model, ch) -> str:
+        return str(model.eval(ch))
+
+    def map_state(self, solv: z3.Solver, clue: Clue, this_state, this_char, next_state):
+        pat = clue.pattern
+
+        for (state, char), out_state in pat.all_transitions():
+            solv.add(
+                z3.Implies(
+                    (this_state == self.states[state])
+                    & (this_char == self.alphabet[char]),
+                    next_state == self.states[out_state],
+                )
+            )
+
+    def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
+        pat = clue.pattern
+
+        nchar = len(chars)
+        dead = pat.dead_states
+
+        states = [
+            z3.Const(f"{clue.name}_state_{i}", self.state_sort)
+            for i in range(nchar + 1)
+        ]
+        for i, ch in enumerate(chars):
+            self.map_state(solv, clue, states[i], ch, states[i + 1])
+
+        dead_all = pat.dead_vocab
+        dead_init = pat.dead_from(0)
+
+        for ch in chars:
+            for d in dead_all:
+                solv.add(ch != self.alphabet[d])
+
+        for d in dead_init:
+            solv.add(chars[0] != self.alphabet[d])
+
+        for st in states:
+            for d in dead:
+                solv.add(st != self.states[d])
+
+        solv.add(states[0] == self.states[0])
+        solv.add(
+            one_of(states[-1], [self.states[i] for i, v in enumerate(pat.accept) if v])
+        )
+
+
 STRATEGIES: dict[str, Type[Matcher]] = {
     "int_func": IntFunc,
     "enum_func": EnumFunc,
     "enum_enum_func": EnumEnumFunc,
+    "enum_enum_implies": EnumEnumImplies,
 }
 
 PUZZLE_CACHE = Path(__file__).parent / "puzzles"

@@ -598,7 +598,7 @@ def profile(
         range(400, 410)
     ),
     opts: Annotated[Options, Parameter(name="*")] = Options(verbose=False),
-    out: Annotated[str, Parameter(alias="-o")] = "stats.json",
+    out: Annotated[str, Parameter(alias="-o")] = "stats/stats.json",
 ):
     all_stats = []
     for day in tqdm(days):

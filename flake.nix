@@ -40,6 +40,13 @@
               pkgs.ruff
             ];
           };
+          mnist-subliminal = pkgs.mkShell {
+            packages = [
+              pkgs.python3
+              pkgs.uv
+              pkgs.ruff
+            ];
+          };
         }
       );
     };

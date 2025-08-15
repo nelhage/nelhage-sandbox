@@ -1,4 +1,5 @@
 import time
+from dataclasses import dataclass
 from functools import partial
 
 import jax
@@ -119,12 +120,72 @@ train_step_jit = jax.jit(train_step, static_argnames=("opt_update", "get_params"
 fwd_and_accuracy_jit = jax.jit(forward_and_accuracy)
 
 
+@dataclass
+class Config:
+    epochs: int = 5
+    batch_size: int = 128
+    learning_rate: float = 1e-3
+    init: initializers.Initializer = initializers.variance_scaling(
+        mode="fan_in", scale=2, distribution="normal"
+    )
+
+
+def train_loop(cfg: Config, params, x_train, y_train, x_test=None, y_test=None):
+    opt_init, opt_update, get_params = optimizers.adam(cfg.learning_rate)
+    opt_state = jax.vmap(opt_init)(params)
+
+    train_one_step = partial(train_step, opt_update=opt_update, get_params=get_params)
+    train_jit = jax.jit(jax.vmap(train_one_step, in_axes=(None, 0, None, None, 0)))
+    batch_accuracy = jax.jit(jax.vmap(forward_and_accuracy, in_axes=(0, None, None)))
+
+    n_data = x_train.shape[0]
+    (n_model,) = set(p.shape[0] for p in jax.tree.leaves(params))
+    n_ex = n_data * n_model
+
+    step = jnp.array(1)
+    for epoch in range(cfg.epochs):
+        epoch_loss = 0.0
+        n_batches = 0
+
+        # Shuffle and batch data
+        start_epoch = time.perf_counter()
+        for x_batch, y_batch in create_batches(x_train, y_train, cfg.batch_size):
+            params, opt_state, batch_loss = train_jit(
+                step,
+                params,
+                x_batch,
+                y_batch,
+                opt_state,
+            )
+            epoch_loss += batch_loss
+            n_batches += 1
+            step = step + 1
+        end_epoch = time.perf_counter()
+
+        t_epoch = end_epoch - start_epoch
+
+        # Calculate average loss and accuracy
+        avg_loss = epoch_loss / n_batches
+        train_acc = jax.device_get(
+            batch_accuracy(params, x_train[:1000], y_train[:1000])
+        )
+        if x_test is not None and y_test is not None:
+            test_acc = jax.device_get(batch_accuracy(params, x_test, y_test))
+        else:
+            test_acc = np.zeros_like(train_acc)
+
+        with np.printoptions(precision=3, floatmode="fixed"):
+            print(
+                f"Epoch {epoch + 1:2d}: Loss = {avg_loss}, "
+                f"Train Acc = {train_acc}, Test Acc = {test_acc:}  "
+                f"t={t_epoch:.2f}s ex/sec={n_ex / t_epoch:.1f}"
+            )
+    return params
+
+
 def train_one(
     *,
-    epochs: int = 10,
-    batch_size: int = 128,
-    lr: float = 1e-3,
-    init=initializers.variance_scaling(mode="fan_in", scale=2, distribution="normal"),
+    cfg: Config = Config(),
 ):
     """Main training loop."""
     # Set random seed for reproducibility
@@ -139,64 +200,26 @@ def train_one(
 
     # Initialize network parameters
     print("Initializing network...")
-    params = init_network_params(layer_sizes, key, init=init)
+    params = init_network_params(layer_sizes, key, init=cfg.init)
 
     # Initialize optimizer (Adam)
-    learning_rate = lr
-    opt_init, opt_update, get_params = optimizers.adam(learning_rate)
+    opt_init, opt_update, get_params = optimizers.adam(cfg.learning_rate)
     opt_state = opt_init(params)
 
     # Training parameters
 
     print("Starting training...")
     print(f"Network architecture: {' -> '.join(map(str, layer_sizes))}")
-    print(f"Learning rate: {learning_rate}")
-    print(f"Batch size: {batch_size}")
-    print(f"Epochs: {epochs}")
+    print(f"Learning rate: {cfg.learning_rate}")
+    print(f"Batch size: {cfg.batch_size}")
+    print(f"Epochs: {cfg.epochs}")
     print("-" * 50)
 
-    # Training loop
-    n_ex = x_train.shape[0]
-
-    step = 0
-    for epoch in range(epochs):
-        epoch_loss = 0.0
-        n_batches = 0
-
-        # Shuffle and batch data
-        t_start = time.time()
-        for x_batch, y_batch in create_batches(x_train, y_train, batch_size):
-            params, opt_state, batch_loss = train_step_jit(
-                step,
-                params,
-                x_batch,
-                y_batch,
-                opt_state,
-                opt_update,
-                get_params,
-            )
-            epoch_loss += batch_loss
-            n_batches += 1
-            step += 1
-        t_end = time.time()
-        t_step = t_end - t_start
-
-        # Calculate average loss and accuracy
-        avg_loss = epoch_loss / n_batches
-        train_acc = fwd_and_accuracy_jit(
-            params, x_train[:1000], y_train[:1000]
-        )  # Sample for speed
-        test_acc = fwd_and_accuracy_jit(params, x_test, y_test)
-
-        print(
-            f"Epoch {epoch + 1:2d}: Loss = {avg_loss:.4f}, "
-            f"Train Acc = {train_acc:.4f}, Test Acc = {test_acc:.4f} t={t_step:.2f}s ex/s={n_ex / t_step:.1f}"
-        )
-
-    print("-" * 50)
-    print("Training completed!")
-
-    # Final evaluation
-    print(f"Final test accuracy: {test_acc:.4f}")
+    params = jax.tree.map(lambda p: p[None, ...], params)
+    params = train_loop(cfg, params, x_train, y_train, x_test, y_test)
+    params = jax.tree.map(lambda p: jnp.squeeze(p, 0), params)
 
     return params
+
+
+# def train_step(step, params, x_batch, y_batch, opt_state, opt_update, get_params):

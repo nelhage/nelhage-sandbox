@@ -1,6 +1,7 @@
 import time
 from dataclasses import dataclass
 from functools import partial
+from typing import Callable
 
 import jax
 import jax.numpy as jnp
@@ -64,24 +65,23 @@ def accuracy(outputs, y):
     return jnp.mean(predicted_classes == true_classes)
 
 
-def forward_and_loss(params, x_batch, y_batch):
-    """Average loss over a batch."""
-    out = forward_pass(params, x_batch)
-    per_seq_loss = cross_entropy_loss(out, y_batch)
-    return jnp.mean(per_seq_loss)
-
-
 def forward_and_accuracy(params, x_batch, y_batch):
     out = forward_pass(params, x_batch)
     per_seq_accuracy = accuracy(out, y_batch)
     return jnp.mean(per_seq_accuracy)
 
 
-def train_step(step, params, x_batch, y_batch, opt_state, opt_update, get_params):
+def train_step(
+    step, params, x_batch, y_batch, opt_state, loss_fn, opt_update, get_params
+):
     """Single training step."""
-    val_and_grad = jax.value_and_grad(
-        lambda params: forward_and_loss(params, x_batch, y_batch)
-    )
+
+    def fwd_and_loss(params):
+        out = forward_pass(params, x_batch)
+        loss = loss_fn(out, y_batch)
+        return jnp.mean(loss)
+
+    val_and_grad = jax.value_and_grad(fwd_and_loss)
 
     loss_val, grads = val_and_grad(params)
 
@@ -115,11 +115,6 @@ def create_batches(x, y, batch_size):
         yield x[batch_indices], y[batch_indices]
 
 
-# JIT compile training step
-train_step_jit = jax.jit(train_step, static_argnames=("opt_update", "get_params"))
-fwd_and_accuracy_jit = jax.jit(forward_and_accuracy)
-
-
 @dataclass
 class Config:
     epochs: int = 5
@@ -129,12 +124,21 @@ class Config:
         mode="fan_in", scale=2, distribution="normal"
     )
 
+    loss_fn: Callable = cross_entropy_loss
+    random_seed: jax.typing.ArrayLike = 42
+    measure_accuracy: bool = True
+
 
 def train_loop(cfg: Config, params, x_train, y_train, x_test=None, y_test=None):
     opt_init, opt_update, get_params = optimizers.adam(cfg.learning_rate)
     opt_state = jax.vmap(opt_init)(params)
 
-    train_one_step = partial(train_step, opt_update=opt_update, get_params=get_params)
+    train_one_step = partial(
+        train_step,
+        loss_fn=cfg.loss_fn,
+        opt_update=opt_update,
+        get_params=get_params,
+    )
     train_jit = jax.jit(jax.vmap(train_one_step, in_axes=(None, 0, None, None, 0)))
     batch_accuracy = jax.jit(jax.vmap(forward_and_accuracy, in_axes=(0, None, None)))
 
@@ -166,9 +170,14 @@ def train_loop(cfg: Config, params, x_train, y_train, x_test=None, y_test=None):
 
         # Calculate average loss and accuracy
         avg_loss = epoch_loss / n_batches
-        train_acc = jax.device_get(
-            batch_accuracy(params, x_train[:1000], y_train[:1000])
-        )
+
+        if cfg.measure_accuracy:
+            train_acc = jax.device_get(
+                batch_accuracy(params, x_train[:1000], y_train[:1000])
+            )
+        else:
+            train_acc = np.zeros_like(avg_loss)
+
         if x_test is not None and y_test is not None:
             test_acc = jax.device_get(batch_accuracy(params, x_test, y_test))
         else:
@@ -188,8 +197,7 @@ def train_one(
     cfg: Config = Config(),
 ):
     """Main training loop."""
-    # Set random seed for reproducibility
-    key = random.PRNGKey(42)
+    key = random.PRNGKey(cfg.random_seed)
 
     # Load data
     print("Loading MNIST data...")

@@ -51,6 +51,22 @@ def forward_pass(params, x):
     return x
 
 
+@partial(jax.jit, static_argnames=("axis", "epsilon"))
+def cosine_similarity(a, b, axis: int = -1, epsilon: float = 0.0):
+    a_norm2 = jnp.square(a).sum(axis=axis, keepdims=True)
+    b_norm2 = jnp.square(b).sum(axis=axis, keepdims=True)
+    a_norm = jnp.sqrt(a_norm2.clip(epsilon))
+    b_norm = jnp.sqrt(b_norm2.clip(epsilon))
+    a_unit = a / a_norm
+    b_unit = b / b_norm
+    return (a_unit * b_unit).sum(axis=axis)
+
+
+@jax.jit
+def mse(a, b, axis: int = -1):
+    return jnp.mean(jnp.square(a - b), axis=axis)
+
+
 def cross_entropy_loss(outputs, y):
     """Cross-entropy loss function."""
     logprobs = nn.log_softmax(outputs, axis=1)
@@ -69,6 +85,18 @@ def forward_and_accuracy(params, x_batch, y_batch):
     out = forward_pass(params, x_batch)
     per_seq_accuracy = accuracy(out, y_batch)
     return jnp.mean(per_seq_accuracy)
+
+
+def pad_params(params):
+    return jax.tree.map(lambda p: p[None, ...], params)
+
+
+def squeeze_params(params):
+    return jax.tree.map(lambda p: p.squeeze(0), params)
+
+
+def slice_params(params, model: int = 0):
+    return jax.tree.map(lambda p: p[model], params)
 
 
 def train_step(
@@ -231,9 +259,9 @@ def train_one(
     print(f"Epochs: {cfg.epochs}")
     print("-" * 50)
 
-    params = jax.tree.map(lambda p: p[None, ...], params)
+    params = pad_params(params)
     params = train_loop(cfg, params, x_train, y_train, x_test, y_test)
-    params = jax.tree.map(lambda p: jnp.squeeze(p, 0), params)
+    params = squeeze_params(params)
 
     return params
 

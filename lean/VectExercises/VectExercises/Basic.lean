@@ -296,12 +296,29 @@ theorem Vec.count_append :
 
 theorem Vec.length_reverseAux :
     (Vec.reverseAux xs ys).count a = xs.count a + ys.count a := by
-  sorry
+  revert ys n
+  induction xs
+  intros
+  unfold reverseAux
+  rw [count_nil, Nat.zero_add]
+
+  rename_i ih
+  intro a ys
+  rewrite [count_cons]
+  conv =>
+    rhs
+    rewrite [Nat.add_assoc]
+    rhs
+    rewrite [Nat.add_comm]
+    rewrite [← count_cons]
+  rewrite [reverseAux_cons, count_cast]
+  exact ih
 
 @[simp]
 theorem Vec.count_reverse :
     xs.reverse.count a = xs.count a := by
-  sorry
+  unfold reverse
+  simp [length_reverseAux]
 
 end Count
 

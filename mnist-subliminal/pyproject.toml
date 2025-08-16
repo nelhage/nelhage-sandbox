@@ -8,5 +8,6 @@ dependencies = [
     "ipykernel>=6.30.1",
     "jax>=0.7.0",
     "numpy>=2.3.2",
+    "ruff>=0.12.9",
     "tensorflow>=2.20.0",
 ]

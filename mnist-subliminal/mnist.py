@@ -90,7 +90,7 @@ def train_step(
     return params, opt_state, loss_val
 
 
-def load_and_preprocess_data():
+def load_and_preprocess_data(zero_center: bool = False):
     """Load and preprocess MNIST data."""
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -101,6 +101,10 @@ def load_and_preprocess_data():
     # Convert labels to one-hot encoding
     y_train = to_categorical(y_train, 10)
     y_test = to_categorical(y_test, 10)
+
+    if zero_center:
+        x_train = 2 * (x_train - 0.5)
+        x_test = 2 * (x_test - 0.5)
 
     return (x_train, y_train), (x_test, y_test)
 
@@ -186,8 +190,12 @@ def train_loop(cfg: Config, params, x_train, y_train, x_test=None, y_test=None):
         with np.printoptions(precision=3, floatmode="fixed"):
             print(
                 f"Epoch {epoch + 1:2d}: Loss = {avg_loss}, "
-                f"Train Acc = {train_acc}, Test Acc = {test_acc:}  "
-                f"t={t_epoch:.2f}s ex/sec={n_ex / t_epoch:.1f}"
+                + (
+                    f"Train Acc = {train_acc}, Test Acc = {test_acc:}  "
+                    if cfg.measure_accuracy
+                    else ""
+                )
+                + f"t={t_epoch:.2f}s ex/sec={n_ex / t_epoch:.1f}"
             )
     return params
 

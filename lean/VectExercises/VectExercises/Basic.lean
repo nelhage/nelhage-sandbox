@@ -180,6 +180,12 @@ theorem Vec.reverse_cons_append {x : α} :
   rewrite [reverseAux_cons]
   simp [reverseAux_eq, append_assoc, cons_append, nil_append]
 
+theorem Vec.reverse_cons {x : α} :
+    (x :: xs).reverse = cast (xs.reverse +++ (x :: [])) (by omega) := by
+    unfold reverse
+    rewrite [reverseAux_cons]
+    simp [reverseAux_eq]
+
 theorem Vec.reverseAux_append :
     Vec.reverseAux (xs +++ ys) zs = cast (Vec.reverseAux ys (xs.reverse +++ zs)) (by omega) := by
   revert k zs
@@ -302,7 +308,6 @@ theorem Vec.length_reverseAux :
   unfold reverseAux
   rw [count_nil, Nat.zero_add]
 
-  rename_i ih
   intro a ys
   rewrite [count_cons]
   conv =>
@@ -312,7 +317,7 @@ theorem Vec.length_reverseAux :
     rewrite [Nat.add_comm]
     rewrite [← count_cons]
   rewrite [reverseAux_cons, count_cast]
-  exact ih
+  apply_assumption
 
 @[simp]
 theorem Vec.count_reverse :
@@ -322,8 +327,10 @@ theorem Vec.count_reverse :
 
 end Count
 
-def Vec.map {β : Type v} (f : α → β) (xs : Vec α m) : Vec β m :=
-  sorry
+def Vec.map {β : Type v} {m : Nat} (f : α → β) (xs : Vec α m) : Vec β m :=
+  match xs with
+  | nil => nil
+  | cons x xs' => cons (f x) (map f xs')
 
 variable {β : Type v} {f : α → β}
 
@@ -331,17 +338,48 @@ variable {β : Type v} {f : α → β}
 For the following, you may want to develop more theorems.
 -/
 
+theorem Vec.map_cons :
+  (x :: xs).map f = (f x) :: xs.map f := by
+  simp [map]
+
+
+@[simp]
+theorem Vec.map_cast (h : m = n) :
+  map f (xs.cast h) = (map f xs).cast h := by
+  induction xs
+  subst_vars
+  simp
+  case cons =>
+    subst_vars
+    rewrite [← cons_cast]
+    simp [map_cons]
+    rfl
+
 theorem Vec.map_map {γ : Type _} {g : β → γ} :
     (xs.map f).map g = xs.map (g ∘ f) := by
-  sorry
+  induction xs
+  rfl
+  simp [map_cons]
+  assumption
 
 theorem Vec.map_append :
     (xs +++ ys).map f = xs.map f +++ ys.map f := by
-  sorry
+  revert n ys
+  induction xs
+  simp [map]
+
+  intros
+  rewrite [map_cons, cons_append, map_cons]
+  congr
+  apply_assumption
 
 theorem Vec.reverse_map :
     (xs.map f).reverse = xs.reverse.map f := by
-  sorry
+  induction xs
+  simp [map]
+
+  simp [map_cons, reverse_cons, map_append]
+  congr
 
 def Vec.countP (p : α → Bool) (xs : Vec α m) : Nat :=
   let rec go {m : Nat} (xs : Vec α m) (acc : Nat) : Nat :=
@@ -350,18 +388,45 @@ def Vec.countP (p : α → Bool) (xs : Vec α m) : Nat :=
     | x :: xs' => go xs' (acc + if p x then 1 else 0)
   go xs 0
 
--- This `(... · ...)` notation is short for `fun x => (... x ...)`, for making anonymous functions.
+theorem Vec.countP_go_eq : {acc : Nat} →
+    countP.go p xs acc = countP p xs + acc := by
+    induction xs
+    unfold countP countP.go
+    intro
+    rw [Nat.zero_add]
+
+    case cons ih =>
+    unfold countP countP.go
+    simp [ih]
+    omega
+
+@[simp]
+theorem Vec.countP_cons {x : α} (p : α → Bool) :
+    (x :: xs).countP p = xs.countP p + if p x then 1 else 0 := by
+    rewrite [countP, countP.go]
+    simp [countP_go_eq]
+
 theorem Vec.count_eq_countP [DecidableEq α] {a : α} :
     Vec.count a xs = Vec.countP (· = a) xs := by
-  sorry
+  induction xs
+  rfl
+
+  rewrite [count_cons, countP_cons]
+  congr
+  simp
 
 theorem Vec.countP_map (p : β → Bool) :
     (xs.map f).countP p = xs.countP (p ∘ f) := by
-  sorry
+  induction xs
+  rfl
+
+  simp [map_cons, countP_cons]
+  assumption
 
 theorem Vec.count_map [DecidableEq β] {b : β} :
     (xs.map f).count b = xs.countP (f · = b) := by
-  sorry
+  rewrite [count_eq_countP]
+  apply countP_map
 
 def Vec.filterP (p : α → Bool) {m : Nat} (xs : Vec α m) : Vec α (Vec.countP p xs) :=
   match xs with

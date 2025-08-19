@@ -17,11 +17,9 @@ import z3
 from cyclopts import Parameter
 from tqdm import tqdm
 
+from regexle import z3_re
+
 ALPHABET = string.ascii_uppercase
-
-
-def to_fsm(re):
-    return greenery.parse(re).to_fsm().reduce()
 
 
 def flatten_fsm(fsm):
@@ -50,6 +48,7 @@ Axis = Literal["x", "y", "z"]
 @dataclass
 class Regex:
     pattern: str
+    parsed: greenery.Pattern
     # vocabulary: str
     transition: np.ndarray  # (state, vocab)
     accept: np.ndarray  # (state,), bool
@@ -64,14 +63,18 @@ class Regex:
 
     @classmethod
     def from_pattern(cls, pattern: str):
-        fsm = to_fsm(pattern)
+        parsed = greenery.parse(pattern)
+        fsm = parsed.to_fsm().reduce()
+
         transition = flatten_fsm(fsm)
         nstate = transition.shape[0]
         accept = np.zeros((nstate,), bool)
         for st in fsm.finals:
             accept[st] = True
+
         return cls(
             pattern=pattern,
+            parsed=parsed,
             transition=transition,
             accept=accept,
         )
@@ -114,7 +117,6 @@ class Clue:
 
     @classmethod
     def from_pattern(cls, re: str, axis: Axis, index: int):
-        fsm = to_fsm(re)
         return cls(axis=axis, index=index, pattern=Regex.from_pattern(re))
 
 
@@ -393,11 +395,35 @@ class EnumEnumImplies(Matcher):
         )
 
 
+class Z3RE(Matcher):
+    def make_char(self, solv: z3.Solver, name: str):
+        c = z3.String(name, solv.ctx)
+        solv.add(z3.Length(c) == 1)
+        return c
+
+    def extract(self, model, ch) -> str:
+        return model.eval(ch).as_string()
+
+    def build_re(self, solv: z3.Solver, clue: Clue):
+        try:
+            return z3_re.z3_of_pat(clue.pattern.parsed, solv.ctx)
+        except Exception as ex:
+            breakpoint()
+
+    def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
+        re = self.build_re(solv, clue)
+        pat = clue.pattern
+
+        string = z3.Concat(chars)
+        solv.add(z3.InRe(string, re))
+
+
 STRATEGIES: dict[str, Type[Matcher]] = {
     "int_func": IntFunc,
     "enum_func": EnumFunc,
     "enum_enum_func": EnumEnumFunc,
     "enum_enum_implies": EnumEnumImplies,
+    "z3_re": Z3RE,
 }
 
 PUZZLE_CACHE = Path(__file__).parent / "puzzles"

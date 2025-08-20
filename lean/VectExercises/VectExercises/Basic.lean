@@ -1,4 +1,5 @@
 import Mathlib.Tactic.Common
+import Mathlib.Tactic.DepRewrite
 
 inductive Vec (α : Type u) : Nat → Type u where
   | nil : Vec α 0
@@ -433,20 +434,46 @@ def Vec.filterP (p : α → Bool) {m : Nat} (xs : Vec α m) : Vec α (Vec.countP
   | [] => []
   | x :: xs' =>
     if h : p x then
-      (x :: xs'.filterP p).cast sorry
+      (x :: xs'.filterP p).cast (by simp [countP_cons, h])
     else
-      (xs'.filterP p).cast sorry
+      (xs'.filterP p).cast (by simp [countP_cons, h])
 
 variable {p : α → Bool}
 
 theorem Vec.countP_append :
     Vec.countP p (xs +++ ys) = Vec.countP p xs + Vec.countP p ys := by
-  sorry
+  revert ys
+  induction xs
+  intro
+  simp
+  rfl
+
+  case cons ih =>
+  simp [countP_cons, ih]
+  omega
+
+-- set_option pp.proofs true
 
 theorem Vec.filterP_append :
     Vec.filterP p (xs +++ ys)
       = (Vec.filterP p xs +++ Vec.filterP p ys).cast (by rw [Vec.countP_append, Nat.add_comm]) := by
-  sorry
+  revert ys
+  induction xs
+  intro
+  rfl
+
+  case cons ih =>
+    intro ys
+    rewrite! [cons_append]
+    rewrite [filterP]
+
+    split
+    all_goals
+      rename_i h
+      conv =>
+        pattern filterP p (_ :: _)
+        rewrite! [filterP]
+      simp [h, ih]
 
 theorem Vec.filterP_map {p : β → Bool} {f : α → β} :
     Vec.filterP p (Vec.map f xs) = (Vec.map f (Vec.filterP (p ∘ f) xs)).cast sorry := by

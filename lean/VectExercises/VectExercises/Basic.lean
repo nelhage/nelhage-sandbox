@@ -70,6 +70,12 @@ theorem Vec.cons_cast {x : α} {h : m = n} :
   subst_vars
   rfl
 
+theorem Vec.cast_zero_eq_nil {h : m = 0} :
+  Vec.cast xs h = .nil := by
+  subst_vars
+  cases xs
+  rfl
+
 /-!
 Think: Why is there no cast theorem for `Vec.nil`?
 -/
@@ -467,31 +473,87 @@ theorem Vec.filterP_append :
     rewrite! [cons_append]
     rewrite [filterP]
 
-    split
-    all_goals
+    split <;> {
       rename_i h
       conv =>
         pattern filterP p (_ :: _)
         rewrite! [filterP]
       simp [h, ih]
+    }
 
 theorem Vec.filterP_map {p : β → Bool} {f : α → β} :
-    Vec.filterP p (Vec.map f xs) = (Vec.map f (Vec.filterP (p ∘ f) xs)).cast sorry := by
-  sorry
+    Vec.filterP p (Vec.map f xs) = (Vec.map f (Vec.filterP (p ∘ f) xs)).cast (by rw [countP_map]) := by
+  induction xs
+  rfl
+
+  case cons ih =>
+  rewrite! [map_cons, filterP, filterP]
+  split <;> {
+    rename_i h
+    simp [h, ih, map_cons]
+  }
+
+theorem Vec.countP_leq :
+  xs.countP p ≤ m := by
+  induction xs
+  simp
+  rfl
+
+  case cons ih =>
+    rewrite [countP_cons]
+    split <;> simp
+    exact ih
+    omega
 
 -- Isn't this `h` hypothesis a little odd?
 theorem Vec.filterP_eq_self_iff_countP_eq {h : m = xs.countP p} :
     Vec.filterP p xs = xs.cast h ↔ xs.countP p = m := by
-  sorry
+  apply Iff.intro
+  . intro
+    exact h.symm
+  . intro
+    induction xs
+    . rfl
+    . rewrite! [filterP]
+      rename (∀ _, _) => ih
+      split
+      . rename_i h_eq
+        simp [h_eq] at h
+        rewrite [ih (h := h)]
+        simp
+        exact h.symm
+      . rename_i h_ne
+        false_or_by_contra
+        simp [h_ne] at h
+        rename (Vec α _) => xs
+        have h_le := countP_leq (xs := xs) (p := p)
+        rewrite [← h] at h_le
+        exact (Nat.not_succ_le_self _ h_le)
 
 -- A way to state the reverse:
 theorem Vec.countP_eq_length_iff_filterP_eq_self :
     xs.countP p = m ↔ ∃ (h : m = xs.countP p), Vec.filterP p xs = xs.cast h := by
-  sorry
+  apply Iff.intro
+  . intro h
+    have filter_eq := filterP_eq_self_iff_countP_eq (h := h.symm)
+    exact ⟨h.symm, filter_eq.mpr h⟩
+  . intro h_exist
+    have ⟨h, h_eq⟩ := h_exist
+    have filter_eq := filterP_eq_self_iff_countP_eq (h := h)
+    exact filter_eq.mp h_eq
 
 theorem Vec.countP_eq_zero_iff :
     xs.countP p = 0 ↔ ∃ (h : 0 = xs.countP p), Vec.filterP p xs = [].cast h := by
-  sorry
+  apply Iff.intro
+  . intro h_eq
+    conv =>
+      arg 1
+      ext
+      rewrite [← cast_eq_symm]
+    exact ⟨h_eq.symm, cast_zero_eq_nil (xs := filterP p xs) (h := h_eq)⟩
+  . intro h_exist
+    have ⟨h, h_eq⟩ := h_exist
+    exact h.symm
 
 theorem Vec.countP_pos_iff_exists :
     0 < Vec.countP p xs
@@ -505,6 +567,14 @@ theorem Vec.countP_pos_iff_exists :
 def Vec.eq {m n : Nat} (v : Vec α m) (w : Vec α n) : Prop :=
   ∃ h : m = n, v.cast h = w
 
-def Vec.toList {m : Nat} (v : Vec α m) : List α := sorry
+def Vec.toList {m : Nat} (v : Vec α m) : List α := match v with
+  | .nil => List.nil
+  | .cons a xs => List.cons a (toList xs)
 
-def Vec.fromList {m : Nat} (xs : List α) (h : xs.length = m) : Vec α m := sorry
+def Vec.fromList {m : Nat} (xs : List α) (h : xs.length = m) : Vec α m :=
+  match m, xs with
+    | 0,    .nil        => Vec.nil
+    | m'+1, .cons x xs' => Vec.cons x (fromList xs' (by {
+      rewrite [List.length_cons, Nat.succ_inj] at h
+      assumption
+    }))

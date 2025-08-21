@@ -114,6 +114,7 @@ def write_index(docdir: Path, dbpath: Path):
         "Verso.Genre.Manual.example": "Sample",
         "Verso.Genre.Manual.doc.tech": "Word",
         "Verso.Genre.Manual.doc.tactic": "Procedure",
+        "Verso.Genre.Manual.doc.option": "Option",
         "Verso.Genre.Manual.doc": classify_doc_entry,
     }
 

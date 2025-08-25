@@ -154,6 +154,9 @@ def config_bool(config: dict[str, str], field: str, default: bool = False) -> bo
 
 
 class IntFunc(Matcher):
+    def __init__(self, config: dict[str, str] = {}):
+        self.prune = config_bool(config, 'prune', True)
+
     def build_func(self, solv: z3.Solver, clue: Clue):
         ctx = solv.ctx
         state_func = z3.Function(
@@ -181,14 +184,19 @@ class IntFunc(Matcher):
         pat = clue.pattern
 
         nchar = len(chars)
-        dead = pat.dead_states
 
         states = z3.IntVector(clue.name + "_state", 1 + nchar, ctx=solv.ctx)
         for i, ch in enumerate(chars):
             solv.add(state_func(states[i], ch) == states[i + 1])
 
-        dead_all = pat.dead_vocab
-        dead_init = pat.dead_from(0)
+        if self.prune:
+            dead = pat.dead_states
+            dead_all = pat.dead_vocab
+            dead_init = pat.dead_from(0)
+        else:
+            dead = set()
+            dead_all = set()
+            dead_init = set()
 
         for ch in chars:
             for d in dead_all:
@@ -211,6 +219,9 @@ class EnumFunc(Matcher):
 
     state_sort: z3.SortRef
     states: list[z3.ExprRef]
+
+    def __init__(self, config: dict[str, str] = {}):
+        self.prune = config_bool(config, 'prune', True)
 
     def train(self, solv: z3.Solver, clues: list[Clue]):
         nstates = max(c.pattern.nstate for c in clues)
@@ -250,7 +261,6 @@ class EnumFunc(Matcher):
         pat = clue.pattern
 
         nchar = len(chars)
-        dead = pat.dead_states
 
         states = [
             z3.Const(f"{clue.name}_state_{i}", self.state_sort)
@@ -259,8 +269,14 @@ class EnumFunc(Matcher):
         for i, ch in enumerate(chars):
             solv.add(state_func(states[i], ch) == states[i + 1])
 
-        dead_all = pat.dead_vocab
-        dead_init = pat.dead_from(0)
+        if self.prune:
+            dead = pat.dead_states
+            dead_all = pat.dead_vocab
+            dead_init = pat.dead_from(0)
+        else:
+            dead = set()
+            dead_all = set()
+            dead_init = set()
 
         for ch in chars:
             for d in dead_all:

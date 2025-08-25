@@ -16,6 +16,25 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          pythonBase = pkgs.mkShell (
+            {
+              packages = [
+                pkgs.python3
+                pkgs.uv
+                pkgs.ruff
+              ];
+            }
+            // (
+              if pkgs.stdenv.isDarwin then
+                { }
+              else
+                {
+                  shellHook = ''
+                    export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib"
+                  '';
+                }
+            )
+          );
         in
         {
           default = pkgs.mkShell {
@@ -26,27 +45,9 @@
               pkgs.elan
             ];
           };
-          verso2docset = pkgs.mkShell {
-            packages = [
-              pkgs.python3
-              pkgs.uv
-              pkgs.ruff
-            ];
-          };
-          regexle = pkgs.mkShell {
-            packages = [
-              pkgs.python3
-              pkgs.uv
-              pkgs.ruff
-            ];
-          };
-          mnist-subliminal = pkgs.mkShell {
-            packages = [
-              pkgs.python3
-              pkgs.uv
-              pkgs.ruff
-            ];
-          };
+          verso2docset = pythonBase;
+          regexle = pythonBase;
+          mnist-subliminal = pythonBase;
         }
       );
     };

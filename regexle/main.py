@@ -3,10 +3,10 @@ import json
 import string
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import Annotated, Generic, Iterator, Literal, Sequence, Type, TypeVar
+from typing import Annotated, Iterator, Literal, Sequence, Type
 from urllib.parse import urlencode
 
 import cyclopts
@@ -124,6 +124,9 @@ class Clue:
 
 
 class Matcher:
+    def __init__(self, config: dict[str, str] = {}):
+        pass
+
     def train(self, solv: z3.Solver, clues: list[Clue]):
         pass
 
@@ -137,6 +140,17 @@ class Matcher:
         return ALPHABET[model.eval(ch).as_long()]
 
     def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]): ...
+
+
+def config_bool(config: dict[str, str], field: str, default: bool = False) -> bool:
+    if field not in config:
+        return default
+    val = config[field]
+    if val in ("1", "True"):
+        return True
+    if val in ("0", "False"):
+        return False
+    return ValueError(f"Bad value for config option {field}: {val}!")
 
 
 class IntFunc(Matcher):
@@ -396,6 +410,9 @@ class EnumEnumImplies(Matcher):
 
 
 class Z3RE(Matcher):
+    def __init__(self, config: dict[str, str] = {}):
+        self.simplify = config_bool(config, "simplify")
+
     def make_char(self, solv: z3.Solver, name: str):
         c = z3.String(name, solv.ctx)
         solv.add(z3.Length(c) == 1)
@@ -406,13 +423,16 @@ class Z3RE(Matcher):
 
     def build_re(self, solv: z3.Solver, clue: Clue):
         try:
-            return z3_re.z3_of_pat(clue.pattern.parsed, solv.ctx)
-        except Exception as ex:
+            re = z3_re.z3_of_pat(clue.pattern.parsed, solv.ctx)
+            if self.simplify:
+                re = z3.simplify(re)
+            return re
+        except Exception:
             breakpoint()
+            raise
 
     def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
         re = self.build_re(solv, clue)
-        pat = clue.pattern
 
         string = z3.Concat(chars)
         solv.add(z3.InRe(string, re))
@@ -460,6 +480,7 @@ class Options:
     verbose: bool = True
     threads: int | None = None
     strategy: str = "int_func"
+    strategy_config: dict[str, str] = field(default_factory=dict)
 
     def log(self, msg: str):
         if not self.verbose:
@@ -470,7 +491,7 @@ class Options:
         m = STRATEGIES.get(self.strategy, None)
         if m is None:
             raise ValueError(f"Unknown strategy: {self.strategy}")
-        return m()
+        return m(self.strategy_config)
 
 
 def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
@@ -634,7 +655,10 @@ def profile(
 
     import pandas as pd
 
-    df = pd.json_normalize([asdict(s) for s in all_stats])
+    df = pd.json_normalize([asdict(s) for s in all_stats]).assign(
+        strategy=opts.strategy, strategy_config=opts.strategy_config
+    )
+    Path(out).parent.mkdir(exist_ok=True)
     df.to_json(out)
 
     ts = df.solve_time

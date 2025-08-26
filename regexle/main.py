@@ -3,10 +3,10 @@ import json
 import string
 import sys
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from functools import cached_property
 from pathlib import Path
-from typing import Annotated, Iterator, Literal, Sequence, Type
+from typing import TYPE_CHECKING, Annotated, Iterable, Iterator, Literal, Sequence, Type
 from urllib.parse import urlencode
 
 import cyclopts
@@ -18,6 +18,9 @@ from cyclopts import Parameter
 from tqdm import tqdm
 
 from regexle import z3_re
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 ALPHABET = string.ascii_uppercase
 
@@ -155,7 +158,7 @@ def config_bool(config: dict[str, str], field: str, default: bool = False) -> bo
 
 class IntFunc(Matcher):
     def __init__(self, config: dict[str, str] = {}):
-        self.prune = config_bool(config, 'prune', True)
+        self.prune = config_bool(config, "prune", True)
 
     def build_func(self, solv: z3.Solver, clue: Clue):
         ctx = solv.ctx
@@ -221,7 +224,7 @@ class EnumFunc(Matcher):
     states: list[z3.ExprRef]
 
     def __init__(self, config: dict[str, str] = {}):
-        self.prune = config_bool(config, 'prune', True)
+        self.prune = config_bool(config, "prune", True)
 
     def train(self, solv: z3.Solver, clues: list[Clue]):
         nstates = max(c.pattern.nstate for c in clues)
@@ -293,6 +296,7 @@ class EnumFunc(Matcher):
         solv.add(
             one_of(states[-1], [self.states[i] for i, v in enumerate(pat.accept) if v])
         )
+
 
 class EnumImplies(Matcher):
     char_sort: z3.SortRef
@@ -587,6 +591,23 @@ def main(
         print()
 
 
+def run_scan(tests: Iterable[tuple[dict, Options]]) -> "pd.DataFrame":
+    all_stats = []
+    for puzzle, opts in tests:
+        _, stats = solve_puzzle(puzzle, opts)
+        all_stats.append(
+            asdict(stats)
+            | dict(
+                strategy=opts.strategy,
+                strategy_config=opts.strategy_config,
+            )
+        )
+
+    import pandas as pd
+
+    return pd.json_normalize(all_stats)
+
+
 @app.command
 def profile(
     *,
@@ -597,23 +618,49 @@ def profile(
     opts: Annotated[Options, Parameter(name="*")] = Options(verbose=False),
     out: Annotated[str, Parameter(alias="-o")] = "stats/stats.json",
 ):
-    all_stats = []
-    for day in tqdm(days):
-        puzzle = fetch_puzzle(opts, day=day, side=side)
-        _, stats = solve_puzzle(puzzle, opts)
-        all_stats.append(stats)
+    tests = tqdm([(fetch_puzzle(opts, day=day, side=side), opts) for day in days])
 
-    import pandas as pd
-
-    df = pd.json_normalize([asdict(s) for s in all_stats]).assign(
-        strategy=opts.strategy, strategy_config=opts.strategy_config
-    )
+    df = run_scan(tests)
     Path(out).parent.mkdir(exist_ok=True)
     df.to_json(out)
 
     ts = df.solve_time
     print(f"z3 time:     {ts.mean():.2f}±{ts.std():.2f}s")
     print(f" (min, max): ({ts.min():.2f}, {ts.max():.2f})")
+
+
+@app.command
+def matrix(
+    *,
+    out: Annotated[str, Parameter(alias="-o")] = "stats/matrix.json",
+):
+    tests = []
+
+    opts = Options(verbose=False)
+    for side in range(3, 9):
+        for day in range(400, 450):
+            puzzle = fetch_puzzle(opts, day, side)
+
+            if side < 4:
+                tests.append((puzzle, replace(opts, strategy="int_func")))
+            tests.append((puzzle, replace(opts, strategy="enum_func")))
+            tests.append((puzzle, replace(opts, strategy="z3_re")))
+
+            if side < 6:
+                tests.append(
+                    (
+                        puzzle,
+                        replace(
+                            opts,
+                            strategy="enum_func",
+                            strategy_config=dict(prune="0"),
+                        ),
+                    )
+                )
+
+    df = run_scan(tqdm(tests))
+    Path(out).parent.mkdir(exist_ok=True)
+    df.to_json(out)
 
 
 if __name__ == "__main__":

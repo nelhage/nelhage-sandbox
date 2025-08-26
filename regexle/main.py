@@ -4,9 +4,18 @@ import string
 import sys
 import time
 from dataclasses import asdict, dataclass, field, replace
-from functools import cached_property
+from functools import cached_property, partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Iterable, Iterator, Literal, Sequence, Type
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Callable,
+    Iterable,
+    Iterator,
+    Literal,
+    Sequence,
+    Type,
+)
 from urllib.parse import urlencode
 
 import cyclopts
@@ -238,6 +247,7 @@ class EnumFunc(Matcher):
 
     def __init__(self, config: dict[str, str] = {}):
         self.prune = config_bool(config, "prune", True)
+        self.func = config_literal(config, "func", ["z3", "lambda", "python"], "z3")
 
     def train(self, solv: z3.Solver, clues: list[Clue]):
         nstates = max(c.pattern.nstate for c in clues)
@@ -255,7 +265,34 @@ class EnumFunc(Matcher):
     def extract(self, model, ch) -> str:
         return str(model.eval(ch))
 
-    def build_func(self, solv: z3.Solver, clue: Clue):
+    def build_funcexpr(
+        self, solv: z3.Solver, clue: Clue, st: z3.ExprRef, ch: z3.ExprRef
+    ) -> z3.ExprRef:
+        fn_expr = self.states[0]
+
+        for state_i, state in enumerate(self.states[: clue.pattern.nstate]):
+            expr = self.states[0]
+            for i, next_state in enumerate(clue.pattern.transition[state_i]):
+                expr = z3.If(ch == self.alphabet[i], self.states[next_state], expr)
+            fn_expr = z3.If(st == state, expr, fn_expr)
+
+        return fn_expr
+
+    def build_lambda(self, solv: z3.Solver, clue: Clue):
+        st = z3.Const("state", self.state_sort)
+        ch = z3.Const("char", self.char_sort)
+
+        lambda_ = z3.Lambda([st, ch], self.build_funcexpr(solv, clue, st, ch))
+
+        def apply(st, ch):
+            return lambda_[st, ch]
+
+        return apply
+
+    def build_pyfunc(self, solv: z3.Solver, clue: Clue):
+        return partial(self.build_funcexpr, solv, clue)
+
+    def build_z3func(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Function(
             clue.name + "_xfer",
             self.state_sort,
@@ -271,6 +308,19 @@ class EnumFunc(Matcher):
             )
 
         return state_func
+
+    def build_func(
+        self, solv: z3.Solver, clue: Clue
+    ) -> Callable[[z3.ExprRef, z3.ExprRef], z3.ExprRef]:
+        match self.func:
+            case "z3":
+                return self.build_z3func(solv, clue)
+            case "lambda":
+                return self.build_lambda(solv, clue)
+            case "python":
+                return self.build_pyfunc(solv, clue)
+            case _:
+                raise AssertionError("unreachable")
 
     def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
         state_func = self.build_func(solv, clue)

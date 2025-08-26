@@ -676,6 +676,9 @@ def profile(
     ts = df.solve_time
     print(f"z3 time:     {ts.mean():.2f}±{ts.std():.2f}s")
     print(f" (min, max): ({ts.min():.2f}, {ts.max():.2f})")
+    ts = df.build_time
+    print(f"py time:     {ts.mean():.2f}±{ts.std():.2f}s")
+    print(f" (min, max): ({ts.min():.2f}, {ts.max():.2f})")
 
 
 @app.command

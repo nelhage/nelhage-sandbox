@@ -247,7 +247,9 @@ class EnumFunc(Matcher):
 
     def __init__(self, config: dict[str, str] = {}):
         self.prune = config_bool(config, "prune", True)
-        self.func = config_literal(config, "func", ["z3", "lambda", "python"], "z3")
+        self.func = config_literal(
+            config, "func", ["z3", "lambda", "python", "array"], "z3"
+        )
 
     def train(self, solv: z3.Solver, clues: list[Clue]):
         nstates = max(c.pattern.nstate for c in clues)
@@ -309,6 +311,30 @@ class EnumFunc(Matcher):
 
         return state_func
 
+    def build_array(self, solv: z3.Solver, clue: Clue):
+        state_func = z3.Array(
+            clue.name + "_xfer",
+            self.state_sort,
+            self.char_sort,
+            self.state_sort,
+        )
+        pat = clue.pattern
+
+        for (state, char), next_state in pat.all_transitions():
+            state_func = z3.Update(
+                state_func,
+                self.states[state],
+                self.alphabet[char],
+                self.states[next_state],
+            )
+
+        def apply(st, ch):
+            return state_func[st, ch]
+
+        return apply
+
+        return state_func
+
     def build_func(
         self, solv: z3.Solver, clue: Clue
     ) -> Callable[[z3.ExprRef, z3.ExprRef], z3.ExprRef]:
@@ -319,6 +345,8 @@ class EnumFunc(Matcher):
                 return self.build_lambda(solv, clue)
             case "python":
                 return self.build_pyfunc(solv, clue)
+            case "array":
+                return self.build_array(solv, clue)
             case _:
                 raise AssertionError("unreachable")
 

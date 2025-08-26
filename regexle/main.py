@@ -385,6 +385,7 @@ class Z3RE(Matcher):
         self.char = config_literal(
             config, "char", ["len1", "index", "slice", "char_code"], "len1"
         )
+        self.prune = config_bool(config, "prune", False)
         self.alphabet = None
 
     def make_char(self, solv: z3.Solver, name: str):
@@ -429,6 +430,18 @@ class Z3RE(Matcher):
 
         string = z3.Concat(chars)
         solv.add(z3.InRe(string, re))
+
+        if self.prune:
+            pat = clue.pattern
+            dead_all = pat.dead_vocab
+            dead_init = pat.dead_from(0)
+
+            valid_init = [c for i, c in enumerate(ALPHABET) if i not in dead_init]
+            solv.add(z3.Or(chars[0] == c for c in valid_init))
+
+            valid_rest = [c for i, c in enumerate(ALPHABET) if i not in dead_all]
+            for ch in chars[1:]:
+                solv.add(z3.Or(ch == c for c in valid_rest))
 
 
 STRATEGIES: dict[str, Type[Matcher]] = {

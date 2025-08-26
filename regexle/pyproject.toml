@@ -13,3 +13,10 @@ dependencies = [
     "tqdm>=4.67.1",
     "z3-solver>=4.15.1.0",
 ]
+
+[dependency-groups]
+jupyter = [
+    "ipykernel>=6.30.1",
+    "plotnine>=0.15.0",
+    "ruff>=0.12.10",
+]

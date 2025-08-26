@@ -133,7 +133,7 @@ class Matcher:
     def train(self, solv: z3.Solver, clues: list[Clue]):
         pass
 
-    def make_char(self, solv: z3.Solver, name: str):
+    def make_char(self, solv: z3.Solver, name: str) -> z3.ExprRef:
         ch = z3.Int(name, solv.ctx)
         solv.add(0 <= ch)
         solv.add(ch < len(ALPHABET))
@@ -153,7 +153,20 @@ def config_bool(config: dict[str, str], field: str, default: bool = False) -> bo
         return True
     if val in ("0", "False"):
         return False
-    return ValueError(f"Bad value for config option {field}: {val}!")
+    raise ValueError(f"Bad value for config option {field}: {val}!")
+
+
+def config_literal(
+    config: dict[str, str], field: str, options: Sequence[str], default: str
+) -> str:
+    if field not in config:
+        return default
+    val = config[field]
+    if val in options:
+        return val
+    raise ValueError(
+        f"Bad value for config option {field}: {val}. Expected one of: {', '.join(options)}!"
+    )
 
 
 class IntFunc(Matcher):
@@ -369,11 +382,34 @@ class EnumImplies(Matcher):
 class Z3RE(Matcher):
     def __init__(self, config: dict[str, str] = {}):
         self.simplify = config_bool(config, "simplify")
+        self.char = config_literal(
+            config, "char", ["len1", "index", "slice", "char_code"], "len1"
+        )
+        self.alphabet = None
 
     def make_char(self, solv: z3.Solver, name: str):
-        c = z3.String(name, solv.ctx)
-        solv.add(z3.Length(c) == 1)
-        return c
+        match self.char:
+            case "len1":
+                c = z3.String(name, solv.ctx)
+                solv.add(z3.Length(c) == 1)
+                return c
+            case "slice":
+                c = z3.String(name, solv.ctx)
+                return z3.SubString(c, 0, 1)
+            case "index":
+                if self.alphabet is None:
+                    self.alphabet = z3.StringVal(ALPHABET, solv.ctx)
+                idx = z3.Int(name + ".idx", solv.ctx)
+                solv.add(idx >= 0)
+                solv.add(idx < len(ALPHABET))
+                return z3.SubString(self.alphabet, idx, 1)
+            case "char_code":
+                code = z3.Int(name + ".ord", solv.ctx)
+                solv.add(code >= ord("A"))
+                solv.add(code <= ord("Z"))
+                return z3.StrFromCode(code)
+            case _:
+                raise AssertionError("unreachable")
 
     def extract(self, model, ch) -> str:
         return model.eval(ch).as_string()

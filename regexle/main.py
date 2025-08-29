@@ -248,7 +248,7 @@ class EnumFunc(Matcher):
     def __init__(self, config: dict[str, str] = {}):
         self.prune = config_bool(config, "prune", True)
         self.func = config_literal(
-            config, "func", ["z3", "lambda", "python", "array"], "z3"
+            config, "func", ["z3", "lambda", "forall", "python", "array"], "z3"
         )
 
     def train(self, solv: z3.Solver, clues: list[Clue]):
@@ -293,6 +293,21 @@ class EnumFunc(Matcher):
 
     def build_pyfunc(self, solv: z3.Solver, clue: Clue):
         return partial(self.build_funcexpr, solv, clue)
+
+    def build_forall(self, solv: z3.Solver, clue: Clue):
+        state_func = z3.Function(
+            clue.name + "_xfer",
+            self.state_sort,
+            self.char_sort,
+            self.state_sort,
+        )
+
+        st = z3.Const("state", self.state_sort)
+        ch = z3.Const("char", self.char_sort)
+
+        explicit = self.build_funcexpr(solv, clue, st, ch)
+        solv.add(z3.ForAll([st, ch], state_func(st, ch) == explicit))
+        return state_func
 
     def build_z3func(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Function(
@@ -343,6 +358,8 @@ class EnumFunc(Matcher):
                 return self.build_z3func(solv, clue)
             case "lambda":
                 return self.build_lambda(solv, clue)
+            case "forall":
+                return self.build_forall(solv, clue)
             case "python":
                 return self.build_pyfunc(solv, clue)
             case "array":

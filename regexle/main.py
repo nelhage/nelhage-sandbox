@@ -61,7 +61,7 @@ Axis = Literal["x", "y", "z"]
 class Regex:
     pattern: str
     parsed: greenery.Pattern
-    # vocabulary: str
+
     transition: np.ndarray  # (state, vocab)
     accept: np.ndarray  # (state,), bool
 
@@ -185,7 +185,7 @@ class IntFunc(Matcher):
     def build_func(self, solv: z3.Solver, clue: Clue):
         ctx = solv.ctx
         state_func = z3.Function(
-            clue.name + "_xfer",
+            clue.name + "_trans",
             z3.IntSort(ctx),
             z3.IntSort(ctx),
             z3.IntSort(ctx),
@@ -296,7 +296,7 @@ class EnumFunc(Matcher):
 
     def build_forall(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Function(
-            clue.name + "_xfer",
+            clue.name + "_trans",
             self.state_sort,
             self.char_sort,
             self.state_sort,
@@ -311,7 +311,7 @@ class EnumFunc(Matcher):
 
     def build_z3func(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Function(
-            clue.name + "_xfer",
+            clue.name + "_trans",
             self.state_sort,
             self.char_sort,
             self.state_sort,
@@ -328,7 +328,7 @@ class EnumFunc(Matcher):
 
     def build_array(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Array(
-            clue.name + "_xfer",
+            clue.name + "_trans",
             self.state_sort,
             self.char_sort,
             self.state_sort,

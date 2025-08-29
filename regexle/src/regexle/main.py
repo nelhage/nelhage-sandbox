@@ -10,11 +10,14 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Callable,
+    Generic,
     Iterable,
     Iterator,
     Literal,
+    Protocol,
     Sequence,
     Type,
+    TypeVar,
 )
 from urllib.parse import urlencode
 
@@ -132,7 +135,102 @@ class Clue:
         return cls(axis=axis, index=index, pattern=Regex.from_pattern(re))
 
 
-# Matchers encode a Regex into z3 constraints
+# Mappers map between Python objects and a Z3 representation
+
+T = TypeVar("T", covariant=True)
+
+
+class Mapper(Protocol, Generic[T]):
+    def __init__(self, name: str, py_objs: list[T], ctx: z3.Context | None = None): ...
+
+    @property
+    def sort(self) -> z3.SortRef: ...
+
+    def to_z3(self, idx: int) -> z3.AstRef: ...
+
+    def from_z3(self, val: z3.AstRef) -> T | None: ...
+
+    def make_const(self, solv: z3.Solver, name: str) -> z3.AstRef: ...
+
+
+class EnumMapper(Mapper[T]):
+    def __init__(self, name: str, py_objs: Sequence[T], ctx=None):
+        self._sort, self._vals = z3.EnumSort(
+            name,
+            [f"{name}__{v}" for v in py_objs],
+            ctx,
+        )
+        self._from_decl = {v.decl(): o for v, o in zip(self._vals, py_objs)}
+
+    @property
+    def sort(self) -> z3.SortRef:
+        return self._sort
+
+    def to_z3(self, idx: int) -> z3.AstRef:
+        return self._vals[idx]
+
+    def from_z3(self, val: z3.AstRef) -> T | None:
+        assert isinstance(val, z3.DatatypeRef), f"z3 object must be datatype"
+        return self._from_decl.get(val.decl())
+
+    def make_const(self, solv: z3.Solver, name: str) -> z3.AstRef:
+        return z3.Const(name, self.sort)
+
+
+class IntMapper(Mapper[T]):
+    def __init__(self, name: str, py_objs: Sequence[T], ctx=None):
+        self._sort = z3.IntSort(ctx)
+        self._py_objs = py_objs
+
+    @property
+    def nval(self) -> int:
+        return len(self._py_objs)
+
+    @property
+    def sort(self) -> z3.SortRef:
+        return self._sort
+
+    def to_z3(self, idx: int) -> z3.AstRef:
+        return z3.IntVal(idx, self.sort.ctx)
+
+    def from_z3(self, val: z3.AstRef) -> T:
+        assert isinstance(val, z3.IntNumRef), f"z3 object must be int"
+        return self._py_objs[val.as_long()]
+
+    def make_const(self, solv: z3.Solver, name: str) -> z3.AstRef:
+        val = z3.Int(name, self.sort.ctx)
+        solv.add(val >= 0)
+        solv.add(val < self.nval)
+        return val
+
+
+class StringMapper(Mapper[str]):
+    def __init__(self, name: str, py_objs: Sequence[str], ctx=None):
+        self._sort = z3.StringSort(ctx)
+        self._py_objs = py_objs
+
+    @property
+    def nval(self) -> int:
+        return len(self._py_objs)
+
+    @property
+    def sort(self) -> z3.SortRef:
+        return self._sort
+
+    def to_z3(self, idx: int) -> z3.AstRef:
+        return z3.StringVal(self._py_objs[idx], ctx=self.sort.ctx)
+
+    def from_z3(self, val: z3.AstRef) -> str:
+        assert isinstance(val, z3.SeqRef), f"z3 object must be string"
+        return val.as_string()
+
+    def make_const(self, solv: z3.Solver, name: str) -> z3.AstRef:
+        val = z3.String(name, self.sort.ctx)
+        solv.add(z3.Length(val) == 1)
+        return val
+
+
+# A matcher encodes a Regex into z3 constraints
 
 
 class Matcher:
@@ -142,14 +240,8 @@ class Matcher:
     def train(self, solv: z3.Solver, clues: list[Clue]):
         pass
 
-    def make_char(self, solv: z3.Solver, name: str) -> z3.ExprRef:
-        ch = z3.Int(name, solv.ctx)
-        solv.add(0 <= ch)
-        solv.add(ch < len(ALPHABET))
-        return ch
-
-    def extract(self, model, ch) -> str:
-        return ALPHABET[model.eval(ch).as_long()]
+    @property
+    def char_mapper(self) -> Mapper[str]: ...
 
     def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]): ...
 
@@ -178,111 +270,47 @@ def config_literal(
     )
 
 
-class IntFunc(Matcher):
-    def __init__(self, config: dict[str, str] = {}):
-        self.prune = config_bool(config, "prune", True)
+class FuncMatcher(Matcher):
+    _alphabet: Mapper[str]
+    _states: Mapper[int]
 
-    def build_func(self, solv: z3.Solver, clue: Clue):
-        ctx = solv.ctx
-        state_func = z3.Function(
-            clue.name + "_trans",
-            z3.IntSort(ctx),
-            z3.IntSort(ctx),
-            z3.IntSort(ctx),
-        )
-        pat = clue.pattern
-
-        for (state, char), next_state in pat.all_transitions():
-            solv.add(state_func(state, char) == next_state)
-
-        s, c = z3.Ints("s c", ctx)
-        solv.add(
-            z3.ForAll(
-                [s, c],
-                (state_func(s, c) >= 0) & (state_func(s, c) < pat.nstate),
-            )
-        )
-        return state_func
-
-    def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
-        state_func = self.build_func(solv, clue)
-        pat = clue.pattern
-
-        nchar = len(chars)
-
-        states = z3.IntVector(clue.name + "_state", 1 + nchar, ctx=solv.ctx)
-        for i, ch in enumerate(chars):
-            solv.add(state_func(states[i], ch) == states[i + 1])
-
-        if self.prune:
-            dead = pat.dead_states
-            dead_all = pat.dead_vocab
-            dead_init = pat.dead_from(0)
-        else:
-            dead = set()
-            dead_all = set()
-            dead_init = set()
-
-        for ch in chars:
-            for d in dead_all:
-                solv.add(ch != d)
-        for d in dead_init:
-            solv.add(chars[0] != d)
-
-        for st in states:
-            solv.add(0 <= st)
-            solv.add(st < pat.nstate)
-            for d in dead:
-                solv.add(st != d)
-        solv.add(states[0] == 0)
-        solv.add(one_of(states[-1], [i for i, v in enumerate(pat.accept) if v]))
-
-
-class EnumFunc(Matcher):
-    char_sort: z3.SortRef
-    alphabet: list[z3.ExprRef]
-
-    state_sort: z3.SortRef
-    states: list[z3.ExprRef]
-
-    def __init__(self, config: dict[str, str] = {}):
+    def __init__(self, mapper_cls: Type[Mapper], config: dict[str, str] = {}):
+        self._mapper_cls = mapper_cls
         self.prune = config_bool(config, "prune", True)
         self.func = config_literal(
             config, "func", ["z3", "lambda", "forall", "python", "array"], "z3"
         )
 
+    @property
+    def char_mapper(self) -> Mapper[str]:
+        return self._alphabet
+
     def train(self, solv: z3.Solver, clues: list[Clue]):
         nstates = max(c.pattern.nstate for c in clues)
-        self.state_sort, self.states = z3.EnumSort(
-            "State",
-            [f"s{i}" for i in range(nstates)],
-            solv.ctx,
+        self._states = self._mapper_cls(
+            "State", [f"S{i}" for i in range(nstates)], solv.ctx
         )
-
-        self.char_sort, self.alphabet = z3.EnumSort("Char", list(ALPHABET), solv.ctx)
-
-    def make_char(self, solv: z3.Solver, name: str):
-        return z3.Const(name, self.char_sort)
-
-    def extract(self, model, ch) -> str:
-        return str(model.eval(ch))
+        self._alphabet = self._mapper_cls("Char", list(ALPHABET), solv.ctx)
 
     def build_funcexpr(
-        self, solv: z3.Solver, clue: Clue, st: z3.ExprRef, ch: z3.ExprRef
-    ) -> z3.ExprRef:
-        fn_expr = self.states[0]
+        self, solv: z3.Solver, clue: Clue, st: z3.AstRef, ch: z3.AstRef
+    ) -> z3.AstRef:
+        fn_expr = self._states.to_z3(0)
 
-        for state_i, state in enumerate(self.states[: clue.pattern.nstate]):
-            expr = self.states[0]
+        for state_i in range(clue.pattern.nstate):
+            state = self._states.to_z3(state_i)
+            expr = self._states.to_z3(0)
             for i, next_state in enumerate(clue.pattern.transition[state_i]):
-                expr = z3.If(ch == self.alphabet[i], self.states[next_state], expr)
+                expr = z3.If(
+                    ch == self._alphabet.to_z3(i), self._states.to_z3(next_state), expr
+                )
             fn_expr = z3.If(st == state, expr, fn_expr)
 
         return fn_expr
 
     def build_lambda(self, solv: z3.Solver, clue: Clue):
-        st = z3.Const("state", self.state_sort)
-        ch = z3.Const("char", self.char_sort)
+        st = self._states.make_const(solv, "state")
+        ch = self._alphabet.make_const(solv, "char")
 
         lambda_ = z3.Lambda([st, ch], self.build_funcexpr(solv, clue, st, ch))
 
@@ -297,13 +325,13 @@ class EnumFunc(Matcher):
     def build_forall(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Function(
             clue.name + "_trans",
-            self.state_sort,
-            self.char_sort,
-            self.state_sort,
+            self._states.sort,
+            self._alphabet.sort,
+            self._states.sort,
         )
 
-        st = z3.Const("state", self.state_sort)
-        ch = z3.Const("char", self.char_sort)
+        st = self._states.make_const(solv, "state")
+        ch = self._alphabet.make_const(solv, "char")
 
         explicit = self.build_funcexpr(solv, clue, st, ch)
         solv.add(z3.ForAll([st, ch], state_func(st, ch) == explicit))
@@ -312,16 +340,16 @@ class EnumFunc(Matcher):
     def build_z3func(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Function(
             clue.name + "_trans",
-            self.state_sort,
-            self.char_sort,
-            self.state_sort,
+            self._states.sort,
+            self._alphabet.sort,
+            self._states.sort,
         )
         pat = clue.pattern
 
         for (state, char), next_state in pat.all_transitions():
             solv.add(
-                state_func(self.states[state], self.alphabet[char])
-                == self.states[next_state]
+                state_func(self._states.to_z3(state), self._alphabet.to_z3(char))
+                == self._states.to_z3(next_state)
             )
 
         return state_func
@@ -329,22 +357,22 @@ class EnumFunc(Matcher):
     def build_array(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Array(
             clue.name + "_trans",
-            self.state_sort,
-            self.char_sort,
-            self.state_sort,
+            self._states.sort,
+            self._alphabet.sort,
+            self._states.sort,
         )
         pat = clue.pattern
 
         for (state, char), next_state in pat.all_transitions():
             state_func = z3.Update(
                 state_func,
-                self.states[state],
-                self.alphabet[char],
-                self.states[next_state],
+                self._states.to_z3(state),
+                self._alphabet.to_z3(char),
+                self._states.to_z3(next_state),
             )
 
         def apply(st, ch):
-            return state_func[st, ch]
+            return z3.Select(state_func, st, ch)
 
         return apply
 
@@ -352,7 +380,7 @@ class EnumFunc(Matcher):
 
     def build_func(
         self, solv: z3.Solver, clue: Clue
-    ) -> Callable[[z3.ExprRef, z3.ExprRef], z3.ExprRef]:
+    ) -> Callable[[z3.AstRef, z3.AstRef], z3.AstRef]:
         match self.func:
             case "z3":
                 return self.build_z3func(solv, clue)
@@ -374,7 +402,7 @@ class EnumFunc(Matcher):
         nchar = len(chars)
 
         states = [
-            z3.Const(f"{clue.name}_state_{i}", self.state_sort)
+            self._states.make_const(solv, f"{clue.name}_state_{i}")
             for i in range(nchar + 1)
         ]
         for i, ch in enumerate(chars):
@@ -391,18 +419,21 @@ class EnumFunc(Matcher):
 
         for ch in chars:
             for d in dead_all:
-                solv.add(ch != self.alphabet[d])
+                solv.add(ch != self._alphabet.to_z3(d))
 
         for d in dead_init:
-            solv.add(chars[0] != self.alphabet[d])
+            solv.add(chars[0] != self._alphabet.to_z3(d))
 
         for st in states:
             for d in dead:
-                solv.add(st != self.states[d])
+                solv.add(st != self._states.to_z3(d))
 
-        solv.add(states[0] == self.states[0])
+        solv.add(states[0] == self._states.to_z3(0))
         solv.add(
-            one_of(states[-1], [self.states[i] for i, v in enumerate(pat.accept) if v])
+            one_of(
+                states[-1],
+                [self._states.to_z3(i) for i, v in enumerate(pat.accept) if v],
+            )
         )
 
 
@@ -540,8 +571,8 @@ class Z3RE(Matcher):
 
 
 STRATEGIES: dict[str, Type[Matcher]] = {
-    "int_func": IntFunc,
-    "enum_func": EnumFunc,
+    "int_func": partial(FuncMatcher, IntMapper),
+    "enum_func": partial(FuncMatcher, EnumMapper),
     "enum_implies": EnumImplies,
     "z3_re": Z3RE,
 }
@@ -624,7 +655,7 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     matcher.train(solv, [c for cs in clues.values() for c in cs])
 
     grid = [
-        [matcher.make_char(solv, f"grid_{x}_{y}") for y in range(maxdim)]
+        [matcher.char_mapper.make_const(solv, f"grid_{x}_{y}") for y in range(maxdim)]
         for x in range(maxdim)
     ]
 
@@ -668,7 +699,9 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     opts.log(f"check() took: {t_done - t_check:.1f}s")
 
     model = solv.model()
-    solved = [[matcher.extract(model, ch) for ch in row] for row in grid]
+    solved = [
+        [matcher.char_mapper.from_z3(model.eval(ch)) for ch in row] for row in grid
+    ]
 
     stats = solv.statistics()
     result = Stats(

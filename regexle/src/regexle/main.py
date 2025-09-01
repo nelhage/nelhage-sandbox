@@ -100,19 +100,19 @@ class Regex:
     @cached_property
     def dead_states(self) -> set[int]:
         looped = self.transition == np.arange(self.nstate)[:, None]
-        return set((looped.all(-1) & ~self.accept).nonzero()[0])
+        return set(np.flatnonzero(looped.all(-1) & ~self.accept))
 
     @cached_property
     def dead_vocab(self) -> set[int]:
         dead = set()
         for d in self.dead_states:
-            dead |= set((self.transition == d).all(0).nonzero()[0])
+            dead |= set(np.flatnonzero((self.transition == d).all(0)))
         return dead
 
     def dead_from(self, state: int) -> set[int]:
         dead = set()
         for d in self.dead_states:
-            dead |= set((self.transition == d)[state].nonzero()[0])
+            dead |= set(np.flatnonzero((self.transition == d)[state]))
         return dead
 
 

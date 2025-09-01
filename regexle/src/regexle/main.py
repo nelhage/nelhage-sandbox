@@ -437,109 +437,17 @@ class FuncMatcher(Matcher):
         )
 
 
-class EnumImplies(Matcher):
-    char_sort: z3.SortRef
-    alphabet: list[z3.ExprRef]
-
-    state_sort: z3.SortRef
-    states: list[z3.ExprRef]
-
-    def train(self, solv: z3.Solver, clues: list[Clue]):
-        nstates = max(c.pattern.nstate for c in clues)
-        self.state_sort, self.states = z3.EnumSort(
-            "State",
-            [f"s{i}" for i in range(nstates)],
-            solv.ctx,
-        )
-
-        self.char_sort, self.alphabet = z3.EnumSort("Char", list(ALPHABET), solv.ctx)
-
-    def make_char(self, solv: z3.Solver, name: str):
-        return z3.Const(name, self.char_sort)
-
-    def extract(self, model, ch) -> str:
-        return str(model.eval(ch))
-
-    def map_state(self, solv: z3.Solver, clue: Clue, this_state, this_char, next_state):
-        pat = clue.pattern
-
-        for (state, char), out_state in pat.all_transitions():
-            solv.add(
-                z3.Implies(
-                    (this_state == self.states[state])
-                    & (this_char == self.alphabet[char]),
-                    next_state == self.states[out_state],
-                )
-            )
-
-    def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
-        pat = clue.pattern
-
-        nchar = len(chars)
-        dead = pat.dead_states
-
-        states = [
-            z3.Const(f"{clue.name}_state_{i}", self.state_sort)
-            for i in range(nchar + 1)
-        ]
-        for i, ch in enumerate(chars):
-            self.map_state(solv, clue, states[i], ch, states[i + 1])
-
-        dead_all = pat.dead_vocab
-        dead_init = pat.dead_from(0)
-
-        for ch in chars:
-            for d in dead_all:
-                solv.add(ch != self.alphabet[d])
-
-        for d in dead_init:
-            solv.add(chars[0] != self.alphabet[d])
-
-        for st in states:
-            for d in dead:
-                solv.add(st != self.states[d])
-
-        solv.add(states[0] == self.states[0])
-        solv.add(
-            one_of(states[-1], [self.states[i] for i, v in enumerate(pat.accept) if v])
-        )
-
-
 class Z3RE(Matcher):
     def __init__(self, config: dict[str, str] = {}):
         self.simplify = config_bool(config, "simplify")
-        self.char = config_literal(
-            config, "char", ["len1", "index", "slice", "char_code"], "len1"
-        )
         self.prune = config_bool(config, "prune", False)
-        self.alphabet = None
 
-    def make_char(self, solv: z3.Solver, name: str):
-        match self.char:
-            case "len1":
-                c = z3.String(name, solv.ctx)
-                solv.add(z3.Length(c) == 1)
-                return c
-            case "slice":
-                c = z3.String(name, solv.ctx)
-                return z3.SubString(c, 0, 1)
-            case "index":
-                if self.alphabet is None:
-                    self.alphabet = z3.StringVal(ALPHABET, solv.ctx)
-                idx = z3.Int(name + ".idx", solv.ctx)
-                solv.add(idx >= 0)
-                solv.add(idx < len(ALPHABET))
-                return z3.SubString(self.alphabet, idx, 1)
-            case "char_code":
-                code = z3.Int(name + ".ord", solv.ctx)
-                solv.add(code >= ord("A"))
-                solv.add(code <= ord("Z"))
-                return z3.StrFromCode(code)
-            case _:
-                raise AssertionError("unreachable")
+    def train(self, solv: z3.Solver, clues):
+        self._alphabet = StringMapper("Char", list(ALPHABET), solv.ctx)
 
-    def extract(self, model, ch) -> str:
-        return model.eval(ch).as_string()
+    @property
+    def char_mapper(self):
+        return self._alphabet
 
     def build_re(self, solv: z3.Solver, clue: Clue):
         try:
@@ -573,7 +481,6 @@ class Z3RE(Matcher):
 STRATEGIES: dict[str, Type[Matcher]] = {
     "int_func": partial(FuncMatcher, IntMapper),
     "enum_func": partial(FuncMatcher, EnumMapper),
-    "enum_implies": EnumImplies,
     "z3_re": Z3RE,
 }
 

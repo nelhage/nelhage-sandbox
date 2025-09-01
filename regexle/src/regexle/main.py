@@ -707,7 +707,8 @@ DAY_EPOCH = datetime.date(2024, 5, 31)
 
 
 @app.default
-def main(
+@app.command
+def solve(
     *,
     side: int = 3,
     day: int | None = None,

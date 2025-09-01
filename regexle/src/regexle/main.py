@@ -546,7 +546,7 @@ STRATEGIES: dict[str, Type[Matcher]] = {
     "z3_re": Z3RE,
 }
 
-PUZZLE_CACHE = Path(__file__).parent / "puzzles"
+PUZZLE_CACHE = Path.home() / ".cache" / "regexle"
 
 
 def fetch_puzzle(opts, day, side):

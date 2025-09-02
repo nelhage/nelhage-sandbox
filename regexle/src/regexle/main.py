@@ -278,7 +278,17 @@ class FuncMatcher(Matcher):
         self._mapper_cls = mapper_cls
         self.prune = config_bool(config, "prune", True)
         self.func = config_literal(
-            config, "func", ["z3", "lambda", "forall", "python", "array"], "z3"
+            config,
+            "func",
+            [
+                "pointwise",
+                "lambda",
+                "forall",
+                "python",
+                "array-pointwise",
+                "array-update",
+            ],
+            "pointwise",
         )
 
     @property
@@ -337,7 +347,7 @@ class FuncMatcher(Matcher):
         solv.add(z3.ForAll([st, ch], state_func(st, ch) == explicit))
         return state_func
 
-    def build_z3func(self, solv: z3.Solver, clue: Clue):
+    def build_pointwise(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Function(
             clue.name + "_trans",
             self._states.sort,
@@ -354,7 +364,7 @@ class FuncMatcher(Matcher):
 
         return state_func
 
-    def build_array(self, solv: z3.Solver, clue: Clue):
+    def build_array_update(self, solv: z3.Solver, clue: Clue):
         state_func = z3.Array(
             clue.name + "_trans",
             self._states.sort,
@@ -376,22 +386,42 @@ class FuncMatcher(Matcher):
 
         return apply
 
-        return state_func
+    def build_array_pointwise(self, solv: z3.Solver, clue: Clue):
+        state_func = z3.Array(
+            clue.name + "_trans",
+            self._states.sort,
+            self._alphabet.sort,
+            self._states.sort,
+        )
+        pat = clue.pattern
+
+        for (state, char), next_state in pat.all_transitions():
+            solv.add(
+                state_func[self._states.to_z3(state), self._alphabet.to_z3(char)]
+                == self._states.to_z3(next_state)
+            )
+
+        def apply(st, ch):
+            return z3.Select(state_func, st, ch)
+
+        return apply
 
     def build_func(
         self, solv: z3.Solver, clue: Clue
     ) -> Callable[[z3.AstRef, z3.AstRef], z3.AstRef]:
         match self.func:
-            case "z3":
-                return self.build_z3func(solv, clue)
+            case "pointwise":
+                return self.build_pointwise(solv, clue)
             case "lambda":
                 return self.build_lambda(solv, clue)
             case "forall":
                 return self.build_forall(solv, clue)
             case "python":
                 return self.build_pyfunc(solv, clue)
-            case "array":
-                return self.build_array(solv, clue)
+            case "array-update":
+                return self.build_array_update(solv, clue)
+            case "array-pointwise":
+                return self.build_array_pointwise(solv, clue)
             case _:
                 raise AssertionError("unreachable")
 

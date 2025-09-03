@@ -18,6 +18,7 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
+    cast,
 )
 from urllib.parse import urlencode
 
@@ -270,6 +271,20 @@ def config_literal(
     )
 
 
+def build_match(
+    var: z3.AstRef,
+    compare: list[z3.AstRef],
+    result: list[z3.AstRef],
+) -> z3.AstRef:
+    expr = None
+    for test_, then_ in zip(reversed(compare), reversed(result), strict=True):
+        if expr is None:
+            expr = then_
+        else:
+            expr = z3.If(var == test_, then_, expr)
+    return cast(z3.AstRef, expr)
+
+
 class FuncMatcher(Matcher):
     _alphabet: Mapper[str]
     _states: Mapper[int]
@@ -305,18 +320,25 @@ class FuncMatcher(Matcher):
     def build_funcexpr(
         self, solv: z3.Solver, clue: Clue, st: z3.AstRef, ch: z3.AstRef
     ) -> z3.AstRef:
-        fn_expr = self._states.to_z3(0)
+        by_state = []
 
         for state_i in range(clue.pattern.nstate):
             state = self._states.to_z3(state_i)
-            expr = self._states.to_z3(0)
-            for i, next_state in enumerate(clue.pattern.transition[state_i]):
-                expr = z3.If(
-                    ch == self._alphabet.to_z3(i), self._states.to_z3(next_state), expr
-                )
-            fn_expr = z3.If(st == state, expr, fn_expr)
+            row = clue.pattern.transition[state_i]
 
-        return fn_expr
+            by_state.append(
+                build_match(
+                    ch,
+                    [self._alphabet.to_z3(i) for i in range(len(row))],
+                    [self._states.to_z3(out) for out in row],
+                )
+            )
+
+        return build_match(
+            st,
+            [self._states.to_z3(i) for i in range(clue.pattern.nstate)],
+            by_state,
+        )
 
     def build_lambda(self, solv: z3.Solver, clue: Clue):
         st = self._states.make_const(solv, "state")

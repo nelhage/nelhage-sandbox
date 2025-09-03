@@ -273,15 +273,18 @@ def config_literal(
 
 def build_match(
     var: z3.AstRef,
-    compare: list[z3.AstRef],
+    test: list[z3.AstRef],
     result: list[z3.AstRef],
 ) -> z3.AstRef:
-    expr = None
-    for test_, then_ in zip(reversed(compare), reversed(result), strict=True):
-        if expr is None:
-            expr = then_
-        else:
-            expr = z3.If(var == test_, then_, expr)
+    """Return a Z3 `if` ladder comparing var against each `test` value.
+
+    If `var == test[i]`, the ladder evaluates to `result[i]`. If no
+    `test` matches, evaluate to `result[-1]`; it is anticipated that
+    the list of tests will be exhaustive in most cases.
+    """
+    expr = result[-1]
+    for test_, then_ in zip(reversed(test[:-1]), reversed(result[:-1]), strict=True):
+        expr = z3.If(var == test_, then_, expr)
     return cast(z3.AstRef, expr)
 
 

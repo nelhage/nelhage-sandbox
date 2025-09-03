@@ -1,5 +1,7 @@
 import datetime
+import hashlib
 import json
+import pickle
 import string
 import sys
 import time
@@ -10,6 +12,7 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Callable,
+    ClassVar,
     Generic,
     Iterable,
     Iterator,
@@ -37,6 +40,10 @@ if TYPE_CHECKING:
 
 ALPHABET = string.ascii_uppercase
 
+CACHE_ROOT = Path.home() / ".cache" / "regexle"
+PUZZLE_CACHE = CACHE_ROOT
+PATTERN_CACHE = CACHE_ROOT / "pat"
+
 
 def flatten_fsm(fsm):
     nstate = len(fsm.states)
@@ -63,6 +70,8 @@ Axis = Literal["x", "y", "z"]
 
 @dataclass
 class Regex:
+    CACHE_VERSION: ClassVar[int] = 1
+
     pattern: str
     parsed: greenery.Pattern
 
@@ -79,6 +88,12 @@ class Regex:
 
     @classmethod
     def from_pattern(cls, pattern: str):
+        fpr = hashlib.blake2b(pattern.encode()).hexdigest()[:128]
+        cache_path = PATTERN_CACHE / f"v{cls.CACHE_VERSION}-{fpr}.pkl"
+        if cache_path.is_file():
+            with cache_path.open("rb") as fh:
+                return pickle.load(fh)
+
         parsed = greenery.parse(pattern)
         fsm = parsed.to_fsm().reduce()
 
@@ -88,12 +103,17 @@ class Regex:
         for st in fsm.finals:
             accept[st] = True
 
-        return cls(
+        result = cls(
             pattern=pattern,
             parsed=parsed,
             transition=transition,
             accept=accept,
         )
+
+        cache_path.parent.mkdir(exist_ok=True, parents=True)
+        with cache_path.open("wb") as fh:
+            pickle.dump(result, fh)
+        return result
 
     def all_transitions(self) -> Iterator[tuple[tuple[int, int], int]]:
         it = np.nditer(self.transition, flags=["multi_index"])
@@ -538,8 +558,6 @@ STRATEGIES: dict[str, Type[Matcher]] = {
     "enum_func": partial(FuncMatcher, EnumMapper),
     "z3_re": Z3RE,
 }
-
-PUZZLE_CACHE = Path.home() / ".cache" / "regexle"
 
 
 def fetch_puzzle(opts, day, side):

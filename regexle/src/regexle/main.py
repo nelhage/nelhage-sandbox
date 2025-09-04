@@ -299,6 +299,31 @@ def config_literal(
     )
 
 
+def _fast_if(a, b, c):
+    assert isinstance(a, z3.ExprRef)
+    assert isinstance(b, z3.ExprRef)
+    assert isinstance(c, z3.ExprRef)
+    ctx = a.ctx
+    assert (
+        z3.Z3_get_sort(ctx.ref(), b.as_ast()).value
+        == z3.Z3_get_sort(ctx.ref(), c.as_ast()).value
+    )
+
+    return z3.ExprRef(z3.Z3_mk_ite(ctx.ref(), a.as_ast(), b.as_ast(), c.as_ast()), ctx)
+
+
+def _fast_eq(a, b):
+    assert isinstance(a, z3.ExprRef)
+    assert isinstance(b, z3.ExprRef)
+    ctx = a.ctx
+    assert (
+        z3.Z3_get_sort(ctx.ref(), a.as_ast()).value
+        == z3.Z3_get_sort(ctx.ref(), b.as_ast()).value
+    )
+
+    return z3.BoolRef(z3.Z3_mk_eq(ctx.ref(), a.as_ast(), b.as_ast()), ctx)
+
+
 def build_match(
     var: z3.AstRef,
     test: list[z3.AstRef],
@@ -311,8 +336,8 @@ def build_match(
     the list of tests will be exhaustive in most cases.
     """
     expr = result[-1]
-    for test_, then_ in zip(reversed(test[:-1]), reversed(result[:-1]), strict=True):
-        expr = z3.If(var == test_, then_, expr)
+    for test_, then_ in zip(test[:-1], result[:-1], strict=True):
+        expr = _fast_if(_fast_eq(var, test_), then_, expr)
     return cast(z3.AstRef, expr)
 
 
@@ -342,32 +367,28 @@ class FuncMatcher(Matcher):
         return self._alphabet
 
     def train(self, solv: GoalLike, clues: list[Clue]):
-        nstates = max(c.pattern.nstate for c in clues)
+        nstate = max(c.pattern.nstate for c in clues)
         self._states = self._mapper_cls(
-            "State", [f"S{i}" for i in range(nstates)], solv.ctx
+            "State", [f"S{i}" for i in range(nstate)], solv.ctx
         )
         self._alphabet = self._mapper_cls("Char", list(ALPHABET), solv.ctx)
+        self.states = [self._states.to_z3(i) for i in range(nstate)]
+        self.alphabet = [self._alphabet.to_z3(i) for i in range(len(ALPHABET))]
 
-    def build_funcexpr(
-        self, solv: GoalLike, clue: Clue, st: z3.AstRef, ch: z3.AstRef
-    ) -> z3.AstRef:
-        by_state = []
-
-        for state_i in range(clue.pattern.nstate):
-            state = self._states.to_z3(state_i)
-            row = clue.pattern.transition[state_i]
-
-            by_state.append(
-                build_match(
-                    ch,
-                    [self._alphabet.to_z3(i) for i in range(len(row))],
-                    [self._states.to_z3(out) for out in row],
-                )
+    def build_funcexpr(self, clue: Clue, st: z3.AstRef, ch: z3.AstRef) -> z3.AstRef:
+        pat = clue.pattern
+        by_state = [
+            build_match(
+                ch,
+                self.alphabet,
+                [self.states[out] for out in pat.transition[i]],
             )
+            for i in range(pat.nstate)
+        ]
 
         return build_match(
             st,
-            [self._states.to_z3(i) for i in range(clue.pattern.nstate)],
+            self.states[: pat.nstate],
             by_state,
         )
 
@@ -375,7 +396,7 @@ class FuncMatcher(Matcher):
         st = self._states.make_const(solv, "state")
         ch = self._alphabet.make_const(solv, "char")
 
-        lambda_ = z3.Lambda([st, ch], self.build_funcexpr(solv, clue, st, ch))
+        lambda_ = z3.Lambda([st, ch], self.build_funcexpr(clue, st, ch))
 
         def apply(st, ch):
             return lambda_[st, ch]
@@ -383,7 +404,7 @@ class FuncMatcher(Matcher):
         return apply
 
     def build_pyfunc(self, solv: GoalLike, clue: Clue):
-        return partial(self.build_funcexpr, solv, clue)
+        return partial(self.build_funcexpr, clue)
 
     def build_forall(self, solv: GoalLike, clue: Clue):
         state_func = z3.Function(
@@ -396,7 +417,7 @@ class FuncMatcher(Matcher):
         st = self._states.make_const(solv, "state")
         ch = self._alphabet.make_const(solv, "char")
 
-        explicit = self.build_funcexpr(solv, clue, st, ch)
+        explicit = self.build_funcexpr(clue, st, ch)
         solv.add(z3.ForAll([st, ch], state_func(st, ch) == explicit))
         return state_func
 
@@ -597,6 +618,7 @@ class Stats:
 @dataclass
 class Options:
     verbose: bool = True
+    z3_debug: bool | None = None
     threads: int | None = None
     strategy: str = "int_func"
     strategy_config: dict[str, str] = field(default_factory=dict)
@@ -621,6 +643,8 @@ class Options:
 
 def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     opts.log("Solving...")
+    if opts.z3_debug is not None:
+        z3.Z3_DEBUG = opts.z3_debug
 
     ctx = z3.Context()
     goal = z3.Goal(ctx=ctx)

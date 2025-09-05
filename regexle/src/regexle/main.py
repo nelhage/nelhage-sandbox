@@ -594,6 +594,7 @@ class Options:
     strategy_config: dict[str, str] = field(default_factory=dict)
 
     regex_cache: bool = True
+    write_sexp: str | None = None
 
     def log(self, msg: str):
         if not self.verbose:
@@ -669,6 +670,11 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
 
     opts.log("Querying z3...")
     t_check = time.time()
+
+    if opts.write_sexp:
+        Path(opts.write_sexp).parent.mkdir(exist_ok=True, parents=True)
+        with open(opts.write_sexp, "w") as fh:
+            fh.write(solv.sexpr())
 
     if solv.check() != z3.sat:
         print("Failed to solve!", file=sys.stderr)

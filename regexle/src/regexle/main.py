@@ -94,6 +94,15 @@ class Regex:
             with cache_path.open("rb") as fh:
                 return pickle.load(fh)
 
+        result = cls.from_pattern_nocache(pattern)
+
+        cache_path.parent.mkdir(exist_ok=True, parents=True)
+        with cache_path.open("wb") as fh:
+            pickle.dump(result, fh)
+        return result
+
+    @classmethod
+    def from_pattern_nocache(cls, pattern: str):
         parsed = greenery.parse(pattern)
         fsm = parsed.to_fsm().reduce()
 
@@ -103,17 +112,12 @@ class Regex:
         for st in fsm.finals:
             accept[st] = True
 
-        result = cls(
+        return cls(
             pattern=pattern,
             parsed=parsed,
             transition=transition,
             accept=accept,
         )
-
-        cache_path.parent.mkdir(exist_ok=True, parents=True)
-        with cache_path.open("wb") as fh:
-            pickle.dump(result, fh)
-        return result
 
     def all_transitions(self) -> Iterator[tuple[tuple[int, int], int]]:
         it = np.nditer(self.transition, flags=["multi_index"])
@@ -150,10 +154,6 @@ class Clue:
     @property
     def name(self):
         return f"{self.axis}{self.index}"
-
-    @classmethod
-    def from_pattern(cls, re: str, axis: Axis, index: int):
-        return cls(axis=axis, index=index, pattern=Regex.from_pattern(re))
 
 
 # Mappers map between Python objects and a Z3 representation
@@ -593,6 +593,8 @@ class Options:
     strategy: str = "int_func"
     strategy_config: dict[str, str] = field(default_factory=dict)
 
+    regex_cache: bool = True
+
     def log(self, msg: str):
         if not self.verbose:
             return
@@ -621,13 +623,13 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     clues = {axis: [] for axis in "xyz"}
     for axis in "xyz":
         for i, re in enumerate(puzzle[axis]):
-            clues[axis].append(
-                Clue.from_pattern(
-                    re,
-                    axis=axis,
-                    index=i,
-                )
-            )
+            if opts.regex_cache:
+                pat = Regex.from_pattern(re)
+            else:
+                pat = Regex.from_pattern_nocache(re)
+
+            clue = Clue(axis=axis, index=i, pattern=pat)
+            clues[axis].append(clue)
 
     maxdim = (2 * side) - 1
     assert maxdim == puzzle["diameter"]

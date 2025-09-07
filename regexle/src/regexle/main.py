@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import json
 import pickle
+import random
 import string
 import sys
 import time
@@ -810,23 +811,34 @@ def matrix(
         for day in range(400, 450):
             puzzle = fetch_puzzle(opts, day, side)
 
-            if side < 4:
-                tests.append((puzzle, replace(opts, strategy="int_func")))
-            tests.append((puzzle, replace(opts, strategy="enum_func")))
+            for strat in ["int_func", "enum_func"]:
+                for func in [
+                    "pointwise",
+                    "lambda",
+                    "python",
+                    "forall",
+                    "array-pointwise",
+                    "array-update",
+                ]:
+                    if side > 4:
+                        if func == "array-update":
+                            continue
+                        if strat == "int_func" and func in ("forall", "pointwise"):
+                            continue
+                    tests.append(
+                        (
+                            puzzle,
+                            replace(
+                                opts,
+                                strategy=strat,
+                                strategy_config=dict(func=func),
+                            ),
+                        )
+                    )
+
             tests.append((puzzle, replace(opts, strategy="z3_re")))
 
-            if side < 6:
-                tests.append(
-                    (
-                        puzzle,
-                        replace(
-                            opts,
-                            strategy="enum_func",
-                            strategy_config=dict(prune="0"),
-                        ),
-                    )
-                )
-
+    random.shuffle(tests)
     df = run_scan(tqdm(tests))
     Path(out).parent.mkdir(exist_ok=True)
     df.to_json(out)

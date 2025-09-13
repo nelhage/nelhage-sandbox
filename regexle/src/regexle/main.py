@@ -605,6 +605,8 @@ class Options:
     write_sexp: str | None = None
     statistics: bool = False
 
+    macro_finder: bool = False
+
     def log(self, msg: str):
         if not self.verbose:
             return
@@ -681,7 +683,10 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     solv = z3.Solver(ctx=ctx)
     if opts.threads is not None:
         solv.set(threads=opts.threads)
-    solv.add(goal)
+    if opts.macro_finder:
+        solv.add(*z3.Tactic("macro-finder", ctx=ctx).apply(goal))
+    else:
+        solv.add(goal)
 
     if opts.write_sexp:
         Path(opts.write_sexp).parent.mkdir(exist_ok=True, parents=True)

@@ -62,8 +62,8 @@ def flatten_fsm(fsm):
     return state_map
 
 
-def one_of(var, values):
-    return z3.Or(*(var == v for v in values))
+def one_of(var, values) -> z3.ExprRef:
+    return cast(z3.BoolRef, z3.Or(*(var == v for v in values)))
 
 
 Axis = Literal["x", "y", "z"]
@@ -123,6 +123,7 @@ class Regex:
     def all_transitions(self) -> Iterator[tuple[tuple[int, int], int]]:
         it = np.nditer(self.transition, flags=["multi_index"])
         for next_state in it:
+            assert isinstance(next_state, np.ndarray)
             state, char = it.multi_index
             yield (state, char), next_state.item()
 
@@ -157,6 +158,12 @@ class Clue:
         return f"{self.axis}{self.index}"
 
 
+class GoalLike(Protocol):
+    ctx: z3.Context
+
+    def add(self, *args: z3.ExprRef | bool): ...
+
+
 # Mappers map between Python objects and a Z3 representation
 
 T = TypeVar("T", covariant=True)
@@ -172,7 +179,7 @@ class Mapper(Protocol, Generic[T]):
 
     def from_z3(self, val: z3.AstRef) -> T | None: ...
 
-    def make_const(self, solv: z3.Solver, name: str) -> z3.AstRef: ...
+    def make_const(self, solv: GoalLike, name: str) -> z3.AstRef: ...
 
 
 class EnumMapper(Mapper[T]):
@@ -195,7 +202,7 @@ class EnumMapper(Mapper[T]):
         assert isinstance(val, z3.DatatypeRef), f"z3 object must be datatype"
         return self._from_decl.get(val.decl())
 
-    def make_const(self, solv: z3.Solver, name: str) -> z3.AstRef:
+    def make_const(self, solv: GoalLike, name: str) -> z3.AstRef:
         return z3.Const(name, self.sort)
 
 
@@ -219,7 +226,7 @@ class IntMapper(Mapper[T]):
         assert isinstance(val, z3.IntNumRef), f"z3 object must be int"
         return self._py_objs[val.as_long()]
 
-    def make_const(self, solv: z3.Solver, name: str) -> z3.AstRef:
+    def make_const(self, solv: GoalLike, name: str) -> z3.AstRef:
         val = z3.Int(name, self.sort.ctx)
         solv.add(val >= 0)
         solv.add(val < self.nval)
@@ -246,7 +253,7 @@ class StringMapper(Mapper[str]):
         assert isinstance(val, z3.SeqRef), f"z3 object must be string"
         return val.as_string()
 
-    def make_const(self, solv: z3.Solver, name: str) -> z3.AstRef:
+    def make_const(self, solv: GoalLike, name: str) -> z3.AstRef:
         val = z3.String(name, self.sort.ctx)
         solv.add(z3.Length(val) == 1)
         return val
@@ -259,13 +266,13 @@ class Matcher:
     def __init__(self, config: dict[str, str] = {}):
         pass
 
-    def train(self, solv: z3.Solver, clues: list[Clue]):
+    def train(self, solv: GoalLike, clues: list[Clue]):
         pass
 
     @property
     def char_mapper(self) -> Mapper[str]: ...
 
-    def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]): ...
+    def assert_matches(self, solv: GoalLike, clue: Clue, chars: list[z3.ArithRef]): ...
 
 
 def config_bool(config: dict[str, str], field: str, default: bool = False) -> bool:
@@ -334,7 +341,7 @@ class FuncMatcher(Matcher):
     def char_mapper(self) -> Mapper[str]:
         return self._alphabet
 
-    def train(self, solv: z3.Solver, clues: list[Clue]):
+    def train(self, solv: GoalLike, clues: list[Clue]):
         nstates = max(c.pattern.nstate for c in clues)
         self._states = self._mapper_cls(
             "State", [f"S{i}" for i in range(nstates)], solv.ctx
@@ -342,7 +349,7 @@ class FuncMatcher(Matcher):
         self._alphabet = self._mapper_cls("Char", list(ALPHABET), solv.ctx)
 
     def build_funcexpr(
-        self, solv: z3.Solver, clue: Clue, st: z3.AstRef, ch: z3.AstRef
+        self, solv: GoalLike, clue: Clue, st: z3.AstRef, ch: z3.AstRef
     ) -> z3.AstRef:
         by_state = []
 
@@ -364,7 +371,7 @@ class FuncMatcher(Matcher):
             by_state,
         )
 
-    def build_lambda(self, solv: z3.Solver, clue: Clue):
+    def build_lambda(self, solv: GoalLike, clue: Clue):
         st = self._states.make_const(solv, "state")
         ch = self._alphabet.make_const(solv, "char")
 
@@ -375,10 +382,10 @@ class FuncMatcher(Matcher):
 
         return apply
 
-    def build_pyfunc(self, solv: z3.Solver, clue: Clue):
+    def build_pyfunc(self, solv: GoalLike, clue: Clue):
         return partial(self.build_funcexpr, solv, clue)
 
-    def build_forall(self, solv: z3.Solver, clue: Clue):
+    def build_forall(self, solv: GoalLike, clue: Clue):
         state_func = z3.Function(
             clue.name + "_trans",
             self._states.sort,
@@ -393,7 +400,7 @@ class FuncMatcher(Matcher):
         solv.add(z3.ForAll([st, ch], state_func(st, ch) == explicit))
         return state_func
 
-    def build_pointwise(self, solv: z3.Solver, clue: Clue):
+    def build_pointwise(self, solv: GoalLike, clue: Clue):
         state_func = z3.Function(
             clue.name + "_trans",
             self._states.sort,
@@ -410,7 +417,7 @@ class FuncMatcher(Matcher):
 
         return state_func
 
-    def build_array_update(self, solv: z3.Solver, clue: Clue):
+    def build_array_update(self, solv: GoalLike, clue: Clue):
         state_func = z3.Array(
             clue.name + "_trans",
             self._states.sort,
@@ -432,7 +439,7 @@ class FuncMatcher(Matcher):
 
         return apply
 
-    def build_array_pointwise(self, solv: z3.Solver, clue: Clue):
+    def build_array_pointwise(self, solv: GoalLike, clue: Clue):
         state_func = z3.Array(
             clue.name + "_trans",
             self._states.sort,
@@ -453,7 +460,7 @@ class FuncMatcher(Matcher):
         return apply
 
     def build_func(
-        self, solv: z3.Solver, clue: Clue
+        self, solv: GoalLike, clue: Clue
     ) -> Callable[[z3.AstRef, z3.AstRef], z3.AstRef]:
         match self.func:
             case "pointwise":
@@ -471,7 +478,7 @@ class FuncMatcher(Matcher):
             case _:
                 raise AssertionError("unreachable")
 
-    def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
+    def assert_matches(self, solv: GoalLike, clue: Clue, chars: list[z3.ArithRef]):
         state_func = self.build_func(solv, clue)
         pat = clue.pattern
 
@@ -518,14 +525,14 @@ class Z3RE(Matcher):
         self.simplify = config_bool(config, "simplify")
         self.prune = config_bool(config, "prune", False)
 
-    def train(self, solv: z3.Solver, clues):
+    def train(self, solv: GoalLike, clues):
         self._alphabet = StringMapper("Char", list(ALPHABET), solv.ctx)
 
     @property
     def char_mapper(self):
         return self._alphabet
 
-    def build_re(self, solv: z3.Solver, clue: Clue):
+    def build_re(self, solv: GoalLike, clue: Clue):
         try:
             re = z3_re.z3_of_pat(clue.pattern.parsed, solv.ctx)
             if self.simplify:
@@ -535,7 +542,7 @@ class Z3RE(Matcher):
             breakpoint()
             raise
 
-    def assert_matches(self, solv: z3.Solver, clue: Clue, chars: list[z3.ArithRef]):
+    def assert_matches(self, solv: GoalLike, clue: Clue, chars: list[z3.ArithRef]):
         re = self.build_re(solv, clue)
 
         string = z3.Concat(chars)
@@ -547,14 +554,14 @@ class Z3RE(Matcher):
             dead_init = pat.dead_from(0)
 
             valid_init = [c for i, c in enumerate(ALPHABET) if i not in dead_init]
-            solv.add(z3.Or(chars[0] == c for c in valid_init))
+            solv.add(one_of(chars[0], valid_init))
 
             valid_rest = [c for i, c in enumerate(ALPHABET) if i not in dead_all]
             for ch in chars[1:]:
-                solv.add(z3.Or(ch == c for c in valid_rest))
+                solv.add(one_of(ch, valid_rest))
 
 
-STRATEGIES: dict[str, Type[Matcher]] = {
+STRATEGIES: dict[str, Callable[[dict], Matcher]] = {
     "int_func": partial(FuncMatcher, IntMapper),
     "enum_func": partial(FuncMatcher, EnumMapper),
     "z3_re": Z3RE,
@@ -596,6 +603,7 @@ class Options:
 
     regex_cache: bool = True
     write_sexp: str | None = None
+    statistics: bool = False
 
     def log(self, msg: str):
         if not self.verbose:
@@ -613,9 +621,7 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
     opts.log("Solving...")
 
     ctx = z3.Context()
-    solv = z3.Solver(ctx=ctx)
-    if opts.threads is not None:
-        solv.set(threads=opts.threads)
+    goal = z3.Goal(ctx=ctx)
 
     t_start = time.time()
     side = puzzle["side"]
@@ -630,16 +636,16 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
             else:
                 pat = Regex.from_pattern_nocache(re)
 
-            clue = Clue(axis=axis, index=i, pattern=pat)
+            clue = Clue(axis=cast(Axis, axis), index=i, pattern=pat)
             clues[axis].append(clue)
 
     maxdim = (2 * side) - 1
     assert maxdim == puzzle["diameter"]
 
-    matcher.train(solv, [c for cs in clues.values() for c in cs])
+    matcher.train(goal, [c for cs in clues.values() for c in cs])
 
     grid = [
-        [matcher.char_mapper.make_const(solv, f"grid_{x}_{y}") for y in range(maxdim)]
+        [matcher.char_mapper.make_const(goal, f"grid_{x}_{y}") for y in range(maxdim)]
         for x in range(maxdim)
     ]
 
@@ -664,13 +670,18 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
             chars = [grid[x][y] for x, y in coords]
 
             matcher.assert_matches(
-                solv,
+                goal,
                 clue,
                 chars,
             )
 
     opts.log("Querying z3...")
     t_check = time.time()
+
+    solv = z3.Solver(ctx=ctx)
+    if opts.threads is not None:
+        solv.set(threads=opts.threads)
+    solv.add(goal)
 
     if opts.write_sexp:
         Path(opts.write_sexp).parent.mkdir(exist_ok=True, parents=True)
@@ -686,6 +697,10 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
 
     t_done = time.time()
     opts.log(f"check() took: {t_done - t_check:.1f}s")
+
+    if opts.statistics:
+        print("Statistics:", file=sys.stderr)
+        print(solv.statistics(), file=sys.stderr)
 
     model = solv.model()
     solved = [

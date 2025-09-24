@@ -300,26 +300,31 @@ def config_literal(
 
 
 def _fast_if(a, b, c):
-    assert isinstance(a, z3.ExprRef)
-    assert isinstance(b, z3.ExprRef)
-    assert isinstance(c, z3.ExprRef)
+    if not (
+        isinstance(a, z3.ExprRef)
+        and isinstance(b, z3.ExprRef)
+        and isinstance(c, z3.ExprRef)
+    ):
+        return z3.If(a, b, c)
     ctx = a.ctx
-    assert (
+    if not (
         z3.Z3_get_sort(ctx.ref(), b.as_ast()).value
         == z3.Z3_get_sort(ctx.ref(), c.as_ast()).value
-    )
+    ):
+        return z3.If(a, b, c)
 
     return z3.ExprRef(z3.Z3_mk_ite(ctx.ref(), a.as_ast(), b.as_ast(), c.as_ast()), ctx)
 
 
 def _fast_eq(a, b):
-    assert isinstance(a, z3.ExprRef)
-    assert isinstance(b, z3.ExprRef)
+    if not (isinstance(a, z3.ExprRef) and isinstance(b, z3.ExprRef)):
+        return a == b
     ctx = a.ctx
-    assert (
+    if not (
         z3.Z3_get_sort(ctx.ref(), a.as_ast()).value
         == z3.Z3_get_sort(ctx.ref(), b.as_ast()).value
-    )
+    ):
+        return a == b
 
     return z3.BoolRef(z3.Z3_mk_eq(ctx.ref(), a.as_ast(), b.as_ast()), ctx)
 

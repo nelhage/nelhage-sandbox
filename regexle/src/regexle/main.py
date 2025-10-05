@@ -706,9 +706,6 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
                 chars,
             )
 
-    opts.log("Querying z3...")
-    t_check = time.time()
-
     solv = z3.Solver(ctx=ctx)
     if opts.threads is not None:
         solv.set(threads=opts.threads)
@@ -721,6 +718,9 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
         Path(opts.write_sexp).parent.mkdir(exist_ok=True, parents=True)
         with open(opts.write_sexp, "w") as fh:
             fh.write(solv.sexpr())
+
+    opts.log("Querying z3...")
+    t_check = time.time()
 
     if solv.check() != z3.sat:
         print("Failed to solve!", file=sys.stderr)

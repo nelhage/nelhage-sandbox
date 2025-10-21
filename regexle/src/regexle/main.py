@@ -262,7 +262,7 @@ class FuncMatcher(Matcher):
                 "array-pointwise",
                 "array-update",
             ],
-            "pointwise",
+            "lambda",
         )
 
     @property

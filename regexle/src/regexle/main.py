@@ -33,7 +33,13 @@ from tqdm import tqdm
 
 from regexle import GoalLike, z3_re
 
-from .mappers import EnumMapper, IntMapper, Mapper, StringMapper
+from .mappers import (
+    EnumMapper,
+    IntMapper,
+    Mapper,
+    StringMapper,
+    UninterpretedSortMapper,
+)
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -274,7 +280,10 @@ class FuncMatcher(Matcher):
         self._states = self._mapper_cls(
             "State", [f"S{i}" for i in range(nstate)], solv.ctx
         )
+        self._states.register(solv)
         self._alphabet = self._mapper_cls("Char", list(ALPHABET), solv.ctx)
+        self._alphabet.register(solv)
+
         self.states = [self._states.to_z3(i) for i in range(nstate)]
         self.alphabet = [self._alphabet.to_z3(i) for i in range(len(ALPHABET))]
 
@@ -296,8 +305,8 @@ class FuncMatcher(Matcher):
         )
 
     def build_lambda(self, solv: GoalLike, clue: Clue):
-        st = self._states.make_const(solv, "state")
-        ch = self._alphabet.make_const(solv, "char")
+        st = z3.Const("state", self._states.sort)
+        ch = z3.Const("char", self._alphabet.sort)
 
         lambda_ = z3.Lambda([st, ch], self.build_funcexpr(clue, st, ch))
 
@@ -317,8 +326,8 @@ class FuncMatcher(Matcher):
             self._states.sort,
         )
 
-        st = self._states.make_const(solv, "state")
-        ch = self._alphabet.make_const(solv, "char")
+        st = z3.Const("state", self._states.sort)
+        ch = z3.Const("char", self._alphabet.sort)
 
         explicit = self.build_funcexpr(clue, st, ch)
         solv.add(z3.ForAll([st, ch], state_func(st, ch) == explicit))
@@ -488,6 +497,7 @@ class Z3RE(Matcher):
 STRATEGIES: dict[str, Callable[[dict], Matcher]] = {
     "int_func": partial(FuncMatcher, IntMapper),
     "enum_func": partial(FuncMatcher, EnumMapper),
+    "uninterp_func": partial(FuncMatcher, UninterpretedSortMapper),
     "z3_re": Z3RE,
 }
 
@@ -635,9 +645,7 @@ def solve_puzzle(puzzle, opts: Options) -> tuple[list[list[str]], Stats]:
         print(solv.statistics(), file=sys.stderr)
 
     model = solv.model()
-    solved = [
-        [matcher.char_mapper.from_z3(model.eval(ch)) for ch in row] for row in grid
-    ]
+    solved = [[matcher.char_mapper.from_model(model, ch) for ch in row] for row in grid]
 
     stats = solv.statistics()
     result = Stats(

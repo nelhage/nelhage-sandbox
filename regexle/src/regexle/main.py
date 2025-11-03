@@ -762,24 +762,15 @@ def matrix(
     tests = []
 
     opts = Options(verbose=False)
-    for side in range(3, 9):
+    for side in range(3, 10):
         for day in range(400, 450):
             puzzle = fetch_puzzle(opts, day, side)
 
-            for strat in ["int_func", "enum_func"]:
+            for strat in ["enum_func", "int_func", "uninterp_func"]:
                 for func in [
-                    "pointwise",
                     "lambda",
-                    "python",
                     "forall",
-                    "array-pointwise",
-                    "array-update",
                 ]:
-                    if side > 4:
-                        if func == "array-update":
-                            continue
-                        if strat == "int_func" and func in ("forall", "pointwise"):
-                            continue
                     tests.append(
                         (
                             puzzle,
@@ -787,11 +778,10 @@ def matrix(
                                 opts,
                                 strategy=strat,
                                 strategy_config=dict(func=func),
+                                macro_finder=(func == "forall"),
                             ),
                         )
                     )
-
-            tests.append((puzzle, replace(opts, strategy="z3_re")))
 
     random.shuffle(tests)
     df = run_scan(tqdm(tests))

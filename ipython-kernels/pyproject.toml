@@ -1,0 +1,17 @@
+[project]
+name = "ipython-kernels"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "duckdb>=1.4.2",
+    "ipykernel>=4.0.1",
+    "ipython>=9.7.0",
+    "ipython-genutils>=0.2.0",
+    "pandas>=2.3.3",
+    "plotnine>=0.15.1",
+    "pyarrow>=22.0.0",
+    "scipy>=1.16.3",
+    "zsh-jupyter-kernel>=3.5.1",
+]

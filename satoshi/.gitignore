@@ -17,3 +17,10 @@ venv/
 
 # OS
 .DS_Store
+
+# Fetched mailing-list archives and the built database
+data/raw/
+data/*.sqlite
+data/*.sqlite-journal
+data/*.sqlite-wal
+data/*.sqlite-shm

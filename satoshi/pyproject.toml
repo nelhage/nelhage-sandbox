@@ -8,9 +8,14 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "httpx>=0.28.1",
+    "lxml>=6.0.3",
     "matplotlib>=3.10.8",
     "numpy>=2.4.4",
     "pandas>=3.0.2",
+    "python-dateutil>=2.9.0.post0",
+    "tqdm>=4.67.3",
 ]
 
 [build-system]

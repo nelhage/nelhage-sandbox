@@ -1,2 +1,1 @@
-def hello() -> str:
-    return "Hello from satoshi!"
+"""Satoshi: mailing-list archive fetcher, parser, and analysis toolkit."""

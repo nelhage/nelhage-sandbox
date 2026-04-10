@@ -6,6 +6,7 @@ Examples::
     uv run python -m satoshi parse
     uv run python -m satoshi build           # fetch + parse
     uv run python -m satoshi stats
+    uv run python -m satoshi similarities    # build poster-month matrix + cosines
     uv run python -m satoshi build --lists cryptography,cypherpunks
 """
 
@@ -81,6 +82,34 @@ def _cmd_stats(args: argparse.Namespace) -> None:
         print(f"  {list_name:<14} {n:>8d}  range: {earliest}  ..  {latest}")
 
 
+def _cmd_similarities(args: argparse.Namespace) -> None:
+    from . import analysis
+
+    conn = connect(args.db)
+    pm = analysis.build_poster_month_matrix(conn, min_posts=args.min_posts)
+    print(
+        f"Poster-month matrix: {pm.counts.shape}  "
+        f"({pm.counts.nbytes / 1e6:.1f} MB)  "
+        f"months {pm.months[0]}..{pm.months[-1]}"
+    )
+    sims = analysis.cosine_similarity(pm.counts)
+    print(f"Cosine similarity:   {sims.shape}  ({sims.nbytes / 1e6:.1f} MB)")
+
+    out_dir = args.out
+    analysis.save(pm, sims, out_dir)
+    print(f"Saved to {out_dir}/")
+    print(f"  poster_month_matrix.npz     ({(out_dir / 'poster_month_matrix.npz').stat().st_size / 1e6:.1f} MB)")
+    print(f"  poster_month_matrix.parquet ({(out_dir / 'poster_month_matrix.parquet').stat().st_size / 1e6:.1f} MB)")
+    print(f"  poster_cosine_similarity.npy ({(out_dir / 'poster_cosine_similarity.npy').stat().st_size / 1e6:.1f} MB)")
+
+    print()
+    print(f"Top {args.top_pairs} most-similar pairs (>= {args.min_pair_posts} posts each):")
+    pairs = analysis.top_pairs(
+        pm, sims, k=args.top_pairs, min_total_posts=args.min_pair_posts
+    )
+    print(pairs.to_string(index=False))
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="satoshi", description=__doc__)
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -102,6 +131,31 @@ def main(argv: list[str] | None = None) -> None:
     p_stats = sub.add_parser("stats", help="Print row counts and date ranges")
     _add_common(p_stats)
     p_stats.set_defaults(func=_cmd_stats)
+
+    p_sim = sub.add_parser(
+        "similarities",
+        help="Build the (poster × month) matrix and pairwise cosine similarities",
+    )
+    p_sim.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
+    p_sim.add_argument(
+        "--out", type=Path, default=Path("data/analysis"), help="Output directory"
+    )
+    p_sim.add_argument(
+        "--min-posts",
+        type=int,
+        default=1,
+        help="Drop posters with fewer than this many total posts before building the matrix",
+    )
+    p_sim.add_argument(
+        "--top-pairs", type=int, default=20, help="How many top similar pairs to print"
+    )
+    p_sim.add_argument(
+        "--min-pair-posts",
+        type=int,
+        default=100,
+        help="Restrict top-pairs output to posters with at least this many total posts",
+    )
+    p_sim.set_defaults(func=_cmd_similarities)
 
     args = parser.parse_args(argv)
     args.func(args)

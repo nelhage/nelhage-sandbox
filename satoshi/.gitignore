@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+
+# uv
+# uv.lock is checked in
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store

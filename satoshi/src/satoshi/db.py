@@ -42,6 +42,21 @@ CREATE TABLE IF NOT EXISTS fetch_log (
     fetched_at  TEXT NOT NULL,
     UNIQUE(list_name, url)
 );
+
+CREATE TABLE IF NOT EXISTS message_embeddings (
+    message_id   INTEGER NOT NULL,
+    model        TEXT NOT NULL,
+    dim          INTEGER NOT NULL,
+    input_chars  INTEGER NOT NULL,
+    input_tokens INTEGER,
+    truncated    INTEGER NOT NULL DEFAULT 0,
+    vector       BLOB NOT NULL,
+    created_at   TEXT NOT NULL,
+    PRIMARY KEY (message_id, model),
+    FOREIGN KEY (message_id) REFERENCES messages(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_embeddings_model ON message_embeddings(model);
 """
 
 

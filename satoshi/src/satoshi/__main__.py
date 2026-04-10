@@ -7,6 +7,7 @@ Examples::
     uv run python -m satoshi build           # fetch + parse
     uv run python -m satoshi stats
     uv run python -m satoshi similarities    # build poster-month matrix + cosines
+    uv run python -m satoshi embed           # Voyage AI embeddings -> SQLite
     uv run python -m satoshi build --lists cryptography,cypherpunks
 """
 
@@ -82,6 +83,28 @@ def _cmd_stats(args: argparse.Namespace) -> None:
         print(f"  {list_name:<14} {n:>8d}  range: {earliest}  ..  {latest}")
 
 
+def _cmd_embed(args: argparse.Namespace) -> None:
+    from . import embed as embed_mod
+
+    conn = connect(args.db)
+    stats = embed_mod.embed_messages(
+        conn,
+        model=args.model,
+        output_dimension=args.dim,
+        limit=args.limit,
+        dry_run=args.dry_run,
+    )
+    print()
+    print(f"  model:            {args.model}")
+    print(f"  dimension:        {args.dim}")
+    print(f"  messages embedded:{stats.processed:>8d}")
+    print(f"  skipped (empty):  {stats.skipped_empty:>8d}")
+    print(f"  truncated:        {stats.truncated:>8d}")
+    print(f"  API calls:        {stats.api_calls:>8d}")
+    if not args.dry_run:
+        print(f"  tokens billed:    {stats.total_tokens:>8d}")
+
+
 def _cmd_similarities(args: argparse.Namespace) -> None:
     from . import analysis
 
@@ -131,6 +154,35 @@ def main(argv: list[str] | None = None) -> None:
     p_stats = sub.add_parser("stats", help="Print row counts and date ranges")
     _add_common(p_stats)
     p_stats.set_defaults(func=_cmd_stats)
+
+    p_embed = sub.add_parser(
+        "embed",
+        help="Normalize message bodies and embed them with the Voyage AI API",
+    )
+    p_embed.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
+    p_embed.add_argument(
+        "--model",
+        default="voyage-3-large",
+        help="Voyage embedding model (default: voyage-3-large)",
+    )
+    p_embed.add_argument(
+        "--dim",
+        type=int,
+        default=1024,
+        help="Output dimension (Matryoshka: 256/512/1024/2048 for voyage-3-large)",
+    )
+    p_embed.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Stop after processing this many messages (useful for smoke tests)",
+    )
+    p_embed.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Normalize + batch but skip the Voyage API call and DB writes",
+    )
+    p_embed.set_defaults(func=_cmd_embed)
 
     p_sim = sub.add_parser(
         "similarities",

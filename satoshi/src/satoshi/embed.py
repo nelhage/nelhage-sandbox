@@ -33,26 +33,21 @@ from tqdm import tqdm
 
 from .normalize import prepare_for_embedding
 
-# voyage-3-large has a 32k-token context window. We leave some slack so the
-# server-side tokenizer is never the thing that has to truncate.
 # voyage-3-large has a 32k-token context window per document and a 120k-token
 # limit per batch (`InvalidRequestError: max allowed tokens per submitted batch
-# is 120000`). We pack batches in character space using a deliberately
-# pessimistic chars/token ratio plus a 10% safety margin under the API ceiling
-# so that even adversarially dense text won't blow the batch budget.
-_CHARS_PER_TOKEN_OPTIMISTIC = 4    # for the per-doc cap, with server-side truncation as a backstop
-_CHARS_PER_TOKEN_SAFE = 3          # for batch packing — must hold against dense input
+# is 120000`). Char-based packing isn't safe: the chars/token ratio varies
+# enough across messages (2.5–4.5+) that even with a pessimistic estimate a
+# batch of 128 dense short messages can blow the 120k ceiling. So we tokenize
+# every prepared document with Voyage's local tokenizer and pack by exact
+# token counts.
+MAX_TOKENS_PER_DOC = 30_000          # under 32k; Voyage truncation=True is a backstop
+MAX_CHARS_PER_DOC = MAX_TOKENS_PER_DOC * 4  # 120k chars; first-pass cheap cap
 
-MAX_TOKENS_PER_DOC = 30_000        # under 32k; Voyage truncation=True is the safety net
-MAX_CHARS_PER_DOC = MAX_TOKENS_PER_DOC * _CHARS_PER_TOKEN_OPTIMISTIC  # 120k chars
-
-# Soft batch token budget = 90% of the 120k API ceiling.
 MAX_BATCH_DOCS = 128
-MAX_BATCH_TOKENS = 108_000
-MAX_BATCH_CHARS = MAX_BATCH_TOKENS * _CHARS_PER_TOKEN_SAFE  # 324k chars
+MAX_BATCH_TOKENS = 110_000           # 10k margin under the 120k API ceiling
 
 DEFAULT_MODEL = "voyage-3-large"
-DEFAULT_DIMENSION = 1024       # voyage-3-large supports 256/512/1024/2048
+DEFAULT_DIMENSION = 1024             # voyage-3-large supports 256/512/1024/2048
 
 
 @dataclass
@@ -60,6 +55,7 @@ class PreparedDoc:
     message_id: int
     text: str
     char_count: int
+    token_count: int
     truncated: bool
 
 
@@ -72,15 +68,41 @@ class EmbedStats:
     total_tokens: int = 0
 
 
-def _prepare(message_id: int, subject: str | None, body: str | None) -> PreparedDoc | None:
+def _prepare(
+    client,
+    message_id: int,
+    subject: str | None,
+    body: str | None,
+    *,
+    model: str,
+) -> PreparedDoc | None:
     text = prepare_for_embedding(subject, body)
     if not text.strip():
         return None
     truncated = False
+    # Cheap first-pass char cap so we never tokenize an obviously oversized
+    # blob (the 911k-char outlier and friends). The token cap below is the
+    # one that matters for API correctness.
     if len(text) > MAX_CHARS_PER_DOC:
         text = text[:MAX_CHARS_PER_DOC]
         truncated = True
-    return PreparedDoc(message_id=message_id, text=text, char_count=len(text), truncated=truncated)
+    token_count = client.count_tokens([text], model=model)
+    # If the cheap char cap wasn't enough (rare: dense text under the char
+    # limit but over the token limit), pessimistically retruncate based on
+    # the observed chars/token ratio.
+    if token_count > MAX_TOKENS_PER_DOC:
+        ratio = len(text) / token_count
+        new_len = int(MAX_TOKENS_PER_DOC * ratio * 0.95)  # 5% safety
+        text = text[:new_len]
+        truncated = True
+        token_count = client.count_tokens([text], model=model)
+    return PreparedDoc(
+        message_id=message_id,
+        text=text,
+        char_count=len(text),
+        token_count=token_count,
+        truncated=truncated,
+    )
 
 
 def _iter_unembedded_rows(
@@ -109,17 +131,19 @@ def _iter_unembedded_rows(
 
 def _pack_batches(docs: Iterable[PreparedDoc]) -> Iterator[list[PreparedDoc]]:
     batch: list[PreparedDoc] = []
-    batch_chars = 0
+    batch_tokens = 0
     for doc in docs:
-        # A single oversized document still gets its own batch so we never
-        # drop work — server-side truncation will bring it back under budget.
+        # An oversized single document still gets its own batch so we never
+        # drop work; per-doc truncation guarantees it's under MAX_TOKENS_PER_DOC
+        # which is well under MAX_BATCH_TOKENS.
         if batch and (
-            len(batch) >= MAX_BATCH_DOCS or batch_chars + doc.char_count > MAX_BATCH_CHARS
+            len(batch) >= MAX_BATCH_DOCS
+            or batch_tokens + doc.token_count > MAX_BATCH_TOKENS
         ):
             yield batch
-            batch, batch_chars = [], 0
+            batch, batch_tokens = [], 0
         batch.append(doc)
-        batch_chars += doc.char_count
+        batch_tokens += doc.token_count
     if batch:
         yield batch
 
@@ -166,13 +190,15 @@ def embed_messages(
     """
     import voyageai
 
-    if not dry_run and not os.environ.get("VOYAGE_API_KEY"):
+    have_key = bool(os.environ.get("VOYAGE_API_KEY"))
+    if not dry_run and not have_key:
         raise RuntimeError(
             "VOYAGE_API_KEY environment variable is not set; pass --dry-run to "
             "validate the pipeline without calling the API."
         )
-
-    client = None if dry_run else voyageai.Client()
+    # We always need a client for local tokenization (count_tokens). The
+    # tokenizer is bundled in the SDK so a dummy key is fine for dry-run.
+    client = voyageai.Client(api_key=os.environ.get("VOYAGE_API_KEY") or "dry-run")
     stats = EmbedStats()
 
     total_remaining = conn.execute(
@@ -194,7 +220,7 @@ def embed_messages(
         for mid, subj, body in _iter_unembedded_rows(conn, model):
             if limit is not None and count >= limit:
                 return
-            doc = _prepare(mid, subj, body)
+            doc = _prepare(client, mid, subj, body, model=model)
             if doc is None:
                 stats.skipped_empty += 1
                 count += 1
@@ -233,7 +259,7 @@ def embed_messages(
                     model,
                     output_dimension,
                     doc.char_count,
-                    None,  # input_tokens (not reported per-doc by Voyage)
+                    doc.token_count,
                     int(doc.truncated),
                     arr.tobytes(),
                     now,

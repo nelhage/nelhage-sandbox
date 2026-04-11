@@ -35,16 +35,21 @@ from .normalize import prepare_for_embedding
 
 # voyage-3-large has a 32k-token context window. We leave some slack so the
 # server-side tokenizer is never the thing that has to truncate.
-_CHARS_PER_TOKEN = 4          # rough English estimate used for packing
-MAX_TOKENS_PER_DOC = 30_000
-MAX_CHARS_PER_DOC = MAX_TOKENS_PER_DOC * _CHARS_PER_TOKEN   # 120k chars
+# voyage-3-large has a 32k-token context window per document and a 120k-token
+# limit per batch (`InvalidRequestError: max allowed tokens per submitted batch
+# is 120000`). We pack batches in character space using a deliberately
+# pessimistic chars/token ratio plus a 10% safety margin under the API ceiling
+# so that even adversarially dense text won't blow the batch budget.
+_CHARS_PER_TOKEN_OPTIMISTIC = 4    # for the per-doc cap, with server-side truncation as a backstop
+_CHARS_PER_TOKEN_SAFE = 3          # for batch packing — must hold against dense input
 
-# Voyage batch limits (see https://docs.voyageai.com/docs/embeddings). These
-# are conservative — the real per-request limits are higher but depend on the
-# model, and we'd rather pack slightly smaller batches than retry on 400s.
+MAX_TOKENS_PER_DOC = 30_000        # under 32k; Voyage truncation=True is the safety net
+MAX_CHARS_PER_DOC = MAX_TOKENS_PER_DOC * _CHARS_PER_TOKEN_OPTIMISTIC  # 120k chars
+
+# Soft batch token budget = 90% of the 120k API ceiling.
 MAX_BATCH_DOCS = 128
-MAX_BATCH_TOKENS = 100_000
-MAX_BATCH_CHARS = MAX_BATCH_TOKENS * _CHARS_PER_TOKEN
+MAX_BATCH_TOKENS = 108_000
+MAX_BATCH_CHARS = MAX_BATCH_TOKENS * _CHARS_PER_TOKEN_SAFE  # 324k chars
 
 DEFAULT_MODEL = "voyage-3-large"
 DEFAULT_DIMENSION = 1024       # voyage-3-large supports 256/512/1024/2048

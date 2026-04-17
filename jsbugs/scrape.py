@@ -75,8 +75,8 @@ class Bug:
     cve: str
     severity: str
     reward: str
-    bug_tracker_id: str
-    bug_tracker_url: str
+    bug_tracker_ids: list[str]         # some CVEs list multiple IDs
+    bug_tracker_urls: list[str]
     description: str
     reporter: str
     report_date: str
@@ -175,15 +175,16 @@ def parse_post(entry: dict) -> tuple[Post, list[Bug]]:
         desc = m.group("desc") or ""
         if not V8_RE.search(desc):
             continue
-        bug_id = (m.group("bug") or "").strip()
-        bug_url = f"https://issues.chromium.org/issues/{bug_id}" if bug_id.isdigit() else ""
+        # The bug field sometimes contains several IDs, e.g. "327740539, 40072287".
+        bug_ids = [b.strip() for b in re.split(r"[,\s]+", m.group("bug") or "") if b.strip().isdigit()]
+        bug_urls = [f"https://issues.chromium.org/issues/{b}" for b in bug_ids]
         bugs.append(
             Bug(
                 cve=m.group("cve").upper(),
                 severity=m.group("severity").title(),
                 reward=(m.group("reward") or "").strip(),
-                bug_tracker_id=bug_id,
-                bug_tracker_url=bug_url,
+                bug_tracker_ids=bug_ids,
+                bug_tracker_urls=bug_urls,
                 description=desc.strip().rstrip("."),
                 reporter=(m.group("reporter") or "").strip(),
                 report_date=(m.group("report_date") or "").strip(),
@@ -237,15 +238,18 @@ def main() -> int:
             f.write(json.dumps(asdict(b)) + "\n")
 
     with CSV_PATH.open("w", newline="") as f:
-        fieldnames = list(asdict(unique_bugs[0]).keys()) if unique_bugs else [
-            "cve", "severity", "reward", "bug_tracker_id", "bug_tracker_url",
+        fieldnames = [
+            "cve", "severity", "reward", "bug_tracker_ids", "bug_tracker_urls",
             "description", "reporter", "report_date", "release_post_url",
             "release_post_title", "release_published", "raw_line",
         ]
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         for b in unique_bugs:
-            w.writerow(asdict(b))
+            row = asdict(b)
+            row["bug_tracker_ids"] = ",".join(row["bug_tracker_ids"])
+            row["bug_tracker_urls"] = " ".join(row["bug_tracker_urls"])
+            w.writerow(row)
 
     with POSTS_PATH.open("w") as f:
         for p in all_posts:

@@ -41,7 +41,8 @@ CATEGORY = "Stable updates"
 PAGE_SIZE = 50
 USER_AGENT = "jsbugs-scraper/1.0 (+https://github.com/nelhage/nelhage-sandbox)"
 
-OUT_DIR = Path(__file__).resolve().parent
+OUT_DIR = Path(__file__).resolve().parent / "data"
+OUT_DIR.mkdir(exist_ok=True)
 JSONL_PATH = OUT_DIR / "v8_bugs.jsonl"
 CSV_PATH = OUT_DIR / "v8_bugs.csv"
 POSTS_PATH = OUT_DIR / "posts.jsonl"

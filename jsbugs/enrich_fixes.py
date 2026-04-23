@@ -28,7 +28,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-OUT_DIR = Path(__file__).resolve().parent
+OUT_DIR = Path(__file__).resolve().parent / "data"
+OUT_DIR.mkdir(exist_ok=True)
 IN_PATH = OUT_DIR / "v8_bugs.jsonl"
 JSONL_OUT = OUT_DIR / "v8_bugs_with_fixes.jsonl"
 CSV_OUT = OUT_DIR / "v8_bugs_with_fixes.csv"

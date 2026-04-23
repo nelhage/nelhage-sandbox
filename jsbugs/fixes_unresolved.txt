@@ -1,3 +1,0 @@
-CVE-2024-3169	41491234	Use after free in V8
-CVE-2024-2884	41491373	Out of bounds read in V8
-CVE-2024-3174	40073339	Inappropriate implementation in V8

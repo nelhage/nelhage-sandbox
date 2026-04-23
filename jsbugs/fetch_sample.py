@@ -4,8 +4,9 @@ from __future__ import annotations
 import base64, json, random, sys, time, urllib.request
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parent / "sample_patches"
-OUT.mkdir(exist_ok=True)
+DATA = Path(__file__).resolve().parent / "data"
+OUT = DATA / "sample_patches"
+OUT.mkdir(parents=True, exist_ok=True)
 GERRIT = "https://chromium-review.googlesource.com"
 UA = "jsbugs/1.0"
 
@@ -38,7 +39,7 @@ def fetch_patch(fix: dict) -> str:
     raise RuntimeError(f"gave up on {url}: {last}")
 
 def main():
-    rows = [json.loads(l) for l in open(Path(__file__).resolve().parent / "v8_bugs_with_fixes.jsonl")]
+    rows = [json.loads(l) for l in open(DATA / "v8_bugs_with_fixes.jsonl")]
     # Keep CVEs that have at least one non-revert fix CL in v8/v8
     candidates = []
     for r in rows:

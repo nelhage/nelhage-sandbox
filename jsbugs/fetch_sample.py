@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Fetch 10 random V8 fix patches for manual analysis."""
+"""Fetch random V8 fix patches for manual analysis."""
 from __future__ import annotations
-import base64, json, random, sys, time, urllib.request
+import argparse, base64, json, random, sys, time, urllib.request
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parent / "data"
@@ -39,6 +39,11 @@ def fetch_patch(fix: dict) -> str:
     raise RuntimeError(f"gave up on {url}: {last}")
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("-n", type=int, default=10, help="number of patches to pull (default: 10)")
+    ap.add_argument("--seed", type=int, default=42, help="random seed for the sample (default: 42)")
+    args = ap.parse_args()
+
     rows = [json.loads(l) for l in open(DATA / "v8_bugs_with_fixes.jsonl")]
     # Keep CVEs that have at least one non-revert fix CL in v8/v8
     candidates = []
@@ -48,14 +53,15 @@ def main():
             # Use the earliest non-revert v8/v8 CL as "the fix"
             r["_primary"] = primary[0]
             candidates.append(r)
-    random.seed(42)
-    picks = random.sample(candidates, 10)
+    n = min(args.n, len(candidates))
+    random.seed(args.seed)
+    picks = random.sample(candidates, n)
 
     index = []
     for i, r in enumerate(picks, 1):
         cl = r["_primary"]["cl_number"]
         path = OUT / f"{i:02d}_{r['cve']}_cl{cl}.patch"
-        print(f"[{i}/10] {r['cve']} CL {cl} -> {path.name}", file=sys.stderr)
+        print(f"[{i}/{n}] {r['cve']} CL {cl} -> {path.name}", file=sys.stderr)
         try:
             patch = fetch_patch(r["_primary"])
         except Exception as e:

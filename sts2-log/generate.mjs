@@ -8,6 +8,7 @@
 // Output goes to out/  (symlinked to a public web dir).
 import fs from 'fs';
 import path from 'path';
+import { spawn, execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -116,6 +117,8 @@ const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g,
 // later entries on a title collision (e.g. each character's Strike/Defend).
 // ---------------------------------------------------------------------------
 const WIKI_BASE = 'https://drmaciver.github.io/sts2-wiki';
+// Public location these pages are served from (for absolute og: URLs).
+const SITE_BASE = 'https://nelhage.com/f/sts2.runs';
 const cleanTitle = t => String(t || '').replace(/#[A-Z]\{[^}]*\}/g, '').trim(); // strip game template artifacts
 const slugify = title => cleanTitle(title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const wikiUrl = (kind, slug) => slug ? `${WIKI_BASE}/${kind}/${slug}/` : null;
@@ -603,6 +606,144 @@ function floorTipHtml(p, r) {
   </div>`;
 }
 
+// ---------------------------------------------------------------------------
+// OpenGraph / social preview
+// ---------------------------------------------------------------------------
+let ogEnabled = false; // set in main() once chromium availability is known
+
+function ogResultText(r) {
+  if (r.win) return 'Victory';
+  if (r.abandoned) return 'Abandoned';
+  const k = r.killedByEncounter && r.killedByEncounter !== 'NONE' ? titleCase(r.killedByEncounter)
+    : (r.killedByEvent && r.killedByEvent !== 'NONE' ? titleCase(r.killedByEvent) : '');
+  return k ? `Defeated by ${k}` : 'Defeated';
+}
+function ogDescription(r) {
+  const bits = [ogResultText(r)];
+  if (r.ascension) bits.push('Ascension ' + r.ascension);
+  bits.push(`${r.floors} floors`);
+  if (r.runTime) bits.push(fmtTime(r.runTime));
+  bits.push(`${r.deckCount} cards`, `${r.relics.length} relics`);
+  bits.push('seed ' + r.seed);
+  return bits.join(' · ');
+}
+function ogMetaTags(r) {
+  const title = `${r.character} — ${ogResultText(r)} · Slay the Spire II`;
+  const desc = ogDescription(r);
+  const url = `${SITE_BASE}/${r.id}.html`;
+  // a rendered card if chromium was available, else the character portrait
+  const img = ogEnabled ? `${SITE_BASE}/assets/og/${r.id}.png` : (r.charImg ? `${SITE_BASE}/${r.charImg}` : null);
+  const tags = [
+    `<meta property="og:type" content="article">`,
+    `<meta property="og:site_name" content="StS II Run Archive">`,
+    `<meta property="og:title" content="${esc(title)}">`,
+    `<meta property="og:description" content="${esc(desc)}">`,
+    `<meta property="og:url" content="${esc(url)}">`,
+    `<meta name="description" content="${esc(desc)}">`,
+    `<meta name="theme-color" content="#16110d">`,
+  ];
+  if (img) {
+    tags.push(
+      `<meta property="og:image" content="${esc(img)}">`,
+      `<meta name="twitter:card" content="${ogEnabled ? 'summary_large_image' : 'summary'}">`,
+      `<meta name="twitter:image" content="${esc(img)}">`);
+    if (ogEnabled) tags.push(`<meta property="og:image:width" content="1200">`, `<meta property="og:image:height" content="630">`);
+  } else {
+    tags.push(`<meta name="twitter:card" content="summary">`);
+  }
+  tags.push(`<meta name="twitter:title" content="${esc(title)}">`, `<meta name="twitter:description" content="${esc(desc)}">`);
+  return tags.join('\n');
+}
+
+// 1200x630 (rendered @2x from 600x315) social card, composed from run data.
+function ogCardHtml(r) {
+  const a = p => p ? p.replace(/^assets\//, '../') : null; // og/ -> assets/ sibling
+  const accent = r.win ? 'linear-gradient(90deg,#f2c14e,#7fd07f)' : r.abandoned ? 'linear-gradient(90deg,#a8957a,#5a4a38)' : 'linear-gradient(90deg,#e0533f,#7a2018)';
+  const badgeColor = r.win ? '#7fd07f' : r.abandoned ? '#4a3c2c' : '#e0533f';
+  const badgeInk = r.win ? '#0d0d0d' : '#fff';
+  const relicRow = r.relics.slice(0, 13).map(rl => rl.img
+    ? `<img src="${a(rl.img)}">` : `<span class="ni">${esc((rl.title[0] || '?'))}</span>`).join('');
+  const moreRelics = r.relics.length > 13 ? `<span class="more">+${r.relics.length - 13}</span>` : '';
+  const chip = (label, val) => `<span class="chip"><b>${esc(val)}</b> ${esc(label)}</span>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  *{margin:0;box-sizing:border-box;font-family:"Segoe UI",system-ui,sans-serif}
+  html{zoom:2}
+  body{width:600px;height:315px;overflow:hidden;background:radial-gradient(600px 320px at 30% -40px,#2a1f16,#16110d 70%);color:#f3e9d8}
+  .bar{height:6px;background:${accent}}
+  .pad{padding:20px 26px 16px;height:309px;display:flex;flex-direction:column}
+  .top{display:flex;gap:18px;align-items:center}
+  .portrait{width:96px;height:96px;border-radius:14px;object-fit:cover;background:#000;border:1px solid #3a2d20;flex:none}
+  .badge{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    color:${badgeInk};background:${badgeColor};border-radius:99px;padding:4px 12px}
+  h1{font-size:35px;line-height:1.1;margin:6px 0 0}
+  .sub{color:#a8957a;font-size:15px;margin-top:3px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{background:#1f1813;border:1px solid #3a2d20;border-radius:8px;padding:5px 11px;font-size:15px}
+  .chip b{color:#f2c14e;font-weight:700}
+  .relics{display:flex;gap:6px;align-items:center;margin-top:auto;padding-top:12px}
+  .relics img{width:36px;height:36px;border-radius:8px;background:#0c0907;border:1px solid #3a2d20;object-fit:contain}
+  .relics .ni{width:36px;height:36px;border-radius:8px;background:#1f1813;border:1px solid #3a2d20;display:flex;align-items:center;justify-content:center;color:#a8957a;font-weight:700}
+  .more{color:#a8957a;font-size:15px;margin-left:2px}
+  .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:11px;color:#a8957a;font-size:13px}
+  .wordmark{color:#f2c14e;font-weight:700;letter-spacing:.02em}
+  </style></head><body>
+  <div class="bar"></div>
+  <div class="pad">
+    <div class="top">
+      ${r.charImg ? `<img class="portrait" src="${a(r.charImg)}">` : ''}
+      <div>
+        <span class="badge">${esc(ogResultText(r))}</span>
+        <h1>${esc(r.character)}</h1>
+        <div class="sub">${r.ascension ? `Ascension ${r.ascension} · ` : ''}Seed ${esc(r.seed)} · ${esc(r.buildId)}</div>
+      </div>
+    </div>
+    <div class="chips">
+      ${r.finalHp != null ? chip('HP', `${r.finalHp}/${r.finalMaxHp}`) : ''}
+      ${chip('floors', r.floors)}
+      ${r.runTime ? chip('time', fmtTime(r.runTime)) : ''}
+      ${chip('cards', r.deckCount)}
+      ${chip('relics', r.relics.length)}
+    </div>
+    <div class="relics">${relicRow}${moreRelics}</div>
+    <div class="foot"><span class="wordmark">Slay the Spire II — Run Archive</span><span>nelhage.com/f/sts2.runs</span></div>
+  </div>
+  </body></html>`;
+}
+
+// Rasterize OG cards with the chromium from the dev shell. Concurrency-limited,
+// and skips runs whose image already exists unless `force`.
+async function renderOgImages(runs, force) {
+  const bin = process.env.CHROMIUM_BIN || 'chromium';
+  const ogDir = path.join(ASSETS, 'og');
+  fs.mkdirSync(ogDir, { recursive: true });
+  const work = runs.filter(r => force || !fs.existsSync(path.join(ogDir, r.id + '.png')));
+  if (!work.length) return;
+
+  const shot = (r, idx) => new Promise((res) => {
+    const html = path.join(ogDir, r.id + '.html');
+    const png = path.join(ogDir, r.id + '.png');
+    fs.writeFileSync(html, ogCardHtml(r));
+    // The card body is 600x315 but zoomed 2x in CSS, so it lays out at 1200x630
+    // and fills a 1200x630 window exactly (heights below ~600 get clamped, which
+    // is what produced earlier letterboxing).
+    const args = ['--headless', '--no-sandbox', '--disable-gpu', '--hide-scrollbars',
+      '--window-size=1200,630',
+      `--user-data-dir=${path.join(ogDir, '.prof-' + (idx % OG_CONCURRENCY))}`,
+      `--screenshot=${png}`, `file://${html}`];
+    const p = spawn(bin, args, { stdio: 'ignore' });
+    p.on('error', () => res(false));
+    p.on('exit', () => { if (!process.env.OG_KEEP) { try { fs.unlinkSync(html); } catch {} } res(fs.existsSync(png)); });
+  });
+
+  let i = 0, done = 0;
+  const worker = async () => { while (i < work.length) { const idx = i++; await shot(work[idx], idx); done++; } };
+  await Promise.all(Array.from({ length: Math.min(OG_CONCURRENCY, work.length) }, worker));
+  // clean up the throwaway chromium profiles
+  for (let k = 0; k < OG_CONCURRENCY; k++) fs.rmSync(path.join(ogDir, '.prof-' + k), { recursive: true, force: true });
+  console.log(`rendered ${done} OG image(s)`);
+}
+const OG_CONCURRENCY = 6;
+
 function renderRun(r) {
   const tips = buildTooltips(r);
 
@@ -675,6 +816,7 @@ function renderRun(r) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(r.character)} — ${r.win ? 'Victory' : (r.abandoned ? 'Abandoned' : 'Defeat')} · StS II run ${esc(r.id)}</title>
+${ogMetaTags(r)}
 <style>${CSS}</style>
 </head><body>
 <div class="wrap">
@@ -847,7 +989,15 @@ function renderIndex(runs) {
   }).join('');
   return `<!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Slay the Spire II — Run Archive</title><style>${CSS}</style></head>
+<title>Slay the Spire II — Run Archive</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Slay the Spire II — Run Archive">
+<meta property="og:description" content="${runs.length} Slay the Spire II runs, with full deck, relic, and floor-by-floor detail.">
+<meta property="og:url" content="${SITE_BASE}/index.html">
+<meta name="description" content="${runs.length} Slay the Spire II runs, with full deck, relic, and floor-by-floor detail.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#16110d">
+<style>${CSS}</style></head>
 <body><div class="wrap">
   <header class="idx-hdr"><h1>Slay the Spire II — Run Archive</h1><p class="muted">${runs.length} runs</p></header>
   <div class="run-list">${rows}</div>
@@ -859,13 +1009,24 @@ function renderIndex(runs) {
 const CSS = fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8');
 const JS = fs.readFileSync(path.join(ROOT, 'tip.js'), 'utf8');
 
-function main() {
+async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   fs.mkdirSync(ASSETS, { recursive: true });
 
-  let files = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const noOg = args.includes('--no-og');
+  const ogForce = args.includes('--og-force');
+  let files = args.filter(a => !a.startsWith('--'));
   const onlyThese = files.length > 0;
   if (!onlyThese) files = fs.readdirSync(RUNS_DIR).filter(f => f.endsWith('.run')).map(f => path.join(RUNS_DIR, f));
+
+  // Decide up front whether we can render social cards (chromium present), so
+  // the og:image meta points at the right place.
+  if (!noOg) {
+    const bin = process.env.CHROMIUM_BIN || 'chromium';
+    try { execFileSync(bin, ['--version'], { stdio: 'ignore' }); ogEnabled = true; }
+    catch { console.warn('chromium not found — og:image falls back to character portrait (pass --no-og to silence)'); }
+  }
 
   const enriched = [];
   for (const f of files) {
@@ -878,6 +1039,11 @@ function main() {
     } catch (e) {
       console.error(`FAILED ${f}: ${e.stack}`);
     }
+  }
+
+  if (ogEnabled && enriched.length) {
+    try { await renderOgImages(enriched, ogForce); }
+    catch (e) { console.error('OG render failed: ' + e.message); }
   }
 
   // (re)build index over ALL runs so the listing stays complete
@@ -905,4 +1071,4 @@ function main() {
   console.log(`built index.html (${indexRuns.length} runs)`);
 }
 
-main();
+main().catch(e => { console.error(e); process.exit(1); });

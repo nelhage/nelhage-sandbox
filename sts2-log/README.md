@@ -40,10 +40,24 @@ character's Strike/Defend).
 ```sh
 node generate.mjs                  # build every runs/*.run + the index
 node generate.mjs runs/NAME.run    # build specific run(s) (index still covers all)
+node generate.mjs --og-force       # also re-render social cards (default: only missing ones)
+node generate.mjs --no-og          # skip social cards entirely
 ```
 
 Output is written to `out/` (a symlink to the public web dir). Card / relic /
 potion / character images are copied, de-duplicated, into `out/assets/`.
+
+### Social previews
+
+Each run page carries OpenGraph / Twitter-card metadata, so sharing a link
+yields a preview. The card image (`out/assets/og/<id>.png`, 1200×630) is
+composed from the run — character portrait, result, key stats, and relic strip —
+and rasterized with the Chromium from the dev shell. Cards are cached: a normal
+build only renders ones that don't exist yet (use `--og-force` to redo them).
+
+If Chromium isn't available, the build still emits the metadata but points
+`og:image` at the character portrait (a smaller `summary` card) and prints a
+warning. Run inside `nix develop ..#sts2-log` (or via direnv) to get Chromium.
 
 ## How it works
 
@@ -61,5 +75,6 @@ Source lives in `generate.mjs` (build), `style.css` (styling), `tip.js`
 
 ## Dev environment
 
-`nix develop ..#sts2-log` provides Node and Chromium (the latter only used for
-screenshot-based verification). The directory's `.envrc` selects this shell.
+`nix develop ..#sts2-log` provides Node and Chromium (Chromium renders the
+social-preview cards, and is handy for screenshot-based verification). The
+directory's `.envrc` selects this shell.

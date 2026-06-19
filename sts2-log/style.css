@@ -7,7 +7,7 @@
   --common:#cfcfcf; --uncommon:#5aa9e6; --rare:#f2c14e; --starter:#9a8a72; --special:#c77dff; --boss-r:#e0533f;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{
   margin:0; background:radial-gradient(1200px 600px at 50% -100px,#2a1f16,#16110d 60%) fixed,var(--bg);
   color:var(--ink); font:15px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
@@ -77,6 +77,7 @@ h3.sub{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spaci
 .node.treasure{border-color:var(--treasure)} .node.treasure .node-glyph{color:var(--treasure)}
 .node.event{border-color:var(--event)} .node.event .node-glyph{color:var(--event);font-weight:700}
 .node.ancient{border-color:var(--ancient)} .node.ancient .node-glyph{color:var(--ancient)}
+.node{text-decoration:none}
 .node.focus-floor{box-shadow:0 0 0 2px var(--gold)}
 
 /* hp chart */
@@ -106,7 +107,7 @@ h3.sub{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spaci
 /* deck */
 .deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}
 .dcard{display:flex;align-items:center;gap:9px;padding:5px 9px 5px 6px;border-radius:8px;cursor:pointer;
-  background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--common);
+  background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--common);text-decoration:none;color:inherit;
   transition:transform .07s,box-shadow .07s,background .07s}
 .dcard:hover,.dcard:focus{transform:translateX(2px);background:var(--panel2);
   box-shadow:0 3px 12px rgba(0,0,0,.4);outline:none;z-index:2}
@@ -161,6 +162,38 @@ h3.sub{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spaci
 .frl{color:var(--muted);flex:none}
 .frv{text-align:right}
 .good{color:var(--green)} .bad{color:var(--hp)}
+
+/* floor table */
+.wl{color:var(--uncommon);text-decoration:none;border-bottom:1px dotted rgba(90,169,230,.4)}
+.wl:hover{color:#9cd1ff;border-bottom-color:#9cd1ff}
+.ftable{width:100%;border-collapse:collapse;font-size:.85rem}
+.ftable thead th{text-align:left;color:var(--muted);font-weight:600;font-size:.74rem;text-transform:uppercase;
+  letter-spacing:.04em;padding:4px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+.ftable td{padding:7px 10px;border-bottom:1px solid rgba(58,45,32,.5);vertical-align:top}
+.ftable tr.act-head td{color:var(--gold);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;
+  padding-top:14px;border-bottom:1px solid var(--line);background:transparent}
+.frow{scroll-margin-top:12px}
+.frow:hover{background:rgba(44,34,24,.5)}
+.frow:target{background:rgba(242,193,78,.13);box-shadow:inset 3px 0 0 var(--gold);animation:flash 1.4s ease-out}
+@keyframes flash{0%{background:rgba(242,193,78,.4)}100%{background:rgba(242,193,78,.13)}}
+.c-floor{color:var(--muted);text-align:right;width:30px;font-variant-numeric:tabular-nums}
+.c-type{width:26px;text-align:center}
+.c-type .floornum{width:24px;height:24px}
+.c-loc{min-width:140px;font-weight:600}
+.c-loc .weak{font-weight:400;color:var(--muted);font-size:.78rem;border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.enemies{font-weight:400;color:var(--muted);font-size:.8rem;margin-top:2px}
+.c-hp,.c-gold{white-space:nowrap;font-variant-numeric:tabular-nums;width:1%}
+.c-hp .slash{color:var(--muted)}
+.delta{font-size:.78rem}
+.c-det{width:46%}
+.seg{margin:1px 0;line-height:1.5}
+.seg-l{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.03em;margin-right:3px}
+.rwlist{display:inline-flex;flex-wrap:wrap;gap:4px 8px}
+.rw{display:inline-block;border-left:2px solid var(--common);padding-left:5px}
+.rw.skip{opacity:.55}.rw.skip .wl{color:var(--muted);border-bottom-color:transparent}
+.rw.took{font-weight:600}.rw.took .wl{color:var(--green);border-bottom-color:rgba(127,208,127,.4)}
+.rw.rar-uncommon{border-left-color:var(--uncommon)}.rw.rar-rare{border-left-color:var(--rare)}
+.rw.rar-event{border-left-color:var(--event)}.rw.rar-special,.rw.rar-boss{border-left-color:var(--special)}
 
 /* footer */
 .foot{margin-top:30px;color:var(--muted);font-size:.82rem;text-align:center}

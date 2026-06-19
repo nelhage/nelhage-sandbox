@@ -29,6 +29,8 @@
     const el = e.target.closest('[data-tip]');
     if (el && el !== activeEl) { activeEl = el; place(el); }
   });
+  // a click that navigates (card → wiki, node → floor row) dismisses the tooltip
+  document.addEventListener('click', e => { if (e.target.closest('[data-tip]')) hide(); });
   document.addEventListener('mouseout', e => {
     const el = e.target.closest('[data-tip]');
     if (el && (!e.relatedTarget || !el.contains(e.relatedTarget))) hide();

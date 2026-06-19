@@ -93,6 +93,11 @@
             pkgs.gcc
             pkgs.gnumake
           ] pythonEnv;
+
+          sts2-log = withPackages [
+            pkgs.nodejs_22
+            pkgs.chromium
+          ] baseEnv;
         }
       );
     };

@@ -340,16 +340,30 @@ function eventChoiceLabel(choice) {
 }
 
 const MAP_ICON = {
-  monster: { glyph: '⚔', cls: 'combat', label: 'Combat' },
-  elite: { glyph: '☠', cls: 'elite', label: 'Elite' },
-  boss: { glyph: '♛', cls: 'boss', label: 'Boss' },
-  rest_site: { glyph: '♨', cls: 'rest', label: 'Rest Site' },
-  shop: { glyph: '$', cls: 'shop', label: 'Shop' },
-  treasure: { glyph: '♦', cls: 'treasure', label: 'Treasure' },
-  unknown: { glyph: '?', cls: 'event', label: 'Unknown' },
-  event: { glyph: '?', cls: 'event', label: 'Event' },
-  ancient: { glyph: '◈', cls: 'ancient', label: 'Ancient' },
+  monster: { cls: 'combat', label: 'Combat' },
+  elite: { cls: 'elite', label: 'Elite' },
+  boss: { cls: 'boss', label: 'Boss' },
+  rest_site: { cls: 'rest', label: 'Rest Site' },
+  shop: { cls: 'shop', label: 'Shop' },
+  treasure: { cls: 'treasure', label: 'Treasure' },
+  unknown: { cls: 'event', label: 'Unknown' },
+  event: { cls: 'event', label: 'Event' },
+  ancient: { cls: 'ancient', label: 'Ancient' },
 };
+
+// Inline SVG room icons (inherit color via currentColor). Hand-drawn so they
+// read crisply at node size and don't depend on an emoji font.
+const ICONS = {
+  combat: `<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5.5 18.5 18 6M18.5 18.5 6 6"/><circle cx="5.5" cy="18.5" r="1.5" fill="currentColor"/><circle cx="18.5" cy="18.5" r="1.5" fill="currentColor"/>`,
+  elite: `<path fill="currentColor" fill-rule="evenodd" d="M12 3c-4.1 0-7 3-7 6.8 0 2 .9 3.7 2.3 4.9.3.2.4.5.4.8v1.3c0 .9.7 1.6 1.6 1.6h.1v-1.7h1.3v1.7h1.6v-1.7h1.3v1.7h.1c.9 0 1.6-.7 1.6-1.6v-1.3c0-.3.1-.6.4-.8C18.1 13.5 19 11.8 19 9.8 19 6 16.1 3 12 3ZM9 12.7a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Zm6 0a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/>`,
+  boss: `<path fill="currentColor" d="M4.2 17 2.4 6.6l5.2 3.3L12 4l4.4 5.9 5.2-3.3L19.8 17H4.2Z"/><rect x="4.4" y="18.4" width="15.2" height="2.3" rx="0.7" fill="currentColor"/>`,
+  rest: `<path fill="currentColor" d="M12.6 2.3c.4 2.6-.8 3.9-2 5.1-1.3 1.3-2.6 2.6-2.6 5.1A5.6 5.6 0 0 0 12 18.2a5.4 5.4 0 0 0 5.4-5.4c0-3.3-2.3-5.5-3.5-7 .2 1.4-.3 2.3-1.1 2.6-.9.3-1.6-.3-1.5-1.6.1-1.6.6-2.7 1.3-4.1Z"/>`,
+  shop: `<g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M5.5 8h13l-1 11.5h-11L5.5 8Z"/><path d="M9 8.5V6.4a3 3 0 0 1 6 0v2.1"/></g>`,
+  treasure: `<g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 11c0-3 3.6-5 8-5s8 2 8 5v8.2H4V11Z"/><path d="M4 12.6h16"/></g><rect x="10.3" y="11.1" width="3.4" height="3.6" rx="0.6" fill="currentColor"/>`,
+  event: `<path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M8.7 9.1a3.4 3.4 0 1 1 6 2.3c-1 1-2.6 1.6-2.6 3.3"/><circle cx="12.1" cy="18.2" r="1.35" fill="currentColor"/>`,
+  ancient: `<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M5 9.6 8 5h8l3 4.6-7 9.9z"/><path d="M5 9.6h14M9 5 8 9.6l4 9.9M15 5l1 4.6-4 9.9"/></g>`,
+};
+const iconSvg = cls => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[cls] || ICONS.event}</svg>`;
 
 function cardListHtml(cards) {
   // group cards (by id/upgrade/ench) -> chips
@@ -600,7 +614,7 @@ function floorTipHtml(p, r) {
   if (p.potionsGained.length) line('Potions +', refNames(p.potionsGained));
 
   return `<div class="tip-card tip-floor">
-    <div class="tip-head"><span class="floornum ${p.icon.cls}">${p.icon.glyph}</span><span class="tip-title">${esc(floorHeading(p))}</span></div>
+    <div class="tip-head"><span class="floornum ${p.icon.cls}">${iconSvg(p.icon.cls)}</span><span class="tip-title">${esc(floorHeading(p))}</span></div>
     <div class="tip-sub">Floor ${p.floor} · ${esc(p.icon.label)} · click to jump down ↓</div>
     <div class="tip-rows">${rows.join('') || '<div class="fr"><span class="frv">—</span></div>'}</div>
   </div>`;
@@ -762,7 +776,7 @@ function renderRun(r) {
   const actRows = r.acts.map((act, ai) => {
     const cells = act.points.map((p, pi) => {
       return `<a class="node ${p.icon.cls}" href="#frow-${ai}-${pi}" data-tip="floor:${ai}:${pi}">
-        <span class="node-glyph">${p.icon.glyph}</span>
+        <span class="node-glyph">${iconSvg(p.icon.cls)}</span>
         <span class="node-floor">${p.floor}</span>
       </a>`;
     }).join('<span class="node-link"></span>');
@@ -789,9 +803,7 @@ function renderRun(r) {
   // deck
   const deckHtml = r.deck.map((c, i) => {
     const cls = `dcard rar-${(c.rarity || 'common').toLowerCase()} ${c.upgraded ? 'upg' : ''}`;
-    const inner = `${c.count > 1 ? `<span class="dcount">${c.count}×</span>` : ''}
-      <span class="dthumb">${c.img ? `<img src="${c.img}" alt="" loading="lazy">` : ''}</span>
-      <span class="dname">${esc(c.title)}${c.upgraded ? '<span class="up">+</span>' : ''}${c.ench ? '<span class="ench">✦</span>' : ''}</span>`;
+    const inner = `${c.count > 1 ? `<span class="dcount">${c.count}×</span>` : ''}<span class="dname">${esc(c.title)}${c.upgraded ? '<span class="up">+</span>' : ''}${c.ench ? '<span class="ench">✦</span>' : ''}</span>`;
     return c.url
       ? `<a class="${cls}" data-tip="card:${i}" href="${esc(c.url)}" target="_blank" rel="noopener">${inner}</a>`
       : `<div class="${cls}" data-tip="card:${i}" tabindex="0">${inner}</div>`;
@@ -923,7 +935,7 @@ function floorTableHtml(r) {
       if (gd.length) gold += ` <span class="delta">${gd.join(' ')}</span>`;
       rows += `<tr id="frow-${ai}-${pi}" class="frow">
         <td class="c-floor">${p.floor}</td>
-        <td class="c-type"><span class="floornum ${p.icon.cls}" title="${esc(p.icon.label)}">${p.icon.glyph}</span></td>
+        <td class="c-type"><span class="floornum ${p.icon.cls}" title="${esc(p.icon.label)}">${iconSvg(p.icon.cls)}</span></td>
         <td class="c-loc">${loc}${enemies}</td>
         <td class="c-hp">${hp}</td>
         <td class="c-gold">${gold}</td>

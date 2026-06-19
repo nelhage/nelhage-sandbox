@@ -66,7 +66,8 @@ h3.sub{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spaci
   align-items:center;justify-content:center;cursor:pointer;background:var(--bg);border:1px solid var(--line);
   transition:transform .08s,box-shadow .08s,border-color .08s;outline:none}
 .node:hover,.node:focus{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.45);z-index:2}
-.node-glyph{font-size:15px;line-height:1}
+.node-glyph{line-height:0}
+.ic{width:21px;height:21px;display:block}
 .node-floor{font-size:9px;color:var(--muted);margin-top:1px}
 .node-link{width:8px;height:2px;background:var(--line);flex:none}
 .node.combat{border-color:var(--combat)} .node.combat .node-glyph{color:var(--combat)}
@@ -106,7 +107,7 @@ h3.sub{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spaci
 
 /* deck */
 .deck{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}
-.dcard{display:flex;align-items:center;gap:9px;padding:5px 9px 5px 6px;border-radius:8px;cursor:pointer;
+.dcard{display:flex;align-items:baseline;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer;
   background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--common);text-decoration:none;color:inherit;
   transition:transform .07s,box-shadow .07s,background .07s}
 .dcard:hover,.dcard:focus{transform:translateX(2px);background:var(--panel2);
@@ -118,10 +119,8 @@ h3.sub{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spaci
 .dcard.rar-special,.dcard.rar-boss{border-left-color:var(--special)}
 .dcard.rar-event{border-left-color:var(--event)}
 .dcard.rar-curse,.dcard.rar-status{border-left-color:#7a6a55}
-.dcount{color:var(--muted);font-size:.8rem;min-width:20px}
-.dthumb{width:34px;height:24px;flex:none;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0c0907}
-.dthumb img{width:100%;height:auto;display:block}
-.dname{font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcount{color:var(--muted);font-size:.8rem;min-width:18px;flex:none}
+.dname{font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dcard.upg .dname{color:var(--green)}
 .up{color:var(--green);font-weight:700}
 .ench{color:var(--special);margin-left:3px}
@@ -154,6 +153,8 @@ h3.sub{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spaci
 .tip-floor{max-width:300px}
 .floornum{width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
   font-size:13px;border:1px solid var(--line);background:var(--bg)}
+.floornum .ic{width:14px;height:14px}
+.c-type .floornum .ic{width:15px;height:15px}
 .floornum.combat{color:var(--combat)} .floornum.elite{color:var(--elite)} .floornum.boss{color:var(--boss)}
 .floornum.rest{color:var(--rest)} .floornum.shop{color:var(--shop)} .floornum.treasure{color:var(--treasure)}
 .floornum.event{color:var(--event)} .floornum.ancient{color:var(--ancient)}

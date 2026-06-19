@@ -73,18 +73,30 @@ function loadData(version) {
   }
   const enchArr = readJson('enchantments.json') || [];
   const enchants = indexByClass(enchArr);
+  const cardsArr = readJson('cards.json') || [];
+  const relicsArr = readJson('relics.json') || [];
+  const potionsArr = readJson('potions.json') || [];
+  const monstersArr = readJson('monsters.json') || [];
+  const encountersArr = readJson('encounters.json') || [];
   const data = {
     version,
-    cards: indexByLocKey(readJson('cards.json')),
-    relics: indexByLocKey(readJson('relics.json')),
-    potions: indexByLocKey(readJson('potions.json')),
-    monsters: indexByLocKey(readJson('monsters.json')),
-    encounters: indexByLocKey(readJson('encounters.json')),
+    cards: indexByLocKey(cardsArr),
+    relics: indexByLocKey(relicsArr),
+    potions: indexByLocKey(potionsArr),
+    monsters: indexByLocKey(monstersArr),
+    encounters: indexByLocKey(encountersArr),
     ancients: indexByLocKey(readJson('ancients.json')),
     characters: indexByLocKey(readJson('characters.json')),
     acts: indexByClass(readJson('acts.json')),
     events,
     enchants,
+    // class_name -> wiki slug
+    cardSlugs: buildSlugMap(cardsArr, 'character'),
+    relicSlugs: buildSlugMap(relicsArr, 'class_name'),
+    potionSlugs: buildSlugMap(potionsArr, 'class_name'),
+    monsterSlugs: buildSlugMap(monstersArr, 'class_name'),
+    encounterSlugs: buildSlugMap(encountersArr, 'class_name'),
+    eventSlugs: buildSlugMap([...events.values()], 'class_name'),
   };
   dataCache.set(version, data);
   return data;
@@ -97,6 +109,32 @@ const idSuffix = id => (id || '').split('.').slice(1).join('.'); // CARD.DAGGER_
 const pascal = snake => (snake || '').toLowerCase().split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
 const snakeLower = cls => (cls || '').replace(/([A-Z])/g, (m, p, off) => (off > 0 ? '_' : '') + p).toLowerCase();
 const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// ---------------------------------------------------------------------------
+// sts2-wiki linking. Slugs mirror the wiki's generators: slugify(title), with a
+// `-{character}` (cards) / `-{class_name}` (everything else) suffix appended to
+// later entries on a title collision (e.g. each character's Strike/Defend).
+// ---------------------------------------------------------------------------
+const WIKI_BASE = 'https://drmaciver.github.io/sts2-wiki';
+const cleanTitle = t => String(t || '').replace(/#[A-Z]\{[^}]*\}/g, '').trim(); // strip game template artifacts
+const slugify = title => cleanTitle(title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const wikiUrl = (kind, slug) => slug ? `${WIKI_BASE}/${kind}/${slug}/` : null;
+const uniqByTitle = refs => { const seen = new Set(); return refs.filter(r => r && !seen.has(r.title) && seen.add(r.title)); };
+
+// Build class_name -> slug for an ordered list, replicating collision handling.
+function buildSlugMap(entries, suffixField) {
+  const seen = new Set();
+  const map = new Map();
+  for (const e of entries) {
+    if (!e || !e.class_name) continue;
+    let slug = slugify(e.title || e.class_name);
+    if (!slug) continue;
+    if (seen.has(slug)) slug = `${slug}-${String(e[suffixField] || e.class_name).toLowerCase()}`;
+    seen.add(slug);
+    map.set(e.class_name, slug);
+  }
+  return map;
+}
 
 // Convert in-game BBCode-ish / wiki markup to safe HTML.
 function markup(str, vars) {
@@ -193,6 +231,7 @@ function resolveCardEntry(deckCard, data) {
     key, title, upgraded, ench,
     floor: deckCard.floor_added_to_deck,
     img: cardImage(wiki),
+    url: wiki ? wikiUrl('cards', data.cardSlugs.get(wiki.class_name)) : null,
     cost: wiki ? (wiki.x_cost ? 'X' : (wiki.energy_cost >= 0 ? wiki.energy_cost : null)) : null,
     type: wiki ? wiki.type : null,
     rarity: wiki ? wiki.rarity : null,
@@ -200,6 +239,28 @@ function resolveCardEntry(deckCard, data) {
     keywords: wiki ? (wiki.keywords || []) : [],
     desc: wiki ? markup(upgraded ? (wiki.upgraded_description_html || wiki.upgraded_description_plain || wiki.upgraded_description) : (wiki.description_html || wiki.description_plain || wiki.description)) : '',
   };
+}
+
+// Lightweight {title, url} references for floor-level listings.
+function refCard(id, data) {
+  const key = idSuffix(id);
+  const w = data.cards.get(key);
+  return { title: w ? w.title : titleCase(key), url: w ? wikiUrl('cards', data.cardSlugs.get(w.class_name)) : null, rarity: w ? w.rarity : null };
+}
+function refRelic(idOrKey, data) {
+  const key = idOrKey.includes('.') ? idSuffix(idOrKey) : idOrKey;
+  const w = data.relics.get(key);
+  return { title: w ? w.title : titleCase(key), url: w ? wikiUrl('relics', data.relicSlugs.get(w.class_name)) : null };
+}
+function refPotion(id, data) {
+  const key = idSuffix(id);
+  const w = data.potions.get(key);
+  return { title: w ? w.title : titleCase(key), url: w ? wikiUrl('potions', data.potionSlugs.get(w.class_name)) : null };
+}
+function refMonster(id, data) {
+  const key = idSuffix(id);
+  const w = data.monsters.get(key);
+  return { title: cleanTitle(w ? w.title : titleCase(key)), url: w ? wikiUrl('monsters', data.monsterSlugs.get(w.class_name)) : null };
 }
 
 function resolveRelic(id, data) {
@@ -210,6 +271,7 @@ function resolveRelic(id, data) {
     title: w ? w.title : key.replace(/_/g, ' '),
     rarity: w ? w.rarity : null,
     img: relicImage(w),
+    url: w ? wikiUrl('relics', data.relicSlugs.get(w.class_name)) : null,
     desc: w ? markup(w.description, w.vars) : '',
     flavor: w ? markup(w.flavor) : '',
   };
@@ -223,6 +285,7 @@ function resolvePotion(id, data) {
     title: w ? w.title : key.replace(/_/g, ' '),
     rarity: w ? w.rarity : null,
     img: potionImage(w),
+    url: w ? wikiUrl('potions', data.potionSlugs.get(w.class_name)) : null,
     desc: w ? markup(w.description, w.vars) : '',
   };
 }
@@ -230,21 +293,29 @@ function resolvePotion(id, data) {
 function resolveEncounter(modelId, monsterIds, data) {
   const key = idSuffix(modelId);
   const w = data.encounters.get(key);
-  const monsters = (monsterIds || []).map(m => {
-    const mw = data.monsters.get(idSuffix(m));
-    return mw ? mw.title : idSuffix(m).replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-  });
+  const seen = new Set();
+  const monsters = [];
+  for (const m of monsterIds || []) {
+    const r = refMonster(m, data);
+    if (seen.has(r.title)) continue;
+    seen.add(r.title);
+    monsters.push(r);
+  }
   return {
-    title: w ? w.title : (key ? key.replace(/_/g, ' ') : null),
+    title: cleanTitle(w ? w.title : (key ? key.replace(/_/g, ' ') : null)),
+    url: w ? wikiUrl('encounters', data.encounterSlugs.get(w.class_name)) : null,
     isWeak: w ? w.is_weak : false,
-    monsters: [...new Set(monsters)],
+    monsters,
   };
 }
 
 function eventName(modelId, data) {
   const cls = pascal(idSuffix(modelId));
   const w = data.events.get(cls);
-  return w ? w.title : idSuffix(modelId).replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  return {
+    title: w ? w.title : titleCase(idSuffix(modelId)),
+    url: w ? wikiUrl('events', data.eventSlugs.get(w.class_name)) : null,
+  };
 }
 
 // Pull a readable label out of an event_choice loc title key.
@@ -269,12 +340,12 @@ const MAP_ICON = {
   monster: { glyph: '⚔', cls: 'combat', label: 'Combat' },
   elite: { glyph: '☠', cls: 'elite', label: 'Elite' },
   boss: { glyph: '♛', cls: 'boss', label: 'Boss' },
-  rest_site: { glyph: '🔥', cls: 'rest', label: 'Rest Site' },
-  shop: { glyph: '🛒', cls: 'shop', label: 'Shop' },
-  treasure: { glyph: '🎁', cls: 'treasure', label: 'Treasure' },
+  rest_site: { glyph: '♨', cls: 'rest', label: 'Rest Site' },
+  shop: { glyph: '$', cls: 'shop', label: 'Shop' },
+  treasure: { glyph: '♦', cls: 'treasure', label: 'Treasure' },
   unknown: { glyph: '?', cls: 'event', label: 'Unknown' },
   event: { glyph: '?', cls: 'event', label: 'Event' },
-  ancient: { glyph: '𖣘', cls: 'ancient', label: 'Ancient' },
+  ancient: { glyph: '◈', cls: 'ancient', label: 'Ancient' },
 };
 
 function cardListHtml(cards) {
@@ -319,27 +390,35 @@ function enrichRun(run, fileName) {
       if (room.model_id && room.model_id.startsWith('ENCOUNTER')) {
         encounter = resolveEncounter(room.model_id, room.monster_ids, data);
       }
-      let eventTitle = null;
+      let event = null;
       if (room.model_id && room.model_id.startsWith('EVENT')) {
-        eventTitle = eventName(room.model_id, data);
+        event = eventName(room.model_id, data);
       }
 
-      // detail bits
-      const cardsGained = (ps.cards_gained || []).map(c => idSuffix(c.id));
-      const cardsRemoved = (ps.cards_removed || []).map(c => idSuffix(typeof c === 'string' ? c : c.id || c.card?.id));
-      const cardsUpgraded = (ps.upgraded_cards || []).map(idSuffix);
-      const cardsTransformed = (ps.cards_transformed || []).map(t => ({
-        from: idSuffix(t.original_card?.id), to: idSuffix(t.final_card?.id),
+      // card rewards offered (all, with which was taken)
+      const cardRewards = (ps.card_choices || []).map(c => ({
+        ...refCard(c.card?.id, data), picked: !!c.was_picked,
       }));
-      const relicsGained = [...new Set([]
-        .concat((ps.relic_choices || []).filter(r => r.was_picked).map(r => idSuffix(r.choice)))
-        .concat((ps.bought_relics || []).map(idSuffix))
-        .concat((ps.ancient_choice || []).filter(a => a.was_chosen).map(a => a.TextKey)))];
-      const potionsGained = [...new Set([]
-        .concat((ps.potion_choices || []).filter(p => p.was_picked).map(p => idSuffix(p.choice)))
-        .concat((ps.bought_potions || []).map(idSuffix)))];
+      const pickedKeys = new Set((ps.card_choices || []).filter(c => c.was_picked).map(c => idSuffix(c.card?.id)));
+
+      // detail bits (as {title,url} refs)
+      const cardsGainedAll = (ps.cards_gained || []).map(c => c.id);
+      // cards added outside a reward pick (events, Neow, generators...)
+      const cardsGainedOther = cardsGainedAll.filter(id => !pickedKeys.has(idSuffix(id))).map(id => refCard(id, data));
+      const cardsRemoved = (ps.cards_removed || []).map(c => refCard(typeof c === 'string' ? c : (c.id || c.card?.id), data));
+      const cardsUpgraded = (ps.upgraded_cards || []).map(id => refCard(id, data));
+      const cardsTransformed = (ps.cards_transformed || []).map(t => ({
+        from: refCard(t.original_card?.id, data), to: refCard(t.final_card?.id, data),
+      }));
+      const relicsGained = uniqByTitle([]
+        .concat((ps.relic_choices || []).filter(r => r.was_picked).map(r => refRelic(r.choice, data)))
+        .concat((ps.bought_relics || []).map(id => refRelic(id, data)))
+        .concat((ps.ancient_choice || []).filter(a => a.was_chosen).map(a => refRelic(a.TextKey, data))));
+      const potionsGained = uniqByTitle([]
+        .concat((ps.potion_choices || []).filter(p => p.was_picked).map(p => refPotion(p.choice, data)))
+        .concat((ps.bought_potions || []).map(id => refPotion(id, data))));
       const eventChoices = (ps.event_choices || []).map(eventChoiceLabel).filter(Boolean);
-      const restChoices = (ps.rest_site_choices || []).map(c => String(c).replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, x => x.toUpperCase()));
+      const restChoices = (ps.rest_site_choices || []).map(c => titleCase(c));
 
       const dmg = ps.damage_taken || 0;
       hpSeries.push({ floor: floorNum, hp: ps.current_hp, maxHp: ps.max_hp, act: ai });
@@ -351,7 +430,7 @@ function enrichRun(run, fileName) {
         icon,
         roomType: room.room_type,
         turns: room.turns_taken,
-        encounter, eventTitle,
+        encounter, event,
         hp: ps.current_hp, maxHp: ps.max_hp,
         damageTaken: dmg,
         hpHealed: ps.hp_healed || 0,
@@ -360,7 +439,8 @@ function enrichRun(run, fileName) {
         gold: ps.current_gold,
         goldGained: ps.gold_gained || 0,
         goldSpent: ps.gold_spent || 0,
-        cardsGained, cardsRemoved, cardsUpgraded, cardsTransformed,
+        cardRewards,
+        cardsGainedOther, cardsRemoved, cardsUpgraded, cardsTransformed,
         relicsGained, potionsGained,
         eventChoices, restChoices,
       });
@@ -465,7 +545,7 @@ function cardTipHtml(c) {
     ${c.img ? `<img class="tip-art" src="${c.img}" alt="">` : ''}
     <div class="tip-desc">${c.desc || ''}</div>
     ${ench}${kws}
-    <div class="tip-foot">Added floor ${c.floor ?? '?'}${c.count > 1 ? ` · ×${c.count} in deck` : ''}</div>
+    <div class="tip-foot">Added floor ${c.floor ?? '?'}${c.count > 1 ? ` · ×${c.count} in deck` : ''}${c.url ? ' · click → wiki ↗' : ''}</div>
   </div>`;
 }
 function relicTipHtml(r) {
@@ -485,15 +565,18 @@ function potionTipHtml(p) {
     <div class="tip-desc">${p.desc || ''}</div>
   </div>`;
 }
+function floorHeading(p) {
+  if (p.encounter && p.encounter.title) return p.encounter.title;
+  if (p.event && p.event.title) return p.event.title;
+  return p.icon.label;
+}
+const refNames = refs => refs.map(c => esc(c.title)).join(', ');
+
 function floorTipHtml(p, r) {
   const rows = [];
-  let heading = p.icon.label;
-  if (p.encounter && p.encounter.title) heading = (p.encounter.isWeak ? '' : '') + p.encounter.title;
-  else if (p.eventTitle) heading = p.eventTitle;
-
   const line = (label, val) => rows.push(`<div class="fr"><span class="frl">${label}</span><span class="frv">${val}</span></div>`);
 
-  if (p.encounter && p.encounter.monsters.length) line('Enemies', p.encounter.monsters.map(esc).join(', '));
+  if (p.encounter && p.encounter.monsters.length) line('Enemies', refNames(p.encounter.monsters));
   if (p.turns) line('Turns', p.turns);
   if (p.hp != null) line('HP', `${p.hp}/${p.maxHp}`);
   if (p.damageTaken) line('Damage taken', `<span class="bad">−${p.damageTaken}</span>`);
@@ -503,16 +586,19 @@ function floorTipHtml(p, r) {
   if (p.gold != null) line('Gold', p.gold + (p.goldGained ? ` <span class="good">(+${p.goldGained})</span>` : '') + (p.goldSpent ? ` <span class="bad">(−${p.goldSpent})</span>` : ''));
   if (p.restChoices.length) line('Rest', p.restChoices.map(esc).join(', '));
   if (p.eventChoices.length) line('Chose', p.eventChoices.map(esc).join('; '));
-  if (p.cardsGained.length) line('Cards +', p.cardsGained.map(c => esc(titleCase(c))).join(', '));
-  if (p.cardsRemoved.length) line('Cards −', p.cardsRemoved.map(c => esc(titleCase(c))).join(', '));
-  if (p.cardsUpgraded.length) line('Upgraded', p.cardsUpgraded.map(c => esc(titleCase(c))).join(', '));
-  if (p.cardsTransformed.length) line('Transformed', p.cardsTransformed.map(t => `${esc(titleCase(t.from))} → ${esc(titleCase(t.to))}`).join(', '));
-  if (p.relicsGained.length) line('Relics +', p.relicsGained.map(c => esc(titleCase(c))).join(', '));
-  if (p.potionsGained.length) line('Potions +', p.potionsGained.map(c => esc(titleCase(c))).join(', '));
+  const offered = p.cardRewards.filter(c => !c.picked);
+  if (p.cardRewards.some(c => c.picked)) line('Took', refNames(p.cardRewards.filter(c => c.picked)));
+  if (offered.length) line('Skipped', refNames(offered));
+  if (p.cardsGainedOther.length) line('Cards +', refNames(p.cardsGainedOther));
+  if (p.cardsRemoved.length) line('Cards −', refNames(p.cardsRemoved));
+  if (p.cardsUpgraded.length) line('Upgraded', refNames(p.cardsUpgraded));
+  if (p.cardsTransformed.length) line('Transformed', p.cardsTransformed.map(t => `${esc(t.from.title)} → ${esc(t.to.title)}`).join(', '));
+  if (p.relicsGained.length) line('Relics +', refNames(p.relicsGained));
+  if (p.potionsGained.length) line('Potions +', refNames(p.potionsGained));
 
   return `<div class="tip-card tip-floor">
-    <div class="tip-head"><span class="floornum ${p.icon.cls}">${p.icon.glyph}</span><span class="tip-title">${esc(heading)}</span></div>
-    <div class="tip-sub">Floor ${p.floor} · ${esc(p.icon.label)}</div>
+    <div class="tip-head"><span class="floornum ${p.icon.cls}">${p.icon.glyph}</span><span class="tip-title">${esc(floorHeading(p))}</span></div>
+    <div class="tip-sub">Floor ${p.floor} · ${esc(p.icon.label)} · click to jump down ↓</div>
     <div class="tip-rows">${rows.join('') || '<div class="fr"><span class="frv">—</span></div>'}</div>
   </div>`;
 }
@@ -534,10 +620,10 @@ function renderRun(r) {
   // map path rows
   const actRows = r.acts.map((act, ai) => {
     const cells = act.points.map((p, pi) => {
-      return `<div class="node ${p.icon.cls}" data-tip="floor:${ai}:${pi}" tabindex="0">
+      return `<a class="node ${p.icon.cls}" href="#frow-${ai}-${pi}" data-tip="floor:${ai}:${pi}">
         <span class="node-glyph">${p.icon.glyph}</span>
         <span class="node-floor">${p.floor}</span>
-      </div>`;
+      </a>`;
     }).join('<span class="node-link"></span>');
     return `<div class="act-row">
       <div class="act-name">${esc(act.title)}</div>
@@ -549,21 +635,25 @@ function renderRun(r) {
   const chart = hpChartSvg(r);
 
   // relics
-  const relicHtml = r.relics.map((rl, i) =>
-    `<div class="relic" data-tip="relic:${i}" tabindex="0">${rl.img ? `<img src="${rl.img}" alt="${esc(rl.title)}">` : `<span class="noimg">${esc(rl.title[0])}</span>`}</div>`
-  ).join('');
-
-  const potionHtml = r.potions.length ? r.potions.map((p, i) =>
-    `<div class="relic potion" data-tip="potion:${i}" tabindex="0">${p.img ? `<img src="${p.img}" alt="${esc(p.title)}">` : `<span class="noimg">${esc(p.title[0])}</span>`}</div>`
-  ).join('') : '';
+  const iconTag = (cls, tip, url, img, title) => {
+    const inner = img ? `<img src="${img}" alt="${esc(title)}">` : `<span class="noimg">${esc(title[0] || '?')}</span>`;
+    return url
+      ? `<a class="${cls}" data-tip="${tip}" href="${esc(url)}" target="_blank" rel="noopener">${inner}</a>`
+      : `<div class="${cls}" data-tip="${tip}" tabindex="0">${inner}</div>`;
+  };
+  const relicHtml = r.relics.map((rl, i) => iconTag('relic', `relic:${i}`, rl.url, rl.img, rl.title)).join('');
+  const potionHtml = r.potions.length
+    ? r.potions.map((p, i) => iconTag('relic potion', `potion:${i}`, p.url, p.img, p.title)).join('') : '';
 
   // deck
   const deckHtml = r.deck.map((c, i) => {
-    return `<div class="dcard rar-${(c.rarity || 'common').toLowerCase()} ${c.upgraded ? 'upg' : ''}" data-tip="card:${i}" tabindex="0">
-      ${c.count > 1 ? `<span class="dcount">${c.count}×</span>` : ''}
+    const cls = `dcard rar-${(c.rarity || 'common').toLowerCase()} ${c.upgraded ? 'upg' : ''}`;
+    const inner = `${c.count > 1 ? `<span class="dcount">${c.count}×</span>` : ''}
       <span class="dthumb">${c.img ? `<img src="${c.img}" alt="" loading="lazy">` : ''}</span>
-      <span class="dname">${esc(c.title)}${c.upgraded ? '<span class="up">+</span>' : ''}${c.ench ? '<span class="ench">✦</span>' : ''}</span>
-    </div>`;
+      <span class="dname">${esc(c.title)}${c.upgraded ? '<span class="up">+</span>' : ''}${c.ench ? '<span class="ench">✦</span>' : ''}</span>`;
+    return c.url
+      ? `<a class="${cls}" data-tip="card:${i}" href="${esc(c.url)}" target="_blank" rel="noopener">${inner}</a>`
+      : `<div class="${cls}" data-tip="card:${i}" tabindex="0">${inner}</div>`;
   }).join('');
 
   const summarize = (counts, order) => Object.entries(counts)
@@ -625,7 +715,12 @@ function renderRun(r) {
     <div class="deck">${deckHtml}</div>
   </section>
 
-  <footer class="foot"><a href="index.html">← all runs</a> · Generated from Slay the Spire II run log</footer>
+  <section class="panel">
+    <div class="panel-h2"><h2>Floor by floor</h2><span class="count">click a node above to jump here · links open the sts2-wiki</span></div>
+    ${floorTableHtml(r)}
+  </section>
+
+  <footer class="foot"><a href="index.html">← all runs</a> · Generated from Slay the Spire II run log · data from <a href="${WIKI_BASE}/" target="_blank" rel="noopener">sts2-wiki</a></footer>
 </div>
 <div id="tip" class="tooltip" role="tooltip"></div>
 <script>
@@ -633,6 +728,71 @@ const TIPS = ${JSON.stringify(tips)};
 ${JS}
 </script>
 </body></html>`;
+}
+
+// linked reference -> <a> (or plain text if no wiki page)
+function lref(ref) {
+  if (!ref || !ref.title) return '';
+  const t = esc(ref.title);
+  return ref.url ? `<a class="wl" href="${esc(ref.url)}" target="_blank" rel="noopener">${t}</a>` : t;
+}
+const lrefs = refs => refs.map(lref).join(', ');
+
+function floorDetailsHtml(p) {
+  const out = [];
+  const seg = (label, html) => out.push(`<div class="seg"><span class="seg-l">${label}</span> ${html}</div>`);
+  if (p.cardRewards.length) {
+    const parts = p.cardRewards.map(c =>
+      `<span class="rw ${c.picked ? 'took' : 'skip'} rar-${(c.rarity || 'common').toLowerCase()}">${c.picked ? '✓ ' : ''}${lref(c)}</span>`).join('');
+    seg('Card reward', `<span class="rwlist">${parts}</span>`);
+  }
+  if (p.cardsGainedOther.length) seg('Cards +', lrefs(p.cardsGainedOther));
+  if (p.cardsRemoved.length) seg('Cards −', lrefs(p.cardsRemoved));
+  if (p.cardsUpgraded.length) seg('Upgraded', lrefs(p.cardsUpgraded));
+  if (p.cardsTransformed.length) seg('Transformed', p.cardsTransformed.map(t => `${lref(t.from)} → ${lref(t.to)}`).join(', '));
+  if (p.relicsGained.length) seg('Relic +', lrefs(p.relicsGained));
+  if (p.potionsGained.length) seg('Potion +', lrefs(p.potionsGained));
+  if (p.restChoices.length) seg('Rest', esc(p.restChoices.join(', ')));
+  if (p.eventChoices.length) seg('Chose', esc(p.eventChoices.join('; ')));
+  return out.join('') || '<span class="muted">—</span>';
+}
+
+function floorTableHtml(r) {
+  let rows = '';
+  r.acts.forEach((act, ai) => {
+    rows += `<tr class="act-head"><td colspan="6">${esc(act.title)}</td></tr>`;
+    act.points.forEach((p, pi) => {
+      const loc = p.encounter
+        ? `${lref({ title: p.encounter.title, url: p.encounter.url })}${p.encounter.isWeak ? ' <span class="weak">weak</span>' : ''}`
+        : p.event ? lref(p.event) : esc(p.icon.label);
+      const enemies = p.encounter && p.encounter.monsters.length
+        ? `<div class="enemies">${lrefs(p.encounter.monsters)}</div>` : '';
+      let hp = p.hp != null ? `${p.hp}<span class="slash">/${p.maxHp}</span>` : '';
+      const hpd = [];
+      if (p.damageTaken) hpd.push(`<span class="bad">−${p.damageTaken}</span>`);
+      if (p.hpHealed) hpd.push(`<span class="good">+${p.hpHealed}</span>`);
+      if (p.maxHpGained) hpd.push(`<span class="good">+${p.maxHpGained} max</span>`);
+      if (p.maxHpLost) hpd.push(`<span class="bad">−${p.maxHpLost} max</span>`);
+      if (hpd.length) hp += ` <span class="delta">${hpd.join(' ')}</span>`;
+      let gold = p.gold != null ? `${p.gold}` : '';
+      const gd = [];
+      if (p.goldGained) gd.push(`<span class="good">+${p.goldGained}</span>`);
+      if (p.goldSpent) gd.push(`<span class="bad">−${p.goldSpent}</span>`);
+      if (gd.length) gold += ` <span class="delta">${gd.join(' ')}</span>`;
+      rows += `<tr id="frow-${ai}-${pi}" class="frow">
+        <td class="c-floor">${p.floor}</td>
+        <td class="c-type"><span class="floornum ${p.icon.cls}" title="${esc(p.icon.label)}">${p.icon.glyph}</span></td>
+        <td class="c-loc">${loc}${enemies}</td>
+        <td class="c-hp">${hp}</td>
+        <td class="c-gold">${gold}</td>
+        <td class="c-det">${floorDetailsHtml(p)}</td>
+      </tr>`;
+    });
+  });
+  return `<table class="ftable">
+    <thead><tr><th>#</th><th></th><th>Room</th><th>HP</th><th>Gold</th><th>Rewards &amp; choices</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 function hpChartSvg(r) {

@@ -13,17 +13,27 @@ Per run, a single page with:
   run time, ascension, date, seed, and game version.
 - **The Climb** — the act-by-act path as a row of nodes (combat / elite / boss /
   rest / shop / treasure / event / ancient). **Hover any node** for that floor's
-  detail: enemies fought, turns, HP/damage, gold, cards picked or removed,
-  upgrades, relics & potions gained, and event/rest-site choices.
+  detail; **click a node** to jump to its row in the floor-by-floor table below.
 - **Vitals** — an HP-over-time chart for the whole run (current vs. max HP, with
   act dividers). Hovering a point cross-highlights the matching floor node.
-- **Relics & Potions** — **hover for** name, rarity, description, and flavor.
+- **Relics & Potions** — **hover for** name, rarity, description, and flavor;
+  **click** to open the item's sts2-wiki page.
 - **Deck** — every card (grouped with counts), color-coded by rarity, with `+`
-  for upgrades and `✦` for enchantments. **Hover for** the full card: cost,
-  type, rarity, art, description (upgraded if upgraded), keywords, and the floor
-  it was added.
+  for upgrades and `✦` for enchantments. **Hover for** the full card (cost,
+  type, rarity, art, description, keywords, floor added); **click** to open the
+  card's sts2-wiki page.
+- **Floor by floor** — a table with every floor's information laid out
+  explicitly (no hovering): room/encounter, enemies, HP & gold deltas, the full
+  card reward **offered** (taken vs. skipped), cards removed/upgraded/
+  transformed, relics & potions gained, and event/rest choices. Every entity
+  links to its sts2-wiki page.
 
 An `index.html` lists every run.
+
+Wiki links point at <https://drmaciver.github.io/sts2-wiki/>. Slugs are derived
+the same way the wiki generates them — `slugify(title)`, with a `-character`
+(cards) / `-class_name` (everything else) suffix on title collisions (e.g. each
+character's Strike/Defend).
 
 ## Usage
 

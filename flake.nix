@@ -81,6 +81,15 @@
           verso2docset = pythonBase;
           regexle = pythonBase;
           mnist-subliminal = pythonBase;
+          sts2-log = pkgs.mkShell (
+            {
+              packages = [
+                pkgs.nodejs_22
+                pkgs.chromium
+              ];
+            }
+            // claudeEnv
+          );
         }
       );
     };

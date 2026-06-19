@@ -195,6 +195,34 @@ h3.sub{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spaci
 .rw.rar-uncommon{border-left-color:var(--uncommon)}.rw.rar-rare{border-left-color:var(--rare)}
 .rw.rar-event{border-left-color:var(--event)}.rw.rar-special,.rw.rar-boss{border-left-color:var(--special)}
 
+/* floor table -> stacked cards on narrow screens */
+@media(max-width:640px){
+  .panel{padding:14px 12px}
+  .ftable{display:block}
+  .ftable thead{display:none}
+  .ftable tbody{display:block}
+  .ftable tr.act-head{display:block}
+  .ftable tr.act-head td{display:block;padding:14px 2px 6px;border-bottom:none}
+  .frow{
+    display:grid;grid-template-columns:auto 1fr auto;
+    grid-template-areas:"type loc floor" "hp gold gold" "det det det";
+    align-items:start;column-gap:10px;row-gap:5px;
+    padding:11px 12px;margin:8px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+  .frow:hover{background:var(--bg)}
+  .frow:target{box-shadow:inset 3px 0 0 var(--gold)}
+  .frow>td{display:block;padding:0;border:none;width:auto;white-space:normal}
+  .c-type{grid-area:type}
+  .c-loc{grid-area:loc;min-width:0}
+  .c-floor{grid-area:floor;text-align:right}
+  .c-floor::before{content:"#";opacity:.55}
+  .c-hp{grid-area:hp}
+  .c-gold{grid-area:gold}
+  .c-hp::before,.c-gold::before{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;margin-right:4px}
+  .c-hp::before{content:"HP"}
+  .c-gold::before{content:"Gold"}
+  .c-det{grid-area:det;margin-top:2px;padding-top:6px;border-top:1px solid rgba(58,45,32,.6)}
+}
+
 /* footer */
 .foot{margin-top:30px;color:var(--muted);font-size:.82rem;text-align:center}
 .foot a{color:var(--gold)}

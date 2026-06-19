@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Usable as a CLAUDE_CODE_SHELL_PREFIX command: runs the given command under the
+# direnv environment for the current directory via `direnv exec`.
+set -euo pipefail
+
+exec direnv exec . "$@"

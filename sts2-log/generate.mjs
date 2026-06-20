@@ -354,7 +354,7 @@ const MAP_ICON = {
 // Inline SVG room icons (inherit color via currentColor). Hand-drawn so they
 // read crisply at node size and don't depend on an emoji font.
 const ICONS = {
-  combat: `<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5.5 18.5 18 6M18.5 18.5 6 6"/><circle cx="5.5" cy="18.5" r="1.5" fill="currentColor"/><circle cx="18.5" cy="18.5" r="1.5" fill="currentColor"/>`,
+  combat: `<g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 16.4 20.5 3.5"/><path d="M16.4 16.4 3.5 3.5"/><path d="M7.6 16.4 4.1 19.9"/><path d="M16.4 16.4 19.9 19.9"/><path d="M6 15 9.2 18.2"/><path d="M15 17.8 18.2 14.6"/></g><circle cx="3.7" cy="20.3" r="1.2" fill="currentColor"/><circle cx="20.3" cy="20.3" r="1.2" fill="currentColor"/>`,
   elite: `<path fill="currentColor" fill-rule="evenodd" d="M12 3c-4.1 0-7 3-7 6.8 0 2 .9 3.7 2.3 4.9.3.2.4.5.4.8v1.3c0 .9.7 1.6 1.6 1.6h.1v-1.7h1.3v1.7h1.6v-1.7h1.3v1.7h.1c.9 0 1.6-.7 1.6-1.6v-1.3c0-.3.1-.6.4-.8C18.1 13.5 19 11.8 19 9.8 19 6 16.1 3 12 3ZM9 12.7a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Zm6 0a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/>`,
   boss: `<path fill="currentColor" d="M4.2 17 2.4 6.6l5.2 3.3L12 4l4.4 5.9 5.2-3.3L19.8 17H4.2Z"/><rect x="4.4" y="18.4" width="15.2" height="2.3" rx="0.7" fill="currentColor"/>`,
   rest: `<path fill="currentColor" d="M12.6 2.3c.4 2.6-.8 3.9-2 5.1-1.3 1.3-2.6 2.6-2.6 5.1A5.6 5.6 0 0 0 12 18.2a5.4 5.4 0 0 0 5.4-5.4c0-3.3-2.3-5.5-3.5-7 .2 1.4-.3 2.3-1.1 2.6-.9.3-1.6-.3-1.5-1.6.1-1.6.6-2.7 1.3-4.1Z"/>`,

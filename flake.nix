@@ -88,6 +88,8 @@
                 pkgs.pypy3
                 pkgs.nodejs
                 pkgs.librsvg
+                pkgs.gcc
+                pkgs.gnumake
               ];
             }
             // claudeEnv

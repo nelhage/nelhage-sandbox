@@ -6,14 +6,14 @@ chart -- no external assets, so the file works anywhere it's copied.
 
 # --- measured data (M elem/s for sums, M calls/s for polysum) -----------------
 
-ENGINES = ["CPython 3.13", "PyPy 3.11", "V8 13.6 / Node 24"]
+ENGINES = ["CPython 3.13", "PyPy 3.11", "V8 13.6 / Node 24", "C (gcc -O2)"]
 
 HEADLINE = [
-    # label, unit, cpython, pypy, v8
-    ("plain sum (10M floats)", "M elem/s", 85, 1870, 1706),
-    ("nansum, 10% random NaN", "M elem/s", 52, 536, 275),
-    ("polysum, monomorphic", "M calls/s", 33, 334, 618),
-    ("polysum, polymorphic (3-way)", "M calls/s", 24, 117, 156),
+    # label, unit, [cpython, pypy, v8, c]
+    ("plain sum (10M floats)", "M elem/s", [85, 1870, 1706, 2237]),
+    ("nansum, 10% random NaN", "M elem/s", [52, 536, 275, 748]),
+    ("polysum, monomorphic", "M calls/s", [33, 334, 618, 680]),
+    ("polysum, polymorphic (3-way)", "M calls/s", [24, 117, 156, 182]),
 ]
 
 # nansum sweep, each point measured in its own process (M elem/s)
@@ -22,12 +22,14 @@ SWEEP = {
     "CPython 3.13": [56.3, 57.6, 55.6, 53.2, 44.0, 51.2, 53.6, 56.8, 56.4, 62.7, 65.5],
     "PyPy 3.11": [768.1, 545.0, 345.0, 255.4, 203.0, 181.3, 190.8, 254.6, 344.8, 556.0, 820.8],
     "V8 13.6 / Node 24": [311.0, 274.6, 229.9, 202.2, 178.1, 165.5, 175.6, 201.0, 239.7, 316.0, 384.5],
+    "C (gcc -O2)": [1199.0, 753.9, 476.5, 372.0, 321.7, 294.5, 318.4, 366.0, 456.9, 705.2, 1122.4],
 }
 
 COLORS = {
     "CPython 3.13": "#1f77b4",
     "PyPy 3.11": "#d62728",
     "V8 13.6 / Node 24": "#2ca02c",
+    "C (gcc -O2)": "#9467bd",
 }
 
 # --- SVG line chart -----------------------------------------------------------
@@ -37,7 +39,8 @@ M = {"l": 70, "r": 170, "t": 30, "b": 60}
 PLOT_W = W - M["l"] - M["r"]
 PLOT_H = H - M["t"] - M["b"]
 X_MIN, X_MAX = 0.0, 1.0
-Y_MIN, Y_MAX = 0.0, 900.0
+Y_MIN, Y_MAX = 0.0, 1200.0
+Y_STEP = 200
 
 
 def x_px(p):
@@ -53,7 +56,7 @@ def svg_chart():
              'role="img" aria-label="nansum throughput vs p(NaN)">']
 
     # y gridlines + labels
-    for v in range(0, 901, 150):
+    for v in range(0, int(Y_MAX) + 1, Y_STEP):
         y = y_px(v)
         parts.append(f'<line x1="{M["l"]}" y1="{y:.1f}" x2="{M["l"]+PLOT_W}" '
                      f'y2="{y:.1f}" class="grid"/>')
@@ -110,11 +113,11 @@ def svg_chart():
 
 def headline_table():
     rows = []
-    for label, unit, cp, pp, v8 in HEADLINE:
-        best = max(cp, pp, v8)
+    for label, unit, vals in HEADLINE:
+        best = max(vals)
         cells = "".join(
             f'<td class="num{" best" if val == best else ""}">{val:,}</td>'
-            for val in (cp, pp, v8)
+            for val in vals
         )
         rows.append(f"<tr><td>{label}</td>{cells}<td class='unit'>{unit}</td></tr>")
     return "\n".join(rows)
@@ -175,14 +178,17 @@ effects only.</p>
 <table>
 <thead><tr><th>Benchmark</th><th class="num">CPython&nbsp;3.13</th>
 <th class="num">PyPy&nbsp;3.11</th><th class="num">V8&nbsp;13.6&nbsp;/&nbsp;Node&nbsp;24</th>
-<th>unit</th></tr></thead>
+<th class="num">C&nbsp;(gcc&nbsp;-O2)</th><th>unit</th></tr></thead>
 <tbody>
 {headline_table()}
 </tbody>
 </table>
 <p class="note">Throughput; higher is better. <strong>Bold</strong> = fastest
-engine for that row. PyPy wins the tight numeric loops; V8 wins object method
-dispatch; they tie on plain float-add.</p>
+engine for that row. Optimized C leads everywhere, but by surprisingly small
+margins — the JITs land within ~1.2–1.4× of scalar C on most rows. Among the
+JITs, PyPy wins the tight numeric loops and V8 wins object method dispatch.
+(At <code>-O2</code> the C plain sum stays a scalar reduction; with
+<code>-ffast-math -march=native</code> it vectorizes to ~3340 M elem/s.)</p>
 
 <h2>nansum throughput vs p(NaN)</h2>
 <p>Summing 10M floats while skipping NaNs (<code>if v != v: continue</code>),
@@ -194,14 +200,16 @@ so each engine's JIT compiles fresh for that fraction.</p>
 <p>All three trace a <strong>U</strong>: throughput bottoms out near
 <strong>p&nbsp;=&nbsp;0.5</strong> (dashed line), where the skip branch is
 maximally unpredictable (~50% mispredict), and recovers toward both extremes
-where the CPU predicts it for free. PyPy swings most (~4.5×) because its
-compiled loop is so tight a mispredict dominates the per-element cost; CPython
-is nearly flat because interpreter overhead dwarfs the branch; at p&nbsp;=&nbsp;0.5
-PyPy and V8 nearly converge.</p>
+where the CPU predicts it for free. The tighter the loop, the bigger the swing:
+C and PyPy move ~4× from end to trough, V8 ~2.3×, while CPython is nearly flat
+because interpreter overhead dwarfs the branch. At p&nbsp;=&nbsp;0.5 the branch
+mispredict bottlenecks everyone — even C drops to ~290 M elem/s — and PyPy and
+V8 nearly converge.</p>
 
 <table>
 <thead><tr><th class="num">p(NaN)</th>
-<th class="num">CPython</th><th class="num">PyPy</th><th class="num">V8</th></tr></thead>
+<th class="num">CPython</th><th class="num">PyPy</th><th class="num">V8</th>
+<th class="num">C</th></tr></thead>
 <tbody>
 {sweep_table()}
 </tbody>

@@ -32,63 +32,100 @@ COLORS = {
     "C (gcc -O2)": "#9467bd",
 }
 
-# --- SVG line chart -----------------------------------------------------------
+# --- SVG chart ----------------------------------------------------------------
 
-W, H = 760, 460
-M = {"l": 70, "r": 170, "t": 30, "b": 60}
-PLOT_W = W - M["l"] - M["r"]
+import math
+
+W, H = 900, 470
+M = {"l": 58, "r": 188, "t": 30, "b": 80}
 PLOT_H = H - M["t"] - M["b"]
+
+# Left band: the non-sweep "baseline" benchmarks, drawn as disconnected
+# per-engine markers (squares) so they share the log throughput axis with the
+# sweep without being joined to its lines.
+# label line 1, label line 2, [cpython, pypy, v8, c]
+COLUMNS = [
+    ("uncond.", "sum", [55, 1665, 1274, 3846]),   # plain sum (10M ints)
+    ("vtable", "mono", [33, 330, 597, 698]),       # polysum, monomorphic
+    ("vtable", "poly", [24, 117, 156, 181]),       # polysum, polymorphic (3-way)
+]
+COL_X = [M["l"] + 34 + 46 * i for i in range(len(COLUMNS))]  # column centres
+DIV_X = COL_X[-1] + 38            # divider between the band and the sweep
+SWEEP_X0 = DIV_X + 14
+SWEEP_X1 = W - M["r"]
+SWEEP_W = SWEEP_X1 - SWEEP_X0
+
 X_MIN, X_MAX = 0.0, 1.0
-Y_MIN, Y_MAX = 0.0, 2400.0
-Y_STEP = 400
+Y_MIN, Y_MAX = 20.0, 5000.0
+Y_TICKS = [20, 50, 100, 200, 500, 1000, 2000, 5000]
+_LOGMIN, _LOGMAX = math.log10(Y_MIN), math.log10(Y_MAX)
 
 
 def x_px(p):
-    return M["l"] + (p - X_MIN) / (X_MAX - X_MIN) * PLOT_W
+    return SWEEP_X0 + (p - X_MIN) / (X_MAX - X_MIN) * SWEEP_W
 
 
 def y_px(v):
-    return M["t"] + (1 - (v - Y_MIN) / (Y_MAX - Y_MIN)) * PLOT_H
+    return M["t"] + (1 - (math.log10(v) - _LOGMIN) / (_LOGMAX - _LOGMIN)) * PLOT_H
 
 
 def svg_chart():
+    y_bot = M["t"] + PLOT_H
     parts = [f'<svg viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
-             'role="img" aria-label="sentinel sum throughput vs p(sentinel)">']
+             'role="img" aria-label="loop-benchmark throughput (log scale)">']
 
-    # y gridlines + labels
-    for v in range(0, int(Y_MAX) + 1, Y_STEP):
+    # y gridlines + labels (span the baseline band and the sweep)
+    for v in Y_TICKS:
         y = y_px(v)
-        parts.append(f'<line x1="{M["l"]}" y1="{y:.1f}" x2="{M["l"]+PLOT_W}" '
+        parts.append(f'<line x1="{M["l"]}" y1="{y:.1f}" x2="{SWEEP_X1}" '
                      f'y2="{y:.1f}" class="grid"/>')
-        parts.append(f'<text x="{M["l"]-10}" y="{y+4:.1f}" class="ytick">{v}</text>')
+        parts.append(f'<text x="{M["l"]-10}" y="{y+4:.1f}" class="ytick">{v:,}</text>')
 
-    # x ticks + labels
+    # section headers
+    bandc = (COL_X[0] + COL_X[-1]) / 2
+    parts.append(f'<text x="{bandc:.1f}" y="{M["t"]-14}" class="axislabel">baselines</text>')
+    parts.append(f'<text x="{(SWEEP_X0+SWEEP_X1)/2:.1f}" y="{M["t"]-14}" '
+                 'class="axislabel">sentinel sweep</text>')
+
+    # divider between the two regions
+    parts.append(f'<line x1="{DIV_X}" y1="{M["t"]}" x2="{DIV_X}" '
+                 f'y2="{y_bot}" stroke="#8884" stroke-width="1"/>')
+
+    # baseline columns: one square per engine, disconnected (no lines)
+    for (l1, l2, vals), cx in zip(COLUMNS, COL_X):
+        for i, name in enumerate(ENGINES):
+            x = cx + (i - 1.5) * 7
+            y = y_px(vals[i])
+            parts.append(f'<rect x="{x-3:.1f}" y="{y-3:.1f}" width="6" height="6" '
+                         f'fill="{COLORS[name]}"/>')
+        parts.append(f'<text x="{cx:.1f}" y="{y_bot+16}" class="xtick">{l1}</text>')
+        parts.append(f'<text x="{cx:.1f}" y="{y_bot+30}" class="xtick">{l2}</text>')
+
+    # sweep x ticks + labels
     for p in [0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0]:
         x = x_px(p)
-        parts.append(f'<line x1="{x:.1f}" y1="{M["t"]+PLOT_H}" x2="{x:.1f}" '
-                     f'y2="{M["t"]+PLOT_H+5}" class="axis"/>')
-        parts.append(f'<text x="{x:.1f}" y="{M["t"]+PLOT_H+22}" '
-                     f'class="xtick">{p:g}</text>')
+        parts.append(f'<line x1="{x:.1f}" y1="{y_bot}" x2="{x:.1f}" '
+                     f'y2="{y_bot+5}" class="axis"/>')
+        parts.append(f'<text x="{x:.1f}" y="{y_bot+18}" class="xtick">{p:g}</text>')
 
     # axes
-    parts.append(f'<line x1="{M["l"]}" y1="{M["t"]+PLOT_H}" x2="{M["l"]+PLOT_W}" '
-                 f'y2="{M["t"]+PLOT_H}" class="axis"/>')
+    parts.append(f'<line x1="{M["l"]}" y1="{y_bot}" x2="{SWEEP_X1}" '
+                 f'y2="{y_bot}" class="axis"/>')
     parts.append(f'<line x1="{M["l"]}" y1="{M["t"]}" x2="{M["l"]}" '
-                 f'y2="{M["t"]+PLOT_H}" class="axis"/>')
+                 f'y2="{y_bot}" class="axis"/>')
 
     # axis titles
-    parts.append(f'<text x="{M["l"]+PLOT_W/2:.1f}" y="{H-15}" '
+    parts.append(f'<text x="{(SWEEP_X0+SWEEP_X1)/2:.1f}" y="{y_bot+44}" '
                  'class="axislabel">p(sentinel)</text>')
-    parts.append(f'<text transform="translate(18,{M["t"]+PLOT_H/2:.1f}) rotate(-90)" '
-                 'class="axislabel">throughput (M elem/s)</text>')
+    parts.append(f'<text transform="translate(16,{M["t"]+PLOT_H/2:.1f}) rotate(-90)" '
+                 'class="axislabel">throughput (M ops/s, log)</text>')
 
     # marker at p=0.5 (the branch-prediction minimum)
     xmid = x_px(0.5)
     parts.append(f'<line x1="{xmid:.1f}" y1="{M["t"]}" x2="{xmid:.1f}" '
-                 f'y2="{M["t"]+PLOT_H}" class="mid"/>')
+                 f'y2="{y_bot}" class="mid"/>')
 
-    # data lines + points + legend
-    legend_y = M["t"] + 6
+    # sweep data lines + points
     for name in ENGINES:
         color = COLORS[name]
         pts = " ".join(f"{x_px(p):.1f},{y_px(v):.1f}"
@@ -98,12 +135,23 @@ def svg_chart():
         for p, v in zip(SWEEP_P, SWEEP[name]):
             parts.append(f'<circle cx="{x_px(p):.1f}" cy="{y_px(v):.1f}" r="3" '
                          f'fill="{color}"/>')
-        lx = M["l"] + PLOT_W + 20
+
+    # legend: engines, then a marker-shape key
+    lx = SWEEP_X1 + 20
+    legend_y = M["t"] + 6
+    for name in ENGINES:
+        color = COLORS[name]
         parts.append(f'<line x1="{lx}" y1="{legend_y}" x2="{lx+22}" '
                      f'y2="{legend_y}" stroke="{color}" stroke-width="2.5"/>')
         parts.append(f'<circle cx="{lx+11}" cy="{legend_y}" r="3" fill="{color}"/>')
         parts.append(f'<text x="{lx+28}" y="{legend_y+4}" class="legend">{name}</text>')
         legend_y += 22
+    legend_y += 10
+    parts.append(f'<circle cx="{lx+11}" cy="{legend_y}" r="3" fill="#888"/>')
+    parts.append(f'<text x="{lx+28}" y="{legend_y+4}" class="legend">sweep (vs p)</text>')
+    legend_y += 20
+    parts.append(f'<rect x="{lx+8}" y="{legend_y-3}" width="6" height="6" fill="#888"/>')
+    parts.append(f'<text x="{lx+28}" y="{legend_y+4}" class="legend">baseline</text>')
 
     parts.append("</svg>")
     return "\n".join(parts)
@@ -198,7 +246,11 @@ Each point is measured in its own process so each engine's JIT compiles fresh
 for that fraction. Two effects compete: a <strong>branch-misprediction</strong>
 penalty that peaks at p&nbsp;=&nbsp;0.5 (the skip is maximally unpredictable),
 and a <strong>less-work</strong> effect as more skips mean fewer adds — and each
-engine weights them differently.</p>
+engine weights them differently. The y-axis is <strong>log-scaled</strong>; the
+three columns at left place the non-sweep benchmarks — the unconditional
+&ldquo;plain&rdquo; sum and the two vtable (<code>polysum</code>) dispatch
+benchmarks — as disconnected per-engine squares for scale (polysum is
+M&nbsp;calls/s, not elem/s).</p>
 <div class="chart">
 {svg_chart()}
 </div>

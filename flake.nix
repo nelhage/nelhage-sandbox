@@ -81,6 +81,15 @@
           verso2docset = pythonBase;
           regexle = pythonBase;
           mnist-subliminal = pythonBase;
+          pypy = pkgs.mkShell (
+            {
+              packages = [
+                pkgs.python3
+                pkgs.pypy3
+              ];
+            }
+            // claudeEnv
+          );
         }
       );
     };

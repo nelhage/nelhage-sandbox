@@ -25,6 +25,10 @@ The Python and JavaScript ports mirror each other one-to-one.
   the three types (polymorphic call site).
 - `benchmark_mono.{py,js}` — `polysum` over 5M summands, all one type
   (monomorphic call site), for comparison with the polymorphic case.
+- `sweep_nansum.{py,js}` — sweep nansum throughput across a range of p(NaN).
+  With no args it sweeps a default set of fractions in one process; pass
+  fractions as CLI args (e.g. `sweep_nansum.py 0.5`) to measure one per
+  process and avoid the JIT reusing a single early-compiled trace.
 - `bench_util.js` — shared JS helpers (seeded PRNG + best-of-N timer).
 - `run_benchmark.sh` — runs `benchmark.py` under CPython and PyPy.
 
@@ -81,6 +85,52 @@ method dispatch.**
 The takeaway: on idiomatic code there's no single winner — PyPy's tracing JIT
 is strongest on tight numeric loops, while V8's inline-cache-driven design wins
 on method dispatch over objects.
+
+## nansum across p(NaN): a branch-prediction curve
+
+Sweeping the NaN fraction (each point measured in its own process, so the JIT
+compiles fresh for that fraction) gives throughput in M elem/s:
+
+| p(NaN) | CPython 3.13 | PyPy 3.11 | V8 13.6 / Node 24 |
+|--------|--------------|-----------|-------------------|
+| 0.05   | ~56          | ~768      | ~311              |
+| 0.10   | ~58          | ~545      | ~275              |
+| 0.20   | ~56          | ~345      | ~230              |
+| 0.30   | ~53          | ~255      | ~202              |
+| 0.40   | ~44          | ~203      | ~178              |
+| 0.50   | ~51          | ~181      | ~166              |
+| 0.60   | ~54          | ~191      | ~176              |
+| 0.70   | ~57          | ~255      | ~201              |
+| 0.80   | ~56          | ~345      | ~240              |
+| 0.90   | ~63          | ~556      | ~316              |
+| 0.95   | ~66          | ~821      | ~385              |
+
+All three trace a **U**: throughput bottoms out near **p = 0.5** and recovers
+toward both extremes. That's the signature of **branch (mis)prediction** on the
+`if v != v` test — at p ≈ 0.5 the branch is maximally unpredictable (~50%
+mispredict rate), while at p → 0 or p → 1 it's almost always the same way and
+the CPU predicts it for free.
+
+- **CPython** is nearly flat (~44–66 M/s, ~1.5× swing). A branch mispredict is
+  ~15–20 cycles, but each iteration already costs hundreds of cycles of
+  interpreter dispatch, so the branch barely registers.
+- **PyPy** swings the most — ~4.5× from ~181 (p=0.5) to ~770–820 (extremes).
+  Its compiled loop is so tight (a guarded `float_ne` + `float_add`) that
+  misprediction cost dominates the per-element budget.
+- **V8** is in between (~2.3× swing). Its indexed loop is fast but a bit heavier
+  per element than PyPy's, so the branch is a smaller fraction of the total.
+- At **p = 0.5** PyPy and V8 nearly converge (181 vs 166) — PyPy's lead exists
+  only when the branch is predictable. The curves are roughly symmetric; both
+  JITs are a hair faster at high p(NaN) (the common path is a bare `continue`,
+  slightly cheaper than the `+=`).
+
+A side note on JIT warm-up: running the whole sweep *in one process* instead
+makes PyPy's curve **asymmetric** (high-p drops to ~400 instead of ~800),
+because the loop is compiled once on the first fraction (p=0.05, "not-NaN
+common") and that trace is reused for every later fraction, so high p(NaN)
+constantly fails the guard into the side-trace. Measuring each fraction in a
+fresh process (as above) isolates the p(NaN) effect from that warm-once
+history. Pass fractions as CLI args to `sweep_nansum.{py,js}` to do so.
 
 ### Methodology note: idiomatic loops
 

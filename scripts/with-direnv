@@ -3,4 +3,10 @@
 # direnv environment for the current directory via `direnv exec`.
 set -euo pipefail
 
-exec direnv exec . "$@"
+# Claude Code invokes the shell prefix with the full command as a single
+# shell-string argument. `direnv exec` execs its arguments directly (no shell),
+# so a bare string like "source ... && eval '...'" is treated as a program name
+# and fails with "command not found". Hand single-string invocations to a shell
+# so the redirections, &&, and eval are interpreted. Multi-argument invocations
+# (already an argv, e.g. an explicit interpreter) are passed through untouched.
+exec direnv exec . bash -c "$1"

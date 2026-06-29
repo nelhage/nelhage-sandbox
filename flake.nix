@@ -86,6 +86,7 @@
               packages = [
                 pkgs.python3
                 pkgs.pypy3
+                pkgs.nodejs
               ];
             }
             // claudeEnv

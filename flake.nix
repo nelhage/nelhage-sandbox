@@ -87,6 +87,7 @@
                 pkgs.python3
                 pkgs.pypy3
                 pkgs.nodejs
+                pkgs.librsvg
               ];
             }
             // claudeEnv

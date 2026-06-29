@@ -31,6 +31,8 @@ The Python and JavaScript ports mirror each other one-to-one.
   process and avoid the JIT reusing a single early-compiled trace.
 - `bench_util.js` — shared JS helpers (seeded PRNG + best-of-N timer).
 - `run_benchmark.sh` — runs `benchmark.py` under CPython and PyPy.
+- `make_report.py` — generates `report.html`, a self-contained HTML summary
+  with an inline-SVG line plot of the p(NaN) sweep.
 
 Each benchmark times 5 reps and reports the best, after one warm-up call so the
 JIT is compiled before timing. Each loop is written in the idiomatic shape for

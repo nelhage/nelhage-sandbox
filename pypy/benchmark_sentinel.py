@@ -1,48 +1,43 @@
-"""Benchmark harness for nansum_floats across interpreters.
+"""Benchmark sentinel_sum across interpreters: sum 10M ints, skipping a -1
+sentinel that's placed at ~10% of positions at random.
 
-Same shape as benchmark.py, but the data has ~10% of its elements replaced
-with NaN (at random, fixed seed) and the loop skips NaNs.
-
-    python3 benchmark_nansum.py
-    pypy3 benchmark_nansum.py
+    python3 benchmark_sentinel.py
+    pypy3   benchmark_sentinel.py
 """
 
-import math
 import platform
 import random
 import time
 
-from sum_floats import nansum_floats
+from sums import SENTINEL, sentinel_sum
 
-N = 10_000_000  # length of the list to sum
-REPEATS = 5  # timed repetitions; we report the best one
-NAN_FRACTION = 0.10
+N = 10_000_000
+REPEATS = 5
+SENTINEL_FRACTION = 0.10
 SEED = 1234
 
 
 def build_data(n):
     rng = random.Random(SEED)
-    nan = float("nan")
-    # Same base values as benchmark.py, with ~NAN_FRACTION randomly set to NaN.
-    data = [i * 0.5 for i in range(n)]
+    data = list(range(n))
     for i in range(n):
-        if rng.random() < NAN_FRACTION:
-            data[i] = nan
+        if rng.random() < SENTINEL_FRACTION:
+            data[i] = SENTINEL
     return data
 
 
 def main():
     data = build_data(N)
-    n_nan = sum(1 for v in data if math.isnan(v))
+    n_skip = sum(1 for v in data if v == SENTINEL)
 
     # Warm-up: lets PyPy's JIT compile the loop before we start timing.
-    nansum_floats(data)
+    sentinel_sum(data)
 
     best = float("inf")
     result = None
     for _ in range(REPEATS):
         start = time.perf_counter()
-        result = nansum_floats(data)
+        result = sentinel_sum(data)
         elapsed = time.perf_counter() - start
         best = min(best, elapsed)
 
@@ -52,7 +47,7 @@ def main():
 
     print(f"{impl} {version}")
     print(f"  list length : {N:,}")
-    print(f"  NaN count   : {n_nan:,} ({100*n_nan/N:.1f}%)")
+    print(f"  sentinels   : {n_skip:,} ({100*n_skip/N:.1f}%)")
     print(f"  repeats     : {REPEATS}")
     print(f"  best time   : {best:.4f} s")
     print(f"  throughput  : {rate/1e6:.1f} M elements/s")

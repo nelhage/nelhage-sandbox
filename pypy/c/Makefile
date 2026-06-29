@@ -1,18 +1,19 @@
-# Idiomatic optimized build. -O2 keeps strict IEEE FP semantics (so the plain
-# float sum stays a scalar reduction, matching the other engines); add
-# -ffast-math -march=native to let the compiler vectorize it.
+# Idiomatic optimized build. At -O2 gcc emits no SIMD (auto-vectorization is
+# -O3), but the int loops are still fast: int-add is 1-cycle latency (vs ~4 for
+# float), and gcc if-converts the sentinel skip into a branchless cmov -- so
+# the sentinel sweep is flat, with no branch-misprediction U-curve. Build with
+# CFLAGS="-O3 ..." to let it vectorize (roughly +40-80%).
 CFLAGS ?= -O2 -Wall -Wextra -std=gnu11
-LDLIBS = -lm
 
-all: benchmark sweep_nansum
+all: benchmark sweep_sentinel
 
-benchmark: benchmark.c sum_floats.c summands.c sum_floats.h summands.h bench_util.h
-	$(CC) $(CFLAGS) -o $@ benchmark.c sum_floats.c summands.c $(LDLIBS)
+benchmark: benchmark.c sums.c summands.c sums.h summands.h bench_util.h
+	$(CC) $(CFLAGS) -o $@ benchmark.c sums.c summands.c
 
-sweep_nansum: sweep_nansum.c sum_floats.c sum_floats.h bench_util.h
-	$(CC) $(CFLAGS) -o $@ sweep_nansum.c sum_floats.c $(LDLIBS)
+sweep_sentinel: sweep_sentinel.c sums.c sums.h bench_util.h
+	$(CC) $(CFLAGS) -o $@ sweep_sentinel.c sums.c
 
 clean:
-	rm -f benchmark sweep_nansum
+	rm -f benchmark sweep_sentinel
 
 .PHONY: all clean

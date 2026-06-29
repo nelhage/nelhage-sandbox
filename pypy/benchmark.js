@@ -1,6 +1,6 @@
 "use strict";
-// JS port of benchmark.py: plain float sum over a 10M-element array.
-const { sumFloats } = require("./sum_floats");
+// JS port of benchmark.py: plain integer sum over a 10M-element array.
+const { sumInts } = require("./sums");
 const { timeBest, report } = require("./bench_util");
 
 const N = 10_000_000;
@@ -8,11 +8,11 @@ const REPEATS = 5;
 
 function buildData(n) {
   const data = new Array(n);
-  for (let i = 0; i < n; i++) data[i] = i * 0.5;
+  for (let i = 0; i < n; i++) data[i] = i;
   return data;
 }
 
 const data = buildData(N);
-sumFloats(data); // warm-up: let V8 (TurboFan) optimize the loop before timing
-const { best, result } = timeBest(() => sumFloats(data), REPEATS);
-report({ label: "plain sum (10M floats)", n: N, unit: "elements/s", best, result });
+sumInts(data); // warm-up: let V8 (TurboFan) optimize the loop before timing
+const { best, result } = timeBest(() => sumInts(data), REPEATS);
+report({ label: "plain sum (10M ints)", n: N, unit: "elements/s", best, result });

@@ -34,10 +34,10 @@
 </style>
 </head>
 <body>
-<h1>CPython vs PyPy vs V8: pure-language loop benchmarks</h1>
-<p class="sub">Equivalent summing loops, written idiomatically per language.
-One machine, x86_64; best of 5 reps after a warm-up. Rough numbers — large
-effects only.</p>
+<h1>CPython vs PyPy vs V8 vs C: pure-language loop benchmarks</h1>
+<p class="sub">Equivalent integer summing loops, written idiomatically per
+language. One machine, x86_64; best of 5 reps after a warm-up. Rough numbers —
+large effects only.</p>
 
 <h2>Headline results</h2>
 <table>
@@ -45,39 +45,44 @@ effects only.</p>
 <th class="num">PyPy&nbsp;3.11</th><th class="num">V8&nbsp;13.6&nbsp;/&nbsp;Node&nbsp;24</th>
 <th class="num">C&nbsp;(gcc&nbsp;-O2)</th><th>unit</th></tr></thead>
 <tbody>
-<tr><td>plain sum (10M floats)</td><td class="num">85</td><td class="num">1,870</td><td class="num">1,706</td><td class="num best">2,237</td><td class='unit'>M elem/s</td></tr>
-<tr><td>nansum, 10% random NaN</td><td class="num">52</td><td class="num">536</td><td class="num">275</td><td class="num best">748</td><td class='unit'>M elem/s</td></tr>
-<tr><td>polysum, monomorphic</td><td class="num">33</td><td class="num">334</td><td class="num">618</td><td class="num best">680</td><td class='unit'>M calls/s</td></tr>
-<tr><td>polysum, polymorphic (3-way)</td><td class="num">24</td><td class="num">117</td><td class="num">156</td><td class="num best">182</td><td class='unit'>M calls/s</td></tr>
+<tr><td>plain sum (10M ints)</td><td class="num">55</td><td class="num">1,665</td><td class="num">1,274</td><td class="num best">3,846</td><td class='unit'>M elem/s</td></tr>
+<tr><td>sentinel sum, 10% skipped</td><td class="num">44</td><td class="num">660</td><td class="num">357</td><td class="num best">2,353</td><td class='unit'>M elem/s</td></tr>
+<tr><td>polysum, monomorphic</td><td class="num">33</td><td class="num">330</td><td class="num">597</td><td class="num best">698</td><td class='unit'>M calls/s</td></tr>
+<tr><td>polysum, polymorphic (3-way)</td><td class="num">24</td><td class="num">117</td><td class="num">156</td><td class="num best">181</td><td class='unit'>M calls/s</td></tr>
 </tbody>
 </table>
 <p class="note">Throughput; higher is better. <strong>Bold</strong> = fastest
-engine for that row. Optimized C leads everywhere, but by surprisingly small
-margins — the JITs land within ~1.2–1.4× of scalar C on most rows. Among the
-JITs, PyPy wins the tight numeric loops and V8 wins object method dispatch.
-(At <code>-O2</code> the C plain sum stays a scalar reduction; with
-<code>-ffast-math -march=native</code> it vectorizes to ~3340 M elem/s.)</p>
+engine for that row. Everything is <code>int</code> now, so the rows are
+directly comparable. C (<code>-O2</code>, no SIMD) leads everywhere; the int
+loops are fast because int-add is 1-cycle latency and gcc if-converts the
+sentinel skip to a branchless <code>cmov</code>. Among the JITs, PyPy wins the
+tight numeric loops and V8 wins object method dispatch. (Building C at
+<code>-O3</code> lets it auto-vectorize: plain ~5490, sentinel ~4250 M elem/s.)</p>
 
-<h2>nansum throughput vs p(NaN)</h2>
-<p>Summing 10M floats while skipping NaNs (<code>if v != v: continue</code>),
-sweeping the fraction that are NaN. Each point is measured in its own process
-so each engine's JIT compiles fresh for that fraction.</p>
+<h2>sentinel sum throughput vs p(sentinel)</h2>
+<p>Summing 10M ints while skipping a <code>-1</code> sentinel
+(<code>if v == -1: continue</code>), sweeping the fraction that are sentinels.
+Each point is measured in its own process so each engine's JIT compiles fresh
+for that fraction. Two effects compete: a <strong>branch-misprediction</strong>
+penalty that peaks at p&nbsp;=&nbsp;0.5 (the skip is maximally unpredictable),
+and a <strong>less-work</strong> effect as more skips mean fewer adds — and each
+engine weights them differently.</p>
 <div class="chart">
-<svg viewBox="0 0 760 460" width="760" height="460" role="img" aria-label="nansum throughput vs p(NaN)">
+<svg viewBox="0 0 760 460" width="760" height="460" role="img" aria-label="sentinel sum throughput vs p(sentinel)">
 <line x1="70" y1="400.0" x2="590" y2="400.0" class="grid"/>
 <text x="60" y="404.0" class="ytick">0</text>
 <line x1="70" y1="338.3" x2="590" y2="338.3" class="grid"/>
-<text x="60" y="342.3" class="ytick">200</text>
+<text x="60" y="342.3" class="ytick">400</text>
 <line x1="70" y1="276.7" x2="590" y2="276.7" class="grid"/>
-<text x="60" y="280.7" class="ytick">400</text>
+<text x="60" y="280.7" class="ytick">800</text>
 <line x1="70" y1="215.0" x2="590" y2="215.0" class="grid"/>
-<text x="60" y="219.0" class="ytick">600</text>
+<text x="60" y="219.0" class="ytick">1200</text>
 <line x1="70" y1="153.3" x2="590" y2="153.3" class="grid"/>
-<text x="60" y="157.3" class="ytick">800</text>
+<text x="60" y="157.3" class="ytick">1600</text>
 <line x1="70" y1="91.7" x2="590" y2="91.7" class="grid"/>
-<text x="60" y="95.7" class="ytick">1000</text>
+<text x="60" y="95.7" class="ytick">2000</text>
 <line x1="70" y1="30.0" x2="590" y2="30.0" class="grid"/>
-<text x="60" y="34.0" class="ytick">1200</text>
+<text x="60" y="34.0" class="ytick">2400</text>
 <line x1="70.0" y1="400" x2="70.0" y2="405" class="axis"/>
 <text x="70.0" y="422" class="xtick">0</text>
 <line x1="174.0" y1="400" x2="174.0" y2="405" class="axis"/>
@@ -94,96 +99,99 @@ so each engine's JIT compiles fresh for that fraction.</p>
 <text x="590.0" y="422" class="xtick">1</text>
 <line x1="70" y1="400" x2="590" y2="400" class="axis"/>
 <line x1="70" y1="30" x2="70" y2="400" class="axis"/>
-<text x="330.0" y="445" class="axislabel">p(NaN)</text>
+<text x="330.0" y="445" class="axislabel">p(sentinel)</text>
 <text transform="translate(18,215.0) rotate(-90)" class="axislabel">throughput (M elem/s)</text>
 <line x1="330.0" y1="30" x2="330.0" y2="400" class="mid"/>
-<polyline points="96.0,382.6 122.0,382.2 174.0,382.9 226.0,383.6 278.0,386.4 330.0,384.2 382.0,383.5 434.0,382.5 486.0,382.6 538.0,380.7 564.0,379.8" fill="none" stroke="#1f77b4" stroke-width="2.5"/>
-<circle cx="96.0" cy="382.6" r="3" fill="#1f77b4"/>
-<circle cx="122.0" cy="382.2" r="3" fill="#1f77b4"/>
-<circle cx="174.0" cy="382.9" r="3" fill="#1f77b4"/>
-<circle cx="226.0" cy="383.6" r="3" fill="#1f77b4"/>
-<circle cx="278.0" cy="386.4" r="3" fill="#1f77b4"/>
-<circle cx="330.0" cy="384.2" r="3" fill="#1f77b4"/>
-<circle cx="382.0" cy="383.5" r="3" fill="#1f77b4"/>
-<circle cx="434.0" cy="382.5" r="3" fill="#1f77b4"/>
-<circle cx="486.0" cy="382.6" r="3" fill="#1f77b4"/>
-<circle cx="538.0" cy="380.7" r="3" fill="#1f77b4"/>
-<circle cx="564.0" cy="379.8" r="3" fill="#1f77b4"/>
+<polyline points="96.0,393.2 122.0,393.2 174.0,393.1 226.0,393.1 278.0,392.9 330.0,392.7 382.0,392.1 434.0,390.9 486.0,389.5 538.0,387.5 564.0,386.2" fill="none" stroke="#1f77b4" stroke-width="2.5"/>
+<circle cx="96.0" cy="393.2" r="3" fill="#1f77b4"/>
+<circle cx="122.0" cy="393.2" r="3" fill="#1f77b4"/>
+<circle cx="174.0" cy="393.1" r="3" fill="#1f77b4"/>
+<circle cx="226.0" cy="393.1" r="3" fill="#1f77b4"/>
+<circle cx="278.0" cy="392.9" r="3" fill="#1f77b4"/>
+<circle cx="330.0" cy="392.7" r="3" fill="#1f77b4"/>
+<circle cx="382.0" cy="392.1" r="3" fill="#1f77b4"/>
+<circle cx="434.0" cy="390.9" r="3" fill="#1f77b4"/>
+<circle cx="486.0" cy="389.5" r="3" fill="#1f77b4"/>
+<circle cx="538.0" cy="387.5" r="3" fill="#1f77b4"/>
+<circle cx="564.0" cy="386.2" r="3" fill="#1f77b4"/>
 <line x1="610" y1="36" x2="632" y2="36" stroke="#1f77b4" stroke-width="2.5"/>
 <circle cx="621" cy="36" r="3" fill="#1f77b4"/>
 <text x="638" y="40" class="legend">CPython 3.13</text>
-<polyline points="96.0,163.2 122.0,232.0 174.0,293.6 226.0,321.3 278.0,337.4 330.0,344.1 382.0,341.2 434.0,321.5 486.0,293.7 538.0,228.6 564.0,146.9" fill="none" stroke="#d62728" stroke-width="2.5"/>
-<circle cx="96.0" cy="163.2" r="3" fill="#d62728"/>
-<circle cx="122.0" cy="232.0" r="3" fill="#d62728"/>
-<circle cx="174.0" cy="293.6" r="3" fill="#d62728"/>
-<circle cx="226.0" cy="321.3" r="3" fill="#d62728"/>
-<circle cx="278.0" cy="337.4" r="3" fill="#d62728"/>
-<circle cx="330.0" cy="344.1" r="3" fill="#d62728"/>
-<circle cx="382.0" cy="341.2" r="3" fill="#d62728"/>
-<circle cx="434.0" cy="321.5" r="3" fill="#d62728"/>
-<circle cx="486.0" cy="293.7" r="3" fill="#d62728"/>
-<circle cx="538.0" cy="228.6" r="3" fill="#d62728"/>
-<circle cx="564.0" cy="146.9" r="3" fill="#d62728"/>
+<polyline points="96.0,244.8 122.0,297.6 174.0,335.1 226.0,351.5 278.0,361.6 330.0,366.5 382.0,364.9 434.0,356.2 486.0,338.3 538.0,297.5 564.0,246.9" fill="none" stroke="#d62728" stroke-width="2.5"/>
+<circle cx="96.0" cy="244.8" r="3" fill="#d62728"/>
+<circle cx="122.0" cy="297.6" r="3" fill="#d62728"/>
+<circle cx="174.0" cy="335.1" r="3" fill="#d62728"/>
+<circle cx="226.0" cy="351.5" r="3" fill="#d62728"/>
+<circle cx="278.0" cy="361.6" r="3" fill="#d62728"/>
+<circle cx="330.0" cy="366.5" r="3" fill="#d62728"/>
+<circle cx="382.0" cy="364.9" r="3" fill="#d62728"/>
+<circle cx="434.0" cy="356.2" r="3" fill="#d62728"/>
+<circle cx="486.0" cy="338.3" r="3" fill="#d62728"/>
+<circle cx="538.0" cy="297.5" r="3" fill="#d62728"/>
+<circle cx="564.0" cy="246.9" r="3" fill="#d62728"/>
 <line x1="610" y1="58" x2="632" y2="58" stroke="#d62728" stroke-width="2.5"/>
 <circle cx="621" cy="58" r="3" fill="#d62728"/>
 <text x="638" y="62" class="legend">PyPy 3.11</text>
-<polyline points="96.0,304.1 122.0,315.3 174.0,329.1 226.0,337.7 278.0,345.1 330.0,349.0 382.0,345.9 434.0,338.0 486.0,326.1 538.0,302.6 564.0,281.4" fill="none" stroke="#2ca02c" stroke-width="2.5"/>
-<circle cx="96.0" cy="304.1" r="3" fill="#2ca02c"/>
-<circle cx="122.0" cy="315.3" r="3" fill="#2ca02c"/>
-<circle cx="174.0" cy="329.1" r="3" fill="#2ca02c"/>
-<circle cx="226.0" cy="337.7" r="3" fill="#2ca02c"/>
-<circle cx="278.0" cy="345.1" r="3" fill="#2ca02c"/>
-<circle cx="330.0" cy="349.0" r="3" fill="#2ca02c"/>
-<circle cx="382.0" cy="345.9" r="3" fill="#2ca02c"/>
-<circle cx="434.0" cy="338.0" r="3" fill="#2ca02c"/>
-<circle cx="486.0" cy="326.1" r="3" fill="#2ca02c"/>
-<circle cx="538.0" cy="302.6" r="3" fill="#2ca02c"/>
-<circle cx="564.0" cy="281.4" r="3" fill="#2ca02c"/>
+<polyline points="96.0,337.1 122.0,344.3 174.0,354.5 226.0,360.8 278.0,364.8 330.0,366.4 382.0,364.6 434.0,360.2 486.0,347.6 538.0,320.3 564.0,286.4" fill="none" stroke="#2ca02c" stroke-width="2.5"/>
+<circle cx="96.0" cy="337.1" r="3" fill="#2ca02c"/>
+<circle cx="122.0" cy="344.3" r="3" fill="#2ca02c"/>
+<circle cx="174.0" cy="354.5" r="3" fill="#2ca02c"/>
+<circle cx="226.0" cy="360.8" r="3" fill="#2ca02c"/>
+<circle cx="278.0" cy="364.8" r="3" fill="#2ca02c"/>
+<circle cx="330.0" cy="366.4" r="3" fill="#2ca02c"/>
+<circle cx="382.0" cy="364.6" r="3" fill="#2ca02c"/>
+<circle cx="434.0" cy="360.2" r="3" fill="#2ca02c"/>
+<circle cx="486.0" cy="347.6" r="3" fill="#2ca02c"/>
+<circle cx="538.0" cy="320.3" r="3" fill="#2ca02c"/>
+<circle cx="564.0" cy="286.4" r="3" fill="#2ca02c"/>
 <line x1="610" y1="80" x2="632" y2="80" stroke="#2ca02c" stroke-width="2.5"/>
 <circle cx="621" cy="80" r="3" fill="#2ca02c"/>
 <text x="638" y="84" class="legend">V8 13.6 / Node 24</text>
-<polyline points="96.0,30.3 122.0,167.5 174.0,253.1 226.0,285.3 278.0,300.8 330.0,309.2 382.0,301.8 434.0,287.2 486.0,259.1 538.0,182.6 564.0,53.9" fill="none" stroke="#9467bd" stroke-width="2.5"/>
-<circle cx="96.0" cy="30.3" r="3" fill="#9467bd"/>
-<circle cx="122.0" cy="167.5" r="3" fill="#9467bd"/>
-<circle cx="174.0" cy="253.1" r="3" fill="#9467bd"/>
-<circle cx="226.0" cy="285.3" r="3" fill="#9467bd"/>
-<circle cx="278.0" cy="300.8" r="3" fill="#9467bd"/>
-<circle cx="330.0" cy="309.2" r="3" fill="#9467bd"/>
-<circle cx="382.0" cy="301.8" r="3" fill="#9467bd"/>
-<circle cx="434.0" cy="287.2" r="3" fill="#9467bd"/>
-<circle cx="486.0" cy="259.1" r="3" fill="#9467bd"/>
-<circle cx="538.0" cy="182.6" r="3" fill="#9467bd"/>
-<circle cx="564.0" cy="53.9" r="3" fill="#9467bd"/>
+<polyline points="96.0,49.1 122.0,44.0 174.0,43.0 226.0,44.0 278.0,43.9 330.0,44.8 382.0,46.4 434.0,43.2 486.0,67.0 538.0,44.6 564.0,45.0" fill="none" stroke="#9467bd" stroke-width="2.5"/>
+<circle cx="96.0" cy="49.1" r="3" fill="#9467bd"/>
+<circle cx="122.0" cy="44.0" r="3" fill="#9467bd"/>
+<circle cx="174.0" cy="43.0" r="3" fill="#9467bd"/>
+<circle cx="226.0" cy="44.0" r="3" fill="#9467bd"/>
+<circle cx="278.0" cy="43.9" r="3" fill="#9467bd"/>
+<circle cx="330.0" cy="44.8" r="3" fill="#9467bd"/>
+<circle cx="382.0" cy="46.4" r="3" fill="#9467bd"/>
+<circle cx="434.0" cy="43.2" r="3" fill="#9467bd"/>
+<circle cx="486.0" cy="67.0" r="3" fill="#9467bd"/>
+<circle cx="538.0" cy="44.6" r="3" fill="#9467bd"/>
+<circle cx="564.0" cy="45.0" r="3" fill="#9467bd"/>
 <line x1="610" y1="102" x2="632" y2="102" stroke="#9467bd" stroke-width="2.5"/>
 <circle cx="621" cy="102" r="3" fill="#9467bd"/>
 <text x="638" y="106" class="legend">C (gcc -O2)</text>
 </svg>
 </div>
-<p>All three trace a <strong>U</strong>: throughput bottoms out near
-<strong>p&nbsp;=&nbsp;0.5</strong> (dashed line), where the skip branch is
-maximally unpredictable (~50% mispredict), and recovers toward both extremes
-where the CPU predicts it for free. The tighter the loop, the bigger the swing:
-C and PyPy move ~4× from end to trough, V8 ~2.3×, while CPython is nearly flat
-because interpreter overhead dwarfs the branch. At p&nbsp;=&nbsp;0.5 the branch
-mispredict bottlenecks everyone — even C drops to ~290 M elem/s — and PyPy and
-V8 nearly converge.</p>
+<ul>
+<li><strong>C is dead flat</strong> (~2300) — the <code>cmov</code> runs every
+iteration regardless of the data, so there's no branch to mispredict and no
+work saved by skipping. The optimizer erased the whole effect.</li>
+<li><strong>PyPy traces a symmetric U</strong> (~1007 → ~217 → ~993): it emits a
+real guard, so misprediction dominates and bottoms out at p&nbsp;=&nbsp;0.5.</li>
+<li><strong>V8 is a tilted U</strong> — a dip at ~0.5 from misprediction, but the
+high-skip end runs faster than the low-skip end because it does fewer adds.</li>
+<li><strong>CPython rises monotonically</strong> (~44 → ~89): interpreter
+overhead dwarfs the branch, so the only visible effect is less work per skip.</li>
+</ul>
 
 <table>
-<thead><tr><th class="num">p(NaN)</th>
+<thead><tr><th class="num">p(sentinel)</th>
 <th class="num">CPython</th><th class="num">PyPy</th><th class="num">V8</th>
 <th class="num">C</th></tr></thead>
 <tbody>
-<tr><td class='num'>0.05</td><td class="num">56</td><td class="num">768</td><td class="num">311</td><td class="num">1199</td></tr>
-<tr><td class='num'>0.10</td><td class="num">58</td><td class="num">545</td><td class="num">275</td><td class="num">754</td></tr>
-<tr><td class='num'>0.20</td><td class="num">56</td><td class="num">345</td><td class="num">230</td><td class="num">476</td></tr>
-<tr><td class='num'>0.30</td><td class="num">53</td><td class="num">255</td><td class="num">202</td><td class="num">372</td></tr>
-<tr><td class='num'>0.40</td><td class="num">44</td><td class="num">203</td><td class="num">178</td><td class="num">322</td></tr>
-<tr class="midrow"><td class='num'>0.50</td><td class="num">51</td><td class="num">181</td><td class="num">166</td><td class="num">294</td></tr>
-<tr><td class='num'>0.60</td><td class="num">54</td><td class="num">191</td><td class="num">176</td><td class="num">318</td></tr>
-<tr><td class='num'>0.70</td><td class="num">57</td><td class="num">255</td><td class="num">201</td><td class="num">366</td></tr>
-<tr><td class='num'>0.80</td><td class="num">56</td><td class="num">345</td><td class="num">240</td><td class="num">457</td></tr>
-<tr><td class='num'>0.90</td><td class="num">63</td><td class="num">556</td><td class="num">316</td><td class="num">705</td></tr>
-<tr><td class='num'>0.95</td><td class="num">66</td><td class="num">821</td><td class="num">384</td><td class="num">1122</td></tr>
+<tr><td class='num'>0.05</td><td class="num">44</td><td class="num">1007</td><td class="num">408</td><td class="num">2276</td></tr>
+<tr><td class='num'>0.10</td><td class="num">44</td><td class="num">664</td><td class="num">361</td><td class="num">2309</td></tr>
+<tr><td class='num'>0.20</td><td class="num">45</td><td class="num">421</td><td class="num">295</td><td class="num">2316</td></tr>
+<tr><td class='num'>0.30</td><td class="num">45</td><td class="num">314</td><td class="num">254</td><td class="num">2309</td></tr>
+<tr><td class='num'>0.40</td><td class="num">46</td><td class="num">249</td><td class="num">228</td><td class="num">2310</td></tr>
+<tr class="midrow"><td class='num'>0.50</td><td class="num">47</td><td class="num">217</td><td class="num">218</td><td class="num">2304</td></tr>
+<tr><td class='num'>0.60</td><td class="num">52</td><td class="num">228</td><td class="num">230</td><td class="num">2293</td></tr>
+<tr><td class='num'>0.70</td><td class="num">59</td><td class="num">284</td><td class="num">258</td><td class="num">2314</td></tr>
+<tr><td class='num'>0.80</td><td class="num">68</td><td class="num">400</td><td class="num">340</td><td class="num">2160</td></tr>
+<tr><td class='num'>0.90</td><td class="num">81</td><td class="num">665</td><td class="num">517</td><td class="num">2305</td></tr>
+<tr><td class='num'>0.95</td><td class="num">89</td><td class="num">993</td><td class="num">737</td><td class="num">2303</td></tr>
 </tbody>
 </table>
 <p class="note">M elements/s. Row at p=0.5 highlighted.</p>

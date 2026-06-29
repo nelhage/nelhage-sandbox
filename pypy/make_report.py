@@ -1,7 +1,7 @@
 """Generate a self-contained HTML benchmark report (report.html).
 
-Embeds the measured numbers and draws the p(NaN) sweep as an inline SVG line
-chart -- no external assets, so the file works anywhere it's copied.
+Embeds the measured numbers and draws the p(sentinel) sweep as an inline SVG
+line chart -- no external assets, so the file works anywhere it's copied.
 """
 
 # --- measured data (M elem/s for sums, M calls/s for polysum) -----------------
@@ -10,19 +10,19 @@ ENGINES = ["CPython 3.13", "PyPy 3.11", "V8 13.6 / Node 24", "C (gcc -O2)"]
 
 HEADLINE = [
     # label, unit, [cpython, pypy, v8, c]
-    ("plain sum (10M floats)", "M elem/s", [85, 1870, 1706, 2237]),
-    ("nansum, 10% random NaN", "M elem/s", [52, 536, 275, 748]),
-    ("polysum, monomorphic", "M calls/s", [33, 334, 618, 680]),
-    ("polysum, polymorphic (3-way)", "M calls/s", [24, 117, 156, 182]),
+    ("plain sum (10M ints)", "M elem/s", [55, 1665, 1274, 3846]),
+    ("sentinel sum, 10% skipped", "M elem/s", [44, 660, 357, 2353]),
+    ("polysum, monomorphic", "M calls/s", [33, 330, 597, 698]),
+    ("polysum, polymorphic (3-way)", "M calls/s", [24, 117, 156, 181]),
 ]
 
-# nansum sweep, each point measured in its own process (M elem/s)
+# sentinel sweep across p(sentinel), each point in its own process (M elem/s)
 SWEEP_P = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95]
 SWEEP = {
-    "CPython 3.13": [56.3, 57.6, 55.6, 53.2, 44.0, 51.2, 53.6, 56.8, 56.4, 62.7, 65.5],
-    "PyPy 3.11": [768.1, 545.0, 345.0, 255.4, 203.0, 181.3, 190.8, 254.6, 344.8, 556.0, 820.8],
-    "V8 13.6 / Node 24": [311.0, 274.6, 229.9, 202.2, 178.1, 165.5, 175.6, 201.0, 239.7, 316.0, 384.5],
-    "C (gcc -O2)": [1199.0, 753.9, 476.5, 372.0, 321.7, 294.5, 318.4, 366.0, 456.9, 705.2, 1122.4],
+    "CPython 3.13": [44.0, 44.3, 44.9, 45.0, 45.8, 47.1, 51.5, 58.9, 68.3, 80.9, 89.3],
+    "PyPy 3.11": [1006.7, 664.5, 420.8, 314.4, 249.3, 217.2, 227.7, 284.2, 400.4, 664.6, 992.8],
+    "V8 13.6 / Node 24": [407.9, 361.1, 294.9, 254.5, 228.3, 217.7, 229.5, 258.2, 339.6, 516.7, 736.9],
+    "C (gcc -O2)": [2275.8, 2309.4, 2315.6, 2309.0, 2309.7, 2303.7, 2293.3, 2314.1, 2160.2, 2305.1, 2302.7],
 }
 
 COLORS = {
@@ -39,8 +39,8 @@ M = {"l": 70, "r": 170, "t": 30, "b": 60}
 PLOT_W = W - M["l"] - M["r"]
 PLOT_H = H - M["t"] - M["b"]
 X_MIN, X_MAX = 0.0, 1.0
-Y_MIN, Y_MAX = 0.0, 1200.0
-Y_STEP = 200
+Y_MIN, Y_MAX = 0.0, 2400.0
+Y_STEP = 400
 
 
 def x_px(p):
@@ -53,7 +53,7 @@ def y_px(v):
 
 def svg_chart():
     parts = [f'<svg viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
-             'role="img" aria-label="nansum throughput vs p(NaN)">']
+             'role="img" aria-label="sentinel sum throughput vs p(sentinel)">']
 
     # y gridlines + labels
     for v in range(0, int(Y_MAX) + 1, Y_STEP):
@@ -78,7 +78,7 @@ def svg_chart():
 
     # axis titles
     parts.append(f'<text x="{M["l"]+PLOT_W/2:.1f}" y="{H-15}" '
-                 'class="axislabel">p(NaN)</text>')
+                 'class="axislabel">p(sentinel)</text>')
     parts.append(f'<text transform="translate(18,{M["t"]+PLOT_H/2:.1f}) rotate(-90)" '
                  'class="axislabel">throughput (M elem/s)</text>')
 
@@ -169,10 +169,10 @@ HTML = f"""<!doctype html>
 </style>
 </head>
 <body>
-<h1>CPython vs PyPy vs V8: pure-language loop benchmarks</h1>
-<p class="sub">Equivalent summing loops, written idiomatically per language.
-One machine, x86_64; best of 5 reps after a warm-up. Rough numbers — large
-effects only.</p>
+<h1>CPython vs PyPy vs V8 vs C: pure-language loop benchmarks</h1>
+<p class="sub">Equivalent integer summing loops, written idiomatically per
+language. One machine, x86_64; best of 5 reps after a warm-up. Rough numbers —
+large effects only.</p>
 
 <h2>Headline results</h2>
 <table>
@@ -184,30 +184,38 @@ effects only.</p>
 </tbody>
 </table>
 <p class="note">Throughput; higher is better. <strong>Bold</strong> = fastest
-engine for that row. Optimized C leads everywhere, but by surprisingly small
-margins — the JITs land within ~1.2–1.4× of scalar C on most rows. Among the
-JITs, PyPy wins the tight numeric loops and V8 wins object method dispatch.
-(At <code>-O2</code> the C plain sum stays a scalar reduction; with
-<code>-ffast-math -march=native</code> it vectorizes to ~3340 M elem/s.)</p>
+engine for that row. Everything is <code>int</code> now, so the rows are
+directly comparable. C (<code>-O2</code>, no SIMD) leads everywhere; the int
+loops are fast because int-add is 1-cycle latency and gcc if-converts the
+sentinel skip to a branchless <code>cmov</code>. Among the JITs, PyPy wins the
+tight numeric loops and V8 wins object method dispatch. (Building C at
+<code>-O3</code> lets it auto-vectorize: plain ~5490, sentinel ~4250 M elem/s.)</p>
 
-<h2>nansum throughput vs p(NaN)</h2>
-<p>Summing 10M floats while skipping NaNs (<code>if v != v: continue</code>),
-sweeping the fraction that are NaN. Each point is measured in its own process
-so each engine's JIT compiles fresh for that fraction.</p>
+<h2>sentinel sum throughput vs p(sentinel)</h2>
+<p>Summing 10M ints while skipping a <code>-1</code> sentinel
+(<code>if v == -1: continue</code>), sweeping the fraction that are sentinels.
+Each point is measured in its own process so each engine's JIT compiles fresh
+for that fraction. Two effects compete: a <strong>branch-misprediction</strong>
+penalty that peaks at p&nbsp;=&nbsp;0.5 (the skip is maximally unpredictable),
+and a <strong>less-work</strong> effect as more skips mean fewer adds — and each
+engine weights them differently.</p>
 <div class="chart">
 {svg_chart()}
 </div>
-<p>All three trace a <strong>U</strong>: throughput bottoms out near
-<strong>p&nbsp;=&nbsp;0.5</strong> (dashed line), where the skip branch is
-maximally unpredictable (~50% mispredict), and recovers toward both extremes
-where the CPU predicts it for free. The tighter the loop, the bigger the swing:
-C and PyPy move ~4× from end to trough, V8 ~2.3×, while CPython is nearly flat
-because interpreter overhead dwarfs the branch. At p&nbsp;=&nbsp;0.5 the branch
-mispredict bottlenecks everyone — even C drops to ~290 M elem/s — and PyPy and
-V8 nearly converge.</p>
+<ul>
+<li><strong>C is dead flat</strong> (~2300) — the <code>cmov</code> runs every
+iteration regardless of the data, so there's no branch to mispredict and no
+work saved by skipping. The optimizer erased the whole effect.</li>
+<li><strong>PyPy traces a symmetric U</strong> (~1007 → ~217 → ~993): it emits a
+real guard, so misprediction dominates and bottoms out at p&nbsp;=&nbsp;0.5.</li>
+<li><strong>V8 is a tilted U</strong> — a dip at ~0.5 from misprediction, but the
+high-skip end runs faster than the low-skip end because it does fewer adds.</li>
+<li><strong>CPython rises monotonically</strong> (~44 → ~89): interpreter
+overhead dwarfs the branch, so the only visible effect is less work per skip.</li>
+</ul>
 
 <table>
-<thead><tr><th class="num">p(NaN)</th>
+<thead><tr><th class="num">p(sentinel)</th>
 <th class="num">CPython</th><th class="num">PyPy</th><th class="num">V8</th>
 <th class="num">C</th></tr></thead>
 <tbody>

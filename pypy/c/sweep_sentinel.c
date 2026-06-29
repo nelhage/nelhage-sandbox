@@ -1,12 +1,11 @@
-/* Sweep nansum throughput across p(NaN), mirroring sweep_nansum.{py,js}.
-   Pass fractions as CLI args, else a default set is used. */
-#include <math.h>
+/* Sweep sentinel_sum throughput across p(sentinel), mirroring
+   sweep_sentinel.{py,js}. Pass fractions as CLI args, else a default set. */
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "bench_util.h"
-#include "sum_floats.h"
+#include "sums.h"
 
 #define SEED 1234u
 #define REPEATS 5
@@ -15,23 +14,23 @@
 static double DEFAULT_FRACTIONS[] = {0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
                                      0.6,  0.7, 0.8, 0.9, 0.95};
 
-static double *build_data(size_t n, double frac) {
+static int *build_data(size_t n, double frac) {
     rng_t rng;
     rng_seed(&rng, SEED);
-    double *data = malloc(n * sizeof *data);
-    for (size_t i = 0; i < n; i++) data[i] = (double)i * 0.5;
+    int *data = malloc(n * sizeof *data);
+    for (size_t i = 0; i < n; i++) data[i] = (int)i;
     for (size_t i = 0; i < n; i++) {
-        if (rng_double(&rng) < frac) data[i] = NAN;
+        if (rng_double(&rng) < frac) data[i] = SENTINEL;
     }
     return data;
 }
 
-static double best_time(const double *data, size_t n) {
+static double best_time(const int *data, size_t n) {
     double best = 1e30;
-    volatile double sink = 0;
+    volatile long sink = 0;
     for (int r = 0; r < REPEATS; r++) {
         double s = now_sec();
-        sink = nansum_floats(data, n);
+        sink = sentinel_sum(data, n);
         double e = now_sec() - s;
         if (e < best) best = e;
     }
@@ -52,9 +51,9 @@ int main(int argc, char **argv) {
     }
 
     printf("C (gcc)  N=%lu, %d reps, best\n", N, REPEATS);
-    printf("  %7s %10s %10s\n", "p(NaN)", "best (s)", "M elem/s");
+    printf("  %7s %10s %10s\n", "p(sent)", "best (s)", "M elem/s");
     for (size_t i = 0; i < nfrac; i++) {
-        double *data = build_data(N, fractions[i]);
+        int *data = build_data(N, fractions[i]);
         double best = best_time(data, N);
         printf("  %7.2f %10.4f %10.1f\n", fractions[i], best, N / best / 1e6);
         free(data);

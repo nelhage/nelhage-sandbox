@@ -34,8 +34,8 @@ const KINDS = [AddInt, SquareInt, Identity];
 
 function polysum(summands) {
   let total = 0;
-  for (const s of summands) {
-    total = s.add(total);
+  for (let i = 0; i < summands.length; i++) {
+    total = summands[i].add(total);
   }
   return total;
 }

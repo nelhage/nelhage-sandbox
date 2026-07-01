@@ -91,9 +91,22 @@ close back to within ~1.2×.** CPython remains the outlier, 20–70× behind.
   `if v == -1: continue` into a branchless `cmov`, so C pays no misprediction at
   all (see the sweep below). The JITs emit a real branch and eat the ~10%
   mispredicts.
-- **Monomorphic dispatch** — C ~698 and V8 ~597 are close; V8's hidden-class +
-  inline-cache machinery inlines the single `add` and nearly matches a native
-  indirect call. PyPy ~330 trails here.
+- **Monomorphic dispatch** — C ~698, V8 ~597, PyPy ~330. The name is
+  misleading: this is **not** really a dispatch benchmark. *Both* JITs inline the
+  single `add` perfectly — replacing the call with a direct field read
+  (`total + s.value`) changes neither engine's number — so the gap is entirely in
+  **the cost of reading one field out of a heap object**, not the call. PyPy
+  actually inlines flawlessly and *beats* V8 on the plain int sum above; it loses
+  here purely on object representation. Its compiled loop (see `traces/`) reads
+  `.value` through a deeper dependent-load chain (list → instance → attribute-
+  storage array → unboxed int, vs V8's inline property: list → instance →
+  value), checks type *twice* (the RPython interpreter class **and** the
+  application-level map/shape, where V8's one hidden-class guard does both jobs),
+  and polls a safepoint counter every iteration. All the guards are cheap and
+  perfectly predicted, but "predicted" isn't "free": PyPy's loop body is ~6
+  loads + 1 store + ~5 guards against V8's ~3 loads + ~3 guards, so it spends
+  ~14 cyc/elem to V8's ~7.5. So PyPy doesn't dispatch worse — its per-object
+  field access just costs about 2× V8's inline-property read.
 - **Polymorphic dispatch** — C ~181, V8 ~156, PyPy ~117. With a random 3-way mix
   *everyone* pays an indirect-branch / inline-cache miss per call, so even C
   falls to ~181: the bottleneck is the CPU's indirect-branch predictor, not the
@@ -103,8 +116,9 @@ close back to within ~1.2×.** CPython remains the outlier, 20–70× behind.
 The takeaway: C's lead is large exactly where the compiler can apply a trick the
 JITs don't (1-cycle int reduction, branchless `cmov`), and shrinks to almost
 nothing on polymorphic dispatch, where the hardware branch predictor caps
-everyone. Among the JITs, PyPy still wins the tight numeric loops and V8 the
-method dispatch.
+everyone. Among the JITs, PyPy wins the tight numeric loops; V8 wins the object-
+heavy ones — not because it dispatches better (both inline equally well) but
+because its inline-property object layout makes per-object field access cheaper.
 
 ## sentinel sum across p(sentinel): four different curves
 

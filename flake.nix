@@ -81,6 +81,7 @@
           verso2docset = pythonBase;
           regexle = pythonBase;
           mnist-subliminal = pythonBase;
+          kindle-droid = pythonBase;
           pypy = pkgs.mkShell (
             {
               packages = [

@@ -14,11 +14,12 @@ Usage:
   python harvest.py --asins B003JTHWKU,B0...    # harvest specific ASINs
   python harvest.py --all [--limit N]           # harvest everything missing a key
   python harvest.py --all --repackage           # also build EPUBs as we go
+  python harvest.py -v --asins B0...            # -v/--verbose: log every command run
 
 Env assumptions (see README): rooted 4KB-page AVD, frida-server running, host
 frida venv active, `setenforce 0`.  krx_agent.js + dump_mem.js in cwd.
 """
-import argparse, glob, os, subprocess, sys, threading, time
+import argparse, glob, os, shlex, subprocess, sys, threading, time
 import numpy as np
 import frida
 from Crypto.Cipher import AES
@@ -31,12 +32,52 @@ DEVICE_FILES = f"/data/media/0/Android/data/{PKG}/files"
 READER_ACT = "com.amazon.kcp.reader.StandAloneBookReaderActivity"
 KEYS_TXT = "keys.txt"
 
+# ------------------------------------------------------------- verbose logging
+# `--verbose/-v` turns these on.  vcmd() logs every shell / subprocess / frida
+# command as it runs (`+ …`, à la `set -x`); vlog() logs incidental detail
+# (`[v] …`).  Both go to stderr so `--verbose` output stays separable from the
+# normal per-book progress on stdout.
+VERBOSE = False
+_DIM, _RST = ("\033[2m", "\033[0m") if sys.stderr.isatty() else ("", "")
+
+def vlog(msg):
+    if VERBOSE:
+        print(f"{_DIM}[v] {msg}{_RST}", file=sys.stderr, flush=True)
+
+def vcmd(argv, note=""):
+    if VERBOSE:
+        line = argv if isinstance(argv, str) else " ".join(shlex.quote(str(a)) for a in argv)
+        print(f"{_DIM}+ {line}{('   # ' + note) if note else ''}{_RST}",
+              file=sys.stderr, flush=True)
+
+def _summarize(text):
+    """One-line preview of command output for verbose logging."""
+    if text is None:
+        return ""
+    s = text.strip()
+    first = s.splitlines()[0] if s else ""
+    if len(first) > 120:
+        first = first[:117] + "…"
+    return f"{len(text)}B" + (f", first line: {first!r}" if first else "")
+
+def run(argv, **kw):
+    """subprocess.run wrapper that logs the command + timing when verbose."""
+    vcmd(argv)
+    t0 = time.time()
+    r = subprocess.run(argv, **kw)
+    if VERBOSE:
+        rc = getattr(r, "returncode", 0)
+        out = _summarize(getattr(r, "stdout", None))
+        vlog(f"  ↳ {time.time()-t0:.2f}s"
+             + (f" rc={rc}" if rc else "") + (f"  [{out}]" if out else ""))
+    return r
+
 # ------------------------------------------------------------------ adb helpers
 def adb(*args, su=False, timeout=60):
     cmd = ["adb", "shell"]
     inner = " ".join(args)
     cmd.append(f"su -c '{inner}'" if su else inner)
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout).stdout
+    return run(cmd, capture_output=True, text=True, timeout=timeout).stdout
 
 def setenforce_permissive():
     adb("setenforce 0", su=True)
@@ -51,15 +92,20 @@ def top_activity():
     out = adb("dumpsys activity activities")
     for line in out.splitlines():
         if "topResumedActivity" in line:
-            return line.strip()
+            line = line.strip()
+            vlog(f"top activity: {line}")
+            return line
+    vlog("top activity: <none found>")
     return ""
 
 def kfx_count(asin):
     out = adb(f"ls {DEVICE_FILES}/{asin}/ 2>/dev/null | grep -c kfx", su=True)
     try:
-        return int(out.strip() or "0")
+        n = int(out.strip() or "0")
     except ValueError:
-        return 0
+        n = 0
+    vlog(f"kfx_count({asin}) = {n}")
+    return n
 
 def pull_book(asin, dest_parent="files-4k"):
     """Pull the device book dir into files-4k/<asin>/ (needed for brute + repackage)."""
@@ -68,9 +114,10 @@ def pull_book(asin, dest_parent="files-4k"):
     # copy to a world-readable staging dir first (app dir is private)
     stage = f"/data/local/tmp/kh_{asin}"
     adb(f"rm -rf {stage}; cp -r {DEVICE_FILES}/{asin} {stage}; chmod -R 777 {stage}", su=True)
-    subprocess.run(["adb", "pull", "-a", stage + "/.", dest],
-                   capture_output=True, text=True, timeout=300)
+    run(["adb", "pull", "-a", stage + "/.", dest],
+        capture_output=True, text=True, timeout=300)
     adb(f"rm -rf {stage}", su=True)
+    vlog(f"pulled {asin} -> {dest}/ ({len(glob.glob(os.path.join(dest, '*')))} files)")
     return dest
 
 # --------------------------------------------------------------- frida helpers
@@ -82,30 +129,37 @@ TRANSIENT = (frida.ProcessNotRespondingError, frida.InvalidOperationError,
 
 def relaunch(dev):
     """Bring Kindle back up after a crash and give it time to init the SDK."""
+    vlog("relaunch: setenforce 0 + launch home + wait for pid")
     setenforce_permissive()
     launch_home()
-    wait_for(lambda: kindle_pid(dev) is not None, 40)
+    wait_for(lambda: kindle_pid(dev) is not None, 40, label="Kindle pid")
     time.sleep(8)
 
 def agent_call(dev, method, *margs, script_path="krx_agent.js", retries=3):
     """attach, call one krx_agent rpc, DETACH immediately (prompt detach is what
     unblocks the render), return result. Resilient to the flaky emulator killing
     the app mid-call: relaunch + retry on transient frida/process errors."""
+    argstr = ", ".join(repr(a) for a in margs)
     for attempt in range(retries):
         pid = kindle_pid(dev)
         if pid is None:
-            relaunch(dev); continue
+            vlog(f"agent_call {method}: no Kindle pid, relaunching"); relaunch(dev); continue
         s = None
         try:
+            vcmd(f"frida[pid={pid}] {method}({argstr})",
+                 note=f"attach+rpc+detach, try {attempt+1}/{retries}")
             s = dev.attach(pid)
             js = s.create_script(open(script_path).read())
             js.load()
-            return getattr(js.exports_sync, method)(*margs)
+            r = getattr(js.exports_sync, method)(*margs)
+            vlog(f"  ↳ {method} -> {r!r}")
+            return r
         except TRANSIENT as e:
             print(f"    (transient {type(e).__name__} on {method}; relaunch+retry)")
             relaunch(dev)
         finally:
             if s is not None:
+                vlog(f"  detach pid={pid}")
                 try: s.detach()
                 except Exception: pass
     raise RuntimeError(f"agent_call({method}) failed after {retries} tries")
@@ -116,27 +170,33 @@ def verify_and_dump(dev, asin, outpath, retries=3):
     for attempt in range(retries):
         pid = kindle_pid(dev)
         if pid is None:
-            relaunch(dev); return -1     # book no longer open; caller re-opens
+            vlog("verify_and_dump: no Kindle pid"); relaunch(dev); return -1  # caller re-opens
         s = None
         try:
+            vcmd(f"frida[pid={pid}] curasin()", note="confirm target book is open")
             s = dev.attach(pid)
             chk = s.create_script(open("krx_agent.js").read()); chk.load()
-            if chk.exports_sync.curasin() != asin:
+            cur = chk.exports_sync.curasin()
+            if cur != asin:
+                vlog(f"  ↳ current book is {cur!r}, want {asin!r} — not dumping")
                 return -1
+            vcmd(f"frida[pid={pid}] dump_all() -> {outpath}", note="dump native heap")
             dmp = s.create_script(open("dump_mem.js").read())
-            f = open(outpath, "wb"); state = {"off": 0}; done = threading.Event()
+            f = open(outpath, "wb"); state = {"off": 0, "regions": 0}; done = threading.Event()
             def on_message(msg, data):
                 if msg.get("type") == "send":
                     if msg["payload"].get("done"): done.set(); return
-                    if data: f.write(data); state["off"] += len(data)
+                    if data: f.write(data); state["off"] += len(data); state["regions"] += 1
             dmp.on("message", on_message); dmp.load()
             dmp.exports_sync.dump_all(); done.wait(timeout=300); f.close()
+            vlog(f"  ↳ dumped {state['off']} bytes in {state['regions']} region(s)")
             return state["off"]
         except TRANSIENT as e:
             print(f"    (transient {type(e).__name__} during dump; retry)")
             relaunch(dev); return -1
         finally:
             if s is not None:
+                vlog(f"  detach pid={pid}")
                 try: s.detach()
                 except Exception: pass
     return -1
@@ -185,10 +245,13 @@ def make_test(pages):
 def brute_one(heap_path, bookdir):
     """Return the 16-byte content key for the single book in bookdir, or None."""
     pages = test_pages_for(bookdir)
+    vlog(f"brute_one: {len(pages)} test page(s) from {bookdir}")
     if len(pages) < 3:
+        vlog("brute_one: <3 test pages, cannot brute — giving up")
         return None
     test = make_test(pages)
     buf = np.fromfile(heap_path, dtype=np.uint8)
+    vlog(f"brute_one: scanning {len(buf)} heap bytes")
     for align in (16, 8, 4, 1):
         idx = np.arange(0, len(buf) - 15, align)
         W = np.stack([buf[idx + j] for j in range(16)], axis=1)
@@ -196,9 +259,11 @@ def brute_one(heap_path, bookdir):
         uniq = (np.diff(srt, axis=1) != 0).sum(axis=1) + 1
         printable = ((W >= 0x20) & (W < 0x7f)).sum(axis=1)
         cand = np.unique(W[(uniq >= 11) & (printable <= 11)], axis=0)
+        vlog(f"brute_one: align={align:2d} -> {len(cand)} candidate window(s)")
         for row in cand:
             key = row.tobytes()
             if test(key):
+                vlog(f"brute_one: key found at align={align}")
                 return key
     return None
 
@@ -208,7 +273,7 @@ def load_inventory():
     dbp = "/tmp/kh_library.db"
     adb(f"cp /data/data/{PKG}/databases/kindle_library.db /data/local/tmp/kl.db; "
         f"chmod 666 /data/local/tmp/kl.db", su=True)
-    subprocess.run(["adb", "pull", "/data/local/tmp/kl.db", dbp], capture_output=True)
+    run(["adb", "pull", "/data/local/tmp/kl.db", dbp], capture_output=True)
     import sqlite3
     con = sqlite3.connect(dbp)
     rows = con.execute(
@@ -227,6 +292,8 @@ def load_inventory():
             continue
         seen[asin] = len(out)
         out.append((asin, title, state))
+    vlog(f"inventory: {len(out)} ebooks ({sum(s=='LOCAL' for _,_,s in out)} LOCAL) "
+         f"from {len(rows)} db rows")
     return out
 
 def loaded_keys():
@@ -240,12 +307,18 @@ def loaded_keys():
     return d
 
 # ---------------------------------------------------------------- per-book job
-def wait_for(pred, timeout, interval=2.0):
+def wait_for(pred, timeout, interval=2.0, label=None):
+    if label:
+        vlog(f"wait_for {label} (<= {timeout:.0f}s)")
     t0 = time.time()
     while time.time() - t0 < timeout:
         if pred():
+            if label:
+                vlog(f"  ↳ {label} satisfied after {time.time()-t0:.1f}s")
             return True
         time.sleep(interval)
+    if label:
+        vlog(f"  ↳ {label} TIMED OUT after {timeout:.0f}s")
     return False
 
 def ensure_app_home(dev):
@@ -254,8 +327,9 @@ def ensure_app_home(dev):
     We deliberately DON'T force-stop: a cold launch auto-reopens the last-read
     book, and that races with our open() (leaving the wrong book rendered)."""
     if kindle_pid(dev) is None:
+        vlog("ensure_app_home: Kindle not running, launching")
         launch_home()
-        wait_for(lambda: kindle_pid(dev) is not None, 30)
+        wait_for(lambda: kindle_pid(dev) is not None, 30, label="Kindle pid")
         time.sleep(6)   # app init so the KRX SDK is live
     # back out of any open reader so open() starts from a clean state
     for _ in range(3):
@@ -273,7 +347,8 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
     if kfx_count(asin) == 0:
         print(f"  [{asin}] downloading…")
         agent_call(dev, "download", asin)
-        if not wait_for(lambda: kfx_count(asin) > 0, dl_timeout, 3.0):
+        if not wait_for(lambda: kfx_count(asin) > 0, dl_timeout, 3.0,
+                        label=f"{asin} download"):
             print(f"  [{asin}] download did not land in {dl_timeout}s — skipping")
             return None
 
@@ -286,7 +361,7 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
         r = agent_call(dev, "open", asin)          # attach/open/detach
         if not r.get("ok"):
             print(f"  [{asin}] open failed: {r}"); ensure_app_home(dev); continue
-        wait_for(lambda: READER_ACT in top_activity(), 40)
+        wait_for(lambda: READER_ACT in top_activity(), 40, label="reader activity")
         time.sleep(render_wait)                     # first draw + key caching
         dumped = verify_and_dump(dev, asin, heap)   # curasin==asin? then dump
         if dumped > 0:
@@ -311,8 +386,8 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
 def repackage(asin, hexkey):
     kfxzip = f"out/{asin}.kfx-zip"; epub = f"out/{asin}.epub"
     os.makedirs("out", exist_ok=True)
-    subprocess.run([sys.executable, "repackage.py", f"files-4k/{asin}", hexkey, kfxzip], check=True)
-    subprocess.run(["ebook-convert", kfxzip, epub], check=True)
+    run([sys.executable, "repackage.py", f"files-4k/{asin}", hexkey, kfxzip], check=True)
+    run(["ebook-convert", kfxzip, epub], check=True)
     return epub
 
 # -------------------------------------------------------------------- main
@@ -324,7 +399,12 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--repackage", action="store_true")
     ap.add_argument("--render-wait", type=float, default=8.0)
+    ap.add_argument("-v", "--verbose", action="store_true",
+                    help="log every shell/frida command as it runs, plus extra detail (to stderr)")
     args = ap.parse_args()
+
+    global VERBOSE
+    VERBOSE = args.verbose
 
     have = loaded_keys()
 
@@ -346,8 +426,10 @@ def main():
     if args.limit:
         targets = targets[: args.limit]
     print(f"harvesting {len(targets)} book(s)")
+    vlog(f"targets: {targets}")
 
     dev = frida.get_usb_device()
+    vlog(f"frida device: {dev}")
     for i, asin in enumerate(targets, 1):
         print(f"[{i}/{len(targets)}] {asin}")
         if asin in have:

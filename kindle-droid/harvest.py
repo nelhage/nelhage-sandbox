@@ -1,8 +1,15 @@
 """Batch-harvest Kindle content keys for the whole library.
 
-For each ASIN: (download if remote) -> open in reader via KRX so KRF caches the
-16-byte AES content key -> dump native heap -> brute-force the key -> (optional)
-repackage to a DRM-free .kfx-zip / EPUB.
+For each ASIN: (download if remote) -> open in reader via KRX so the app caches
+the 16-byte content key -> dump native heap -> brute-force the key -> (optional)
+repackage to a DRM-free EPUB.
+
+Handles both delivered formats.  KFX (the common case): the key is the DRMION
+AES content key; brute_one + repackage.py -> .kfx-zip -> calibre.  Legacy
+Mobipocket/KF8 (some titles land as <asin>_EBOK.prc): the key is the crypto-
+type-2 MOBI key, recovered from heap the same way (mobidrm.brute_mobi, since this
+app version's account secrets are AES-GCM-wrapped and out of DeDRM's offline
+reach) and stripped with vendored DeDRM (mobidrm.decrypt_with_key) -> calibre.
 
 The reliable open-by-ASIN mechanism (see README "Whole-library harvest"):
   attach frida, call krx_agent open(asin), DETACH IMMEDIATELY (frida attached
@@ -26,6 +33,7 @@ from Crypto.Cipher import AES
 
 import androidvoucher as A
 from amazon.ion import simpleion
+from mobidrm import brute_mobi, decrypt_with_key
 
 PKG = "com.amazon.kindle"
 DEVICE_FILES = f"/data/media/0/Android/data/{PKG}/files"
@@ -428,13 +436,15 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
             print(f"  [{asin}] download did not land in {dl_timeout}s — skipping")
             return None
 
-    # 1b. only KFX carries the DRMION content keys this tool brute-forces; the
-    #     app delivers some titles as legacy Mobipocket/KF8 (.prc/.azw) instead,
-    #     which use an unrelated DRM scheme. Detect and skip those cleanly.
+    # 1b. route by on-disk format.  KFX carries the DRMION content key (brute_one
+    #     + repackage.py); the app delivers some titles as legacy Mobipocket/KF8
+    #     (<asin>_EBOK.prc/.azw) instead, whose crypto-type-2 MOBI key we recover
+    #     the same way from heap (brute_mobi) and strip with vendored DeDRM.
+    #     Both open+dump+brute identically below; only the brute + repackage differ.
     fmt = book_format(asin)
-    if fmt != "kfx":
-        print(f"  [{asin}] format is {fmt or 'unknown'!r} (not KFX) — skipping; "
-              f"this harvester only handles KFX")
+    if fmt not in ("kfx", "mobi"):
+        print(f"  [{asin}] format is {fmt or 'unknown'!r} — skipping; this "
+              f"harvester handles KFX and Mobipocket/KF8")
         return None
 
     # 2. open, wait for render, then verify-the-right-book + dump in ONE attach
@@ -459,7 +469,11 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
 
     # 3. pull content (for brute + repackage) and brute the key
     bookdir = pull_book(asin)
-    key = brute_one(heap, bookdir)
+    if fmt == "kfx":
+        key = brute_one(heap, bookdir)
+    else:                                    # mobi: brute the crypto-type-2 key
+        prc = mobi_content_file(bookdir)
+        key = brute_mobi(heap, prc, log=vlog) if prc else None
     try: os.remove(heap)
     except OSError: pass
     if key is None:
@@ -468,11 +482,29 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
     print(f"  [{asin}] *** KEY {hexkey} ***")
     return hexkey
 
+def mobi_content_file(bookdir):
+    """The single Mobipocket/KF8 content file in a pulled book dir, or None."""
+    for f in sorted(glob.glob(os.path.join(bookdir, "*"))):
+        if f.rsplit(".", 1)[-1].lower() in _MOBI_EXTS:
+            return f
+    return None
+
 def repackage(asin, hexkey):
-    kfxzip = f"out/{asin}.kfx-zip"; epub = f"out/{asin}.epub"
+    """DRM-strip a recovered book to EPUB.  Dispatches on the pulled content's
+    format: KFX -> repackage.py (.kfx-zip) -> calibre; Mobipocket/KF8 ->
+    mobidrm.decrypt_with_key (.mobi) -> calibre."""
+    bookdir = f"files-4k/{asin}"
     os.makedirs("out", exist_ok=True)
-    run([sys.executable, "repackage.py", f"files-4k/{asin}", hexkey, kfxzip], check=True)
-    run(["ebook-convert", kfxzip, epub], check=True)
+    epub = f"out/{asin}.epub"
+    prc = mobi_content_file(bookdir)
+    if prc:                                  # Mobipocket/KF8
+        stripped = f"out/{asin}.mobi"
+        decrypt_with_key(prc, bytes.fromhex(hexkey), stripped)
+        run(["ebook-convert", stripped, epub], check=True)
+    else:                                    # KFX
+        kfxzip = f"out/{asin}.kfx-zip"
+        run([sys.executable, "repackage.py", bookdir, hexkey, kfxzip], check=True)
+        run(["ebook-convert", kfxzip, epub], check=True)
     return epub
 
 # -------------------------------------------------------------------- main

@@ -296,28 +296,65 @@ def book_state(asin):
     vlog(f"book_state({asin}) = {st!r}")
     return st
 
+# The only library entries this KFX harvester can handle are ordinary purchased
+# books, TYPE == 'BT_EBOOK'.  Other TYPEs share the '%EBOOK%' shape but must be
+# skipped (see book_type / is_harvestable):
+#   BT_EBOOK_PDOC      personal documents ("Send to Kindle").  32-char base32 id
+#                      (AMZNID0/<id>/4/, vs /0/ for store books).  The KRX
+#                      getStoreManager().downloadBook() call is a NO-OP for these
+#                      (returns ok, STATE never leaves REMOTE, nothing lands) --
+#                      only a manual re-send from Amazon delivers them, and then
+#                      the CR!*.kfx lands in the SHARED files/kindle/ dir, not in
+#                      files/<asin>/.  They also don't show in the app's Books
+#                      browse (separate Docs view).  So they can't be driven
+#                      by-ASIN like store books -- skip them.
+#   BT_EBOOK_NEWSPAPER periodical subscriptions;  BT_EBOOK_SAMPLE  free samples.
+HARVESTABLE_TYPE = "BT_EBOOK"
+
+def book_type(asin):
+    """DB catalog TYPE for one ASIN (e.g. 'BT_EBOOK', 'BT_EBOOK_PDOC'), or None
+    if the ASIN isn't in the library db."""
+    import sqlite3
+    con = sqlite3.connect(pull_library_db())
+    row = con.execute("SELECT TYPE FROM KindleContent WHERE ID LIKE ? "
+                      "ORDER BY STATE='LOCAL' DESC LIMIT 1",
+                      (f"%/{asin}/%",)).fetchone()
+    con.close()
+    t = row[0] if row else None
+    vlog(f"book_type({asin}) = {t!r}")
+    return t
+
+def is_harvestable(btype):
+    """True for the TYPEs this KFX harvester can drive by-ASIN (store books only;
+    personal docs / newspapers / samples are skipped -- see HARVESTABLE_TYPE)."""
+    return btype == HARVESTABLE_TYPE
+
 def load_inventory():
-    """Return list of (asin, title, state) for ebooks, from a pulled library db."""
+    """Return list of (asin, title, state, btype) for ebook-shaped entries, from a
+    pulled library db.  Non-harvestable TYPEs (PDOC/NEWSPAPER/SAMPLE) are included
+    so --list can show them, but callers should filter with is_harvestable()."""
     import sqlite3
     con = sqlite3.connect(pull_library_db())
     rows = con.execute(
-        "SELECT ID, TITLE, STATE FROM KindleContent "
+        "SELECT ID, TITLE, STATE, TYPE FROM KindleContent "
         "WHERE TYPE LIKE '%EBOOK%' ORDER BY STATE, TITLE").fetchall()
     con.close()
     out, seen = [], {}
-    for cid, title, state in rows:
+    for cid, title, state, btype in rows:
         parts = cid.split("/")
         asin = parts[1] if len(parts) > 1 else cid
         # an ASIN can appear as several rows (e.g. a stale FAILED_RETRYABLE +
         # the real LOCAL/REMOTE one); keep one, preferring a downloaded state.
         if asin in seen:
             if state == "LOCAL" and out[seen[asin]][2] != "LOCAL":
-                out[seen[asin]] = (asin, title, state)
+                out[seen[asin]] = (asin, title, state, btype)
             continue
         seen[asin] = len(out)
-        out.append((asin, title, state))
-    vlog(f"inventory: {len(out)} ebooks ({sum(s=='LOCAL' for _,_,s in out)} LOCAL) "
-         f"from {len(rows)} db rows")
+        out.append((asin, title, state, btype))
+    n_harv = sum(is_harvestable(b) for _, _, _, b in out)
+    vlog(f"inventory: {len(out)} ebook entries ({n_harv} harvestable BT_EBOOK, "
+         f"{len(out)-n_harv} pdoc/newspaper/sample skipped, "
+         f"{sum(s=='LOCAL' for _,_,s,_ in out)} LOCAL) from {len(rows)} db rows")
     return out
 
 def loaded_keys():
@@ -364,6 +401,18 @@ def ensure_app_home(dev):
 
 def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
     """Download+open+dump+brute one book. Return hex key or None."""
+    # 0. bail on non-harvestable TYPEs before touching the app.  --all already
+    #    filters these out, but an explicit --asins <pdoc> would otherwise sink a
+    #    full dl_timeout waiting for a download that never comes: downloadBook()
+    #    is a no-op for personal docs, and even a manual re-send lands the file in
+    #    the shared files/kindle/ dir (not files/<asin>/) under an unrelated name.
+    btype = book_type(asin)
+    if btype is not None and not is_harvestable(btype):
+        kind = btype.replace("BT_EBOOK_", "").lower()
+        print(f"  [{asin}] TYPE is {btype} ({kind}, not a store KFX book) — "
+              f"skipping; this harvester only handles {HARVESTABLE_TYPE}")
+        return None
+
     setenforce_permissive()
     ensure_app_home(dev)
 
@@ -446,16 +495,25 @@ def main():
 
     if args.list:
         inv = load_inventory()
-        for asin, title, state in inv:
-            mark = "KEY" if asin in have else "   "
-            print(f"{mark} {asin} {state:6} {title[:60]}")
-        print(f"\n{len(inv)} ebooks; {len(have)} keys recovered")
+        for asin, title, state, btype in inv:
+            mark = ("KEY" if asin in have else
+                    "   " if is_harvestable(btype) else "SKP")
+            # tag non-harvestable rows with their TYPE (PDOC/NEWSPAPER/SAMPLE)
+            tag = "" if is_harvestable(btype) else f" [{btype.replace('BT_EBOOK_','')}]"
+            print(f"{mark} {asin} {state:6} {title[:60]}{tag}")
+        n_harv = sum(is_harvestable(b) for _, _, _, b in inv)
+        print(f"\n{len(inv)} ebook entries ({n_harv} harvestable); "
+              f"{len(have)} keys recovered")
         return
 
     if args.asins:
         targets = args.asins.split(",")
     elif args.all:
-        targets = [a for a, t, s in load_inventory() if a not in have]
+        # only real store books (BT_EBOOK) are drivable by-ASIN; skip personal
+        # docs / newspapers / samples up front so we don't waste a 300s download
+        # timeout on each of them (they never deliver via downloadBook()).
+        targets = [a for a, t, s, bt in load_inventory()
+                   if a not in have and is_harvestable(bt)]
     else:
         ap.error("specify --list, --asins, or --all")
 

@@ -179,9 +179,49 @@ def agent_call(dev, method, *margs, script_path="krx_agent.js", retries=3):
                 except Exception: pass
     raise RuntimeError(f"agent_call({method}) failed after {retries} tries")
 
-def verify_and_dump(dev, asin, outpath, retries=3):
+def open_with_baseline(dev, asin, retries=3):
+    """attach → hash the scudo heap as a baseline → open(asin) → DETACH, in one
+    attach.  The baseline (per-page fingerprints taken BEFORE the book loads)
+    lets the later dump ship only the pages that changed as the book rendered —
+    where the freshly-derived content key lives — for a ~4x cheaper brute.
+    Folding it into the open attach keeps the attach count unchanged; the
+    baseline runs before open() so it never delays the render-unblocking detach.
+    Returns (baseline, open_result); baseline is {} if it couldn't be taken."""
+    for attempt in range(retries):
+        pid = kindle_pid(dev)
+        if pid is None:
+            vlog("open_with_baseline: no Kindle pid, relaunching"); relaunch(dev); continue
+        s = None
+        try:
+            vcmd(f"frida[pid={pid}] baseline()+open({asin!r})",
+                 note=f"attach, hash baseline, open, detach, try {attempt+1}/{retries}")
+            s = dev.attach(pid)
+            dm = s.create_script(open("dump_mem.js").read()); dm.load()
+            baseline = dm.exports_sync.baseline()
+            vlog(f"  ↳ baseline: {sum(len(v) for v in baseline.values())} pages")
+            op = s.create_script(open("krx_agent.js").read()); op.load()
+            r = op.exports_sync.open(asin)
+            vlog(f"  ↳ open -> {r!r}")
+            return baseline, r
+        except TRANSIENT as e:
+            print(f"    (transient {type(e).__name__} on baseline/open; relaunch+retry)")
+            relaunch(dev)
+        finally:
+            if s is not None:
+                vlog(f"  detach pid={pid}")
+                try: s.detach()
+                except Exception: pass
+    raise RuntimeError(f"open_with_baseline({asin}) failed after {retries} tries")
+
+def verify_and_dump(dev, asin, outpath, baseline=None, retries=3):
     """One attach: confirm the reader's current book == asin, and if so dump the
-    heap. Returns bytes dumped, or -1 if the wrong/no book is loaded."""
+    native heap. Returns bytes dumped, or -1 if the wrong/no book is loaded.
+
+    If `baseline` (from open_with_baseline) is given, dump only the scudo pages
+    that changed since it was taken — the cheap delta that almost always still
+    contains the key.  With baseline=None, dump the full scudo heap (the safe
+    fallback the caller upgrades to when a delta brute comes up empty)."""
+    delta = baseline is not None
     for attempt in range(retries):
         pid = kindle_pid(dev)
         if pid is None:
@@ -195,7 +235,9 @@ def verify_and_dump(dev, asin, outpath, retries=3):
             if cur != asin:
                 vlog(f"  ↳ current book is {cur!r}, want {asin!r} — not dumping")
                 return -1
-            vcmd(f"frida[pid={pid}] dump_all() -> {outpath}", note="dump native heap")
+            what = "dump_delta()" if delta else "dump_all()"
+            vcmd(f"frida[pid={pid}] {what} -> {outpath}",
+                 note=("dump changed scudo pages" if delta else "dump full scudo heap"))
             dmp = s.create_script(open("dump_mem.js").read())
             f = open(outpath, "wb"); state = {"off": 0, "regions": 0}; done = threading.Event()
             def on_message(msg, data):
@@ -203,7 +245,9 @@ def verify_and_dump(dev, asin, outpath, retries=3):
                     if msg["payload"].get("done"): done.set(); return
                     if data: f.write(data); state["off"] += len(data); state["regions"] += 1
             dmp.on("message", on_message); dmp.load()
-            dmp.exports_sync.dump_all(); done.wait(timeout=300); f.close()
+            if delta: dmp.exports_sync.dump_delta(baseline)
+            else:     dmp.exports_sync.dump_all()
+            done.wait(timeout=300); f.close()
             vlog(f"  ↳ dumped {state['off']} bytes in {state['regions']} region(s)")
             return state["off"]
         except TRANSIENT as e:
@@ -449,33 +493,50 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
 
     # 2. open, wait for render, then verify-the-right-book + dump in ONE attach
     #    (fewer attaches = less chance of tripping the flaky app's anti-debug).
-    heap = f"/tmp/kh_{asin}.bin"
+    #    We hash a heap baseline in the open attach (before the book loads) so
+    #    the dump can ship only the pages that changed as it rendered — the
+    #    delta that holds the freshly-derived key — for a ~4x cheaper brute.
+    delta_heap = f"/tmp/kh_{asin}.delta.bin"
+    baseline = {}
     dumped = -1
     for attempt in range(open_tries):
         print(f"  [{asin}] opening (try {attempt+1}/{open_tries})…")
-        r = agent_call(dev, "open", asin)          # attach/open/detach
+        baseline, r = open_with_baseline(dev, asin)  # attach: baseline+open, detach
         if not r.get("ok"):
             print(f"  [{asin}] open failed: {r}"); ensure_app_home(dev); continue
         wait_for(lambda: READER_ACT in top_activity(), 40, label="reader activity")
         time.sleep(render_wait)                     # first draw + key caching
-        dumped = verify_and_dump(dev, asin, heap)   # curasin==asin? then dump
+        dumped = verify_and_dump(dev, asin, delta_heap, baseline=baseline)
         if dumped > 0:
             break
         print(f"  [{asin}] target book not confirmed open; re-opening")
         ensure_app_home(dev)
     if dumped <= 0:
         print(f"  [{asin}] could not open+dump target book — skipping"); return None
-    print(f"  [{asin}] dumped {dumped/1e6:.0f} MB; brute-forcing…")
+    print(f"  [{asin}] delta dump {dumped/1e6:.0f} MB; brute-forcing…")
 
-    # 3. pull content (for brute + repackage) and brute the key
+    # 3. pull content (for brute + repackage) and brute the key.  Try the cheap
+    #    delta first; if it misses (e.g. the key was already resident before the
+    #    baseline, so it sits in unchanged pages), upgrade to a full scudo dump.
     bookdir = pull_book(asin)
-    if fmt == "kfx":
-        key = brute_one(heap, bookdir)
-    else:                                    # mobi: brute the crypto-type-2 key
-        prc = mobi_content_file(bookdir)
-        key = brute_mobi(heap, prc, log=vlog) if prc else None
-    try: os.remove(heap)
+    prc = mobi_content_file(bookdir) if fmt == "mobi" else None
+    def brute(heap):
+        if fmt == "kfx":
+            return brute_one(heap, bookdir)
+        return brute_mobi(heap, prc, log=vlog) if prc else None
+
+    key = brute(delta_heap)
+    try: os.remove(delta_heap)
     except OSError: pass
+    if key is None:
+        print(f"  [{asin}] delta miss — re-dumping full scudo heap and retrying")
+        full_heap = f"/tmp/kh_{asin}.bin"
+        full = verify_and_dump(dev, asin, full_heap)   # baseline=None => full dump
+        if full > 0:
+            print(f"  [{asin}] full dump {full/1e6:.0f} MB; brute-forcing…")
+            key = brute(full_heap)
+        try: os.remove(full_heap)
+        except OSError: pass
     if key is None:
         print(f"  [{asin}] KEY NOT FOUND"); return None
     hexkey = key.hex()

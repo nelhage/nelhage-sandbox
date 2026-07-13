@@ -1,0 +1,27 @@
+# Python / env
+.venv/
+.direnv/
+__pycache__/
+*.pyc
+
+# Books & recovered data pulled off the device (personal content, regenerable) —
+# never commit copyrighted content or the derived keys.
+# DRM'd book fragments pulled from the device:
+files-4k/
+# decrypted .kfx-zip / .epub output:
+out/
+# recovered per-book AES content keys (regenerable via harvest.py):
+keys.txt
+# full library inventory dump (regenerable: harvest.py --list):
+BOOKS
+# ad-hoc library subset used for test runs:
+SAMPLE
+
+# The decompiled / pulled Kindle APK (large, copyrighted Amazon binary)
+kindle-app/
+
+# Transient logs / dumps
+rootAVD.log
+heap.bin
+heap.bin.idx
+*.dump

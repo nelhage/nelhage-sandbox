@@ -1,0 +1,19 @@
+[project]
+name = "kindle-droid"
+version = "0.1.0"
+description = "Kindle Android KFX DRM archival toolkit"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pycryptodome",
+    "amazon.ion",
+    # frida is pinned to match the frida-server running on the AVD (17.15.4);
+    # a host/server version mismatch breaks agent injection.
+    "frida==17.15.4",
+    "frida-tools==14.10.4",
+    "capstone",
+]
+
+[tool.uv]
+# This is a collection of scripts, not an installable package.
+package = false

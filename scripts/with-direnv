@@ -9,4 +9,5 @@ set -euo pipefail
 # and fails with "command not found". Hand single-string invocations to a shell
 # so the redirections, &&, and eval are interpreted. Multi-argument invocations
 # (already an argv, e.g. an explicit interpreter) are passed through untouched.
+direnv allow
 exec direnv exec . bash -c "$1"

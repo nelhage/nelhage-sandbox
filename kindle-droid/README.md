@@ -138,6 +138,7 @@ done < keys.txt
 | `repackage.py` | Decrypt DRMION fragments with a key, rebuild a `.kfx-zip`. |
 | `kfxdrm/` | DeDRM `ion.py` + `kfxtables.py` as an importable package (`DrmIon`, `DrmIonVoucher`, obfuscation helpers). GPLv3. |
 | `_ionobf.py`, `kfxtables.py` | Standalone copies of DeDRM obfuscation/scramble helpers used by `androidvoucher.py`. GPLv3. |
+| `mobidrm/` | Legacy **Mobipocket/KF8** (`.prc`/`.azw`) support for titles that don't deliver as KFX. `brute_mobi()` recovers the crypto-type-2 MOBI key from a heap dump (same memory approach as KFX — see below); `decrypt_with_key()` strips it. Vendored DeDRM/KindleUnpack (PC1, `MobiBook`, HUFF/CDIC). GPLv3. |
 | `NOTES.md` | Deep-dive on the voucher/DRMION format. |
 
 Exploration dead-ends that are no longer part of the pipeline live in `archive/`
@@ -148,6 +149,35 @@ Exploration dead-ends that are no longer part of the pipeline live in `archive/`
 | `archive/find_unwrap_key.py` | Scan a dump for the shared 32-byte no-lock voucher-unwrap key (not found — it's transient). |
 | `archive/scan_keyset.js` / `archive/scan_driver.py` | Scan memory for decrypted Ion `ProtectedData` headers (didn't surface keys). |
 | `archive/hook_crypto.js` / `archive/capture.py` | frida hooks on libcrypto EVP/HMAC (didn't fire — static crypto). |
+
+---
+
+## Non-KFX books: legacy Mobipocket/KF8 (`.prc`)
+
+Not every title delivers as KFX. Some (e.g. `B00KVI76ZS`, the Ashlee Vance *Elon
+Musk* bio) download as a legacy **Mobipocket/KF8** container `files/<ASIN>/<ASIN>_EBOK.prc`
+(PalmDB `BOOK`/`MOBI`, HUFF/CDIC-compressed, EXTH cdetype `EBOK`, **encryption
+type 2** = Amazon's old MOBI DRM). `harvest.py` classifies on-disk content with
+`book_format()` and routes these to `mobidrm/`.
+
+That DRM was reverse-engineered by DeDRM long ago, and normally you'd strip it
+*offline* with a device/account key. **That offline path is dead on this app
+version**: the account serial + `kindle.account.tokens` in
+`databases/map_data_storage.db` are `AES-GCM+…`-wrapped (key in the Android
+keystore), so DeDRM's `androidkindlekey.py` finds nothing to decrypt.
+
+So we recover the key the *same* way as KFX — from memory. When the book is open,
+the app holds the 16-byte crypto-type-2 `found_key` in the anonymous heap;
+`mobidrm.brute_mobi()` scans the dump for it. The catch vs. KFX: HUFF/CDIC
+dictionaries are full of real text, so a *wrong* key still decompresses to
+plausible word-salad — the KFX-style "looks like text" test false-positives. The
+decisive test is a **full** record decompressing to strictly-valid codepage text
+with real HTML-tag density, checked across two records (the winner is then
+confirmed by the calibre conversion). A vectorised (numpy) PC1 + a shared,
+eagerly-expanded decompressor keep the scan tractable; the key is often at a
+non-16-aligned offset, so the align=1 pass (millions of windows) can take several
+minutes. Decryption uses vendored DeDRM (`mobidrm.decrypt_with_key`) → a DRM-free
+`.mobi` → calibre → EPUB. `harvest.py --asins <mobi-ASIN> --repackage` does it all.
 
 ---
 

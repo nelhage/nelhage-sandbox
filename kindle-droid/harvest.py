@@ -98,14 +98,21 @@ def top_activity():
     vlog("top activity: <none found>")
     return ""
 
-def kfx_count(asin):
-    out = adb(f"ls {DEVICE_FILES}/{asin}/ 2>/dev/null | grep -c kfx", su=True)
-    try:
-        n = int(out.strip() or "0")
-    except ValueError:
-        n = 0
-    vlog(f"kfx_count({asin}) = {n}")
-    return n
+# Content-file extensions we recognise.  Only KFX is harvestable by this tool
+# (DRMION content keys live in CR!*.kfx); the app also delivers legacy
+# Mobipocket/KF8 books as <asin>_EBOK.prc / .azw / .azw3, which use a different
+# (older, separately-reversed) DRM scheme this tool doesn't handle.
+_MOBI_EXTS = {"prc", "azw", "azw3", "mobi"}
+
+def book_format(asin):
+    """Classify the on-disk content in files/<asin>/ as 'kfx', 'mobi', or None
+    (no recognised content file present — not downloaded, or some other format).
+    Sidecars (.apnx/.phl/.asc/.db/.ser/.ast/.metadata) are ignored."""
+    out = adb(f"ls {DEVICE_FILES}/{asin}/ 2>/dev/null", su=True)
+    exts = {name.rsplit(".", 1)[-1].lower() for name in out.split() if "." in name}
+    fmt = "kfx" if "kfx" in exts else "mobi" if exts & _MOBI_EXTS else None
+    vlog(f"book_format({asin}) = {fmt!r} (exts={sorted(exts)})")
+    return fmt
 
 def pull_book(asin, dest_parent="files-4k"):
     """Pull the device book dir into files-4k/<asin>/ (needed for brute + repackage)."""
@@ -268,14 +275,31 @@ def brute_one(heap_path, bookdir):
     return None
 
 # ------------------------------------------------------------------- inventory
-def load_inventory():
-    """Return list of (asin, title, state) for ebooks, from a pulled library db."""
+def pull_library_db():
+    """Copy the app's kindle_library.db off-device and return the local path."""
     dbp = "/tmp/kh_library.db"
     adb(f"cp /data/data/{PKG}/databases/kindle_library.db /data/local/tmp/kl.db; "
         f"chmod 666 /data/local/tmp/kl.db", su=True)
     run(["adb", "pull", "/data/local/tmp/kl.db", dbp], capture_output=True)
+    return dbp
+
+def book_state(asin):
+    """DB download state for one ASIN (LOCAL once fully downloaded, else REMOTE /
+    a transient state), or None if the ASIN isn't in the library db."""
     import sqlite3
-    con = sqlite3.connect(dbp)
+    con = sqlite3.connect(pull_library_db())
+    row = con.execute("SELECT STATE FROM KindleContent WHERE ID LIKE ? "
+                      "ORDER BY STATE='LOCAL' DESC LIMIT 1",
+                      (f"%/{asin}/%",)).fetchone()
+    con.close()
+    st = row[0] if row else None
+    vlog(f"book_state({asin}) = {st!r}")
+    return st
+
+def load_inventory():
+    """Return list of (asin, title, state) for ebooks, from a pulled library db."""
+    import sqlite3
+    con = sqlite3.connect(pull_library_db())
     rows = con.execute(
         "SELECT ID, TITLE, STATE FROM KindleContent "
         "WHERE TYPE LIKE '%EBOOK%' ORDER BY STATE, TITLE").fetchall()
@@ -343,14 +367,26 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
     setenforce_permissive()
     ensure_app_home(dev)
 
-    # 1. download if the content isn't on disk yet
-    if kfx_count(asin) == 0:
+    # 1. download if the content isn't on disk yet.  Poll the library db's STATE
+    #    (LOCAL == fully downloaded) rather than the content dir: non-KFX formats
+    #    never produce a .kfx, so a kfx-only poll would spuriously time out on
+    #    them (and we want to reach the format check below to skip them cleanly).
+    if book_format(asin) is None:
         print(f"  [{asin}] downloading…")
         agent_call(dev, "download", asin)
-        if not wait_for(lambda: kfx_count(asin) > 0, dl_timeout, 3.0,
-                        label=f"{asin} download"):
+        if not wait_for(lambda: book_state(asin) == "LOCAL", dl_timeout, 3.0,
+                        label=f"{asin} download (STATE=LOCAL)"):
             print(f"  [{asin}] download did not land in {dl_timeout}s — skipping")
             return None
+
+    # 1b. only KFX carries the DRMION content keys this tool brute-forces; the
+    #     app delivers some titles as legacy Mobipocket/KF8 (.prc/.azw) instead,
+    #     which use an unrelated DRM scheme. Detect and skip those cleanly.
+    fmt = book_format(asin)
+    if fmt != "kfx":
+        print(f"  [{asin}] format is {fmt or 'unknown'!r} (not KFX) — skipping; "
+              f"this harvester only handles KFX")
+        return None
 
     # 2. open, wait for render, then verify-the-right-book + dump in ONE attach
     #    (fewer attaches = less chance of tripping the flaky app's anti-debug).

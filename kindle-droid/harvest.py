@@ -479,7 +479,7 @@ def ensure_app_home(dev):
         adb("input keyevent KEYCODE_BACK")
         time.sleep(1.5)
 
-def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
+def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3):
     """Download+open+dump+brute one book. Return hex key or None."""
     # --offline never drives the device: this whole path (download/open/dump)
     # needs the AVD, so there's nothing to do — callers fall back to any
@@ -509,7 +509,7 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
     if book_format(asin) is None:
         print(f"  [{asin}] downloading…")
         agent_call(dev, "download", asin)
-        if not wait_for(lambda: book_state(asin) == "LOCAL", dl_timeout, 3.0,
+        if not wait_for(lambda: book_state(asin) == "LOCAL", dl_timeout, 1.5,
                         label=f"{asin} download (STATE=LOCAL)"):
             print(f"  [{asin}] download did not land in {dl_timeout}s — skipping")
             return None
@@ -538,7 +538,7 @@ def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
         baseline, r = open_with_baseline(dev, asin)  # attach: baseline+open, detach
         if not r.get("ok"):
             print(f"  [{asin}] open failed: {r}"); ensure_app_home(dev); continue
-        wait_for(lambda: READER_ACT in top_activity(), 40, label="reader activity")
+        wait_for(lambda: READER_ACT in top_activity(), 40, 0.5, label="reader activity")
         time.sleep(render_wait)                     # first draw + key caching
         dumped = verify_and_dump(dev, asin, delta_heap, baseline=baseline)
         if dumped > 0:
@@ -615,7 +615,7 @@ def main():
     ap.add_argument("--offline", action="store_true",
                     help="never touch the device: work off the cached library db "
                          "and already-pulled books (composes with --list/--repackage)")
-    ap.add_argument("--render-wait", type=float, default=8.0)
+    ap.add_argument("--render-wait", type=float, default=5.0)
     ap.add_argument("-v", "--verbose", action="store_true",
                     help="log every shell/frida command as it runs, plus extra detail (to stderr)")
     args = ap.parse_args()

@@ -11,10 +11,21 @@ type-2 MOBI key, recovered from heap the same way (mobidrm.brute_mobi, since thi
 app version's account secrets are AES-GCM-wrapped and out of DeDRM's offline
 reach) and stripped with vendored DeDRM (mobidrm.decrypt_with_key) -> calibre.
 
-The reliable open-by-ASIN mechanism (see README "Whole-library harvest"):
-  attach frida, call krx_agent open(asin), DETACH IMMEDIATELY (frida attached
-  during the async load blocks the render), then the reader foregrounds + renders
-  on its own and KRF caches the key.  Only then is the heap dump useful.
+Two paths to get the key into (and out of) the native heap:
+
+  FAST PATH (KFX, the common case): the content key is derived and cached at
+  DOWNLOAD time, not at render time — so for a freshly-downloaded book we can
+  skip opening it entirely: just dump the scudo heap and brute (align=16 only,
+  since KFX keys are 16-aligned).  download -> dump -> brute, ~2 attaches, no
+  render wait.
+
+  FALLBACK (open-by-ASIN, see README "Whole-library harvest"): when the key
+  isn't already resident (e.g. a book that was LOCAL from a prior app session,
+  so nothing this process derived it), actually render it: attach frida, call
+  krx_agent open(asin), DETACH IMMEDIATELY (frida attached during the async load
+  blocks the render), then the reader foregrounds + renders on its own and KRF
+  caches the key; dump the delta and brute.  Mobipocket/KF8 always uses this
+  path (its brute is minutes-long, not worth running speculatively).
 
 Usage:
   python harvest.py --list                      # print library inventory + status
@@ -223,9 +234,15 @@ def open_with_baseline(dev, asin, retries=3):
                 except Exception: pass
     raise RuntimeError(f"open_with_baseline({asin}) failed after {retries} tries")
 
-def verify_and_dump(dev, asin, outpath, baseline=None, retries=3):
-    """One attach: confirm the reader's current book == asin, and if so dump the
-    native heap. Returns bytes dumped, or -1 if the wrong/no book is loaded.
+def verify_and_dump(dev, asin, outpath, baseline=None, verify=True, retries=3):
+    """One attach: optionally confirm the reader's current book == asin, then dump
+    the native heap. Returns bytes dumped, or -1 on a wrong/absent book or failure.
+
+    verify=True (post-open path): the dump is only meaningful if the freshly-
+    rendered book is `asin`, so curasin() must match first (else return -1).
+    verify=False (fast path): no open() happened — we just want whatever key the
+    download already cached — so skip the check and dump unconditionally.  (brute
+    uses THIS book's test pages, so an unrelated heap simply yields no key.)
 
     If `baseline` (from open_with_baseline) is given, dump only the scudo pages
     that changed since it was taken — the cheap delta that almost always still
@@ -238,13 +255,14 @@ def verify_and_dump(dev, asin, outpath, baseline=None, retries=3):
             vlog("verify_and_dump: no Kindle pid"); relaunch(dev); return -1  # caller re-opens
         s = None
         try:
-            vcmd(f"frida[pid={pid}] curasin()", note="confirm target book is open")
             s = dev.attach(pid)
-            chk = s.create_script(open("krx_agent.js").read()); chk.load()
-            cur = chk.exports_sync.curasin()
-            if cur != asin:
-                vlog(f"  ↳ current book is {cur!r}, want {asin!r} — not dumping")
-                return -1
+            if verify:
+                vcmd(f"frida[pid={pid}] curasin()", note="confirm target book is open")
+                chk = s.create_script(open("krx_agent.js").read()); chk.load()
+                cur = chk.exports_sync.curasin()
+                if cur != asin:
+                    vlog(f"  ↳ current book is {cur!r}, want {asin!r} — not dumping")
+                    return -1
             what = "dump_delta()" if delta else "dump_all()"
             vcmd(f"frida[pid={pid}] {what} -> {outpath}",
                  note=("dump changed scudo pages" if delta else "dump full scudo heap"))
@@ -311,8 +329,14 @@ def make_test(pages):
         return True
     return test
 
-def brute_one(heap_path, bookdir):
-    """Return the 16-byte content key for the single book in bookdir, or None."""
+def brute_one(heap_path, bookdir, aligns=(16, 8, 4, 1)):
+    """Return the 16-byte content key for the single book in bookdir, or None.
+
+    `aligns` controls which byte-alignments to scan.  KFX content keys are scudo
+    mallocs and so are always 16-byte-aligned in practice — pass aligns=(16,) for
+    a cheap speculative scan (the fast path) where a miss should bail fast instead
+    of grinding the ~10M-window align=1 pass; the default tries every alignment
+    for the thorough fallback."""
     pages = test_pages_for(bookdir)
     vlog(f"brute_one: {len(pages)} test page(s) from {bookdir}")
     if len(pages) < 3:
@@ -320,8 +344,8 @@ def brute_one(heap_path, bookdir):
         return None
     test = make_test(pages)
     buf = np.fromfile(heap_path, dtype=np.uint8)
-    vlog(f"brute_one: scanning {len(buf)} heap bytes")
-    for align in (16, 8, 4, 1):
+    vlog(f"brute_one: scanning {len(buf)} heap bytes (aligns={aligns})")
+    for align in aligns:
         idx = np.arange(0, len(buf) - 15, align)
         W = np.stack([buf[idx + j] for j in range(16)], axis=1)
         srt = np.sort(W, axis=1)
@@ -525,11 +549,51 @@ def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3):
               f"harvester handles KFX and Mobipocket/KF8")
         return None
 
-    # 2. open, wait for render, then verify-the-right-book + dump in ONE attach
-    #    (fewer attaches = less chance of tripping the flaky app's anti-debug).
-    #    We hash a heap baseline in the open attach (before the book loads) so
-    #    the dump can ship only the pages that changed as it rendered — the
-    #    delta that holds the freshly-derived key — for a ~4x cheaper brute.
+    # content is on disk now — pull it (needed for the brute's test pages and for
+    # repackage) and wire up the format-appropriate brute once, shared by both the
+    # fast path and the open+render fallback below.
+    bookdir = pull_book(asin)
+    prc = mobi_content_file(bookdir) if fmt == "mobi" else None
+    def brute(heap):
+        if fmt == "kfx":
+            return brute_one(heap, bookdir)
+        return brute_mobi(heap, prc, log=vlog) if prc else None
+
+    # 2. FAST PATH (KFX only) — no render needed.  The content key is derived and
+    #    cached in the native heap at DOWNLOAD time, not at render time (see NOTES):
+    #    a freshly-downloaded book already has its key resident.  So try a plain
+    #    full-scudo dump + brute BEFORE the slower open+render+delta dance.  There
+    #    is no open() to verify against (verify=False); brute keys off THIS book's
+    #    own test pages, so a heap that happens not to hold this key just yields
+    #    None (another resident book's key can't pass this book's padding test).
+    #    The speculative brute scans align=16 ONLY (KFX keys are always 16-aligned)
+    #    so a miss bails in ~1s instead of grinding the align=1 pass; the thorough
+    #    fallback below still covers the (theoretical) unaligned case.  Mobi is
+    #    skipped here entirely — its brute is minutes-long and not worth running
+    #    speculatively, and it may sit at a non-16 offset (see mobidrm notes).
+    if fmt == "kfx":
+        fast_heap = f"/tmp/kh_{asin}.fast.bin"
+        key = None
+        n = verify_and_dump(dev, asin, fast_heap, baseline=None, verify=False)
+        if n > 0:
+            print(f"  [{asin}] fast-path dump {n/1e6:.0f} MB; brute-forcing…")
+            key = brute_one(fast_heap, bookdir, aligns=(16,))
+        try: os.remove(fast_heap)
+        except OSError: pass
+        if key is not None:
+            hexkey = key.hex()
+            print(f"  [{asin}] *** KEY {hexkey} (fast path, no render) ***")
+            return hexkey
+        print(f"  [{asin}] fast-path miss — falling back to open+render")
+
+    # 3. FALLBACK — open, render, delta-dump.  Reaches here when the key wasn't
+    #    already resident (e.g. a book that was LOCAL from a PRIOR app session, so
+    #    nothing this process ever derived it): actually rendering the book is what
+    #    triggers the derivation.  Open + wait for render, then verify-the-right-
+    #    book + dump in ONE attach (fewer attaches = less anti-debug risk).  We
+    #    hash a heap baseline in the open attach (before the book loads) so the
+    #    dump can ship only the pages that changed as it rendered — the delta that
+    #    holds the freshly-derived key — for a ~4x cheaper brute.
     delta_heap = f"/tmp/kh_{asin}.delta.bin"
     baseline = {}
     dumped = -1
@@ -549,16 +613,8 @@ def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3):
         print(f"  [{asin}] could not open+dump target book — skipping"); return None
     print(f"  [{asin}] delta dump {dumped/1e6:.0f} MB; brute-forcing…")
 
-    # 3. pull content (for brute + repackage) and brute the key.  Try the cheap
-    #    delta first; if it misses (e.g. the key was already resident before the
-    #    baseline, so it sits in unchanged pages), upgrade to a full scudo dump.
-    bookdir = pull_book(asin)
-    prc = mobi_content_file(bookdir) if fmt == "mobi" else None
-    def brute(heap):
-        if fmt == "kfx":
-            return brute_one(heap, bookdir)
-        return brute_mobi(heap, prc, log=vlog) if prc else None
-
+    # try the cheap delta first; on a miss (e.g. the key was resident before the
+    # baseline, so it sits in unchanged pages) upgrade to a full scudo dump.
     key = brute(delta_heap)
     try: os.remove(delta_heap)
     except OSError: pass

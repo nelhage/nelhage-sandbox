@@ -22,6 +22,8 @@ Usage:
   python harvest.py --all [--limit N]           # harvest everything missing a key
                                                 #   (ASINs in ./SKIP are excluded)
   python harvest.py --all --repackage           # also build EPUBs as we go
+  python harvest.py --offline --all --repackage # no device: build EPUBs from
+                                                #   every already-harvested key
   python harvest.py -v --asins B0...            # -v/--verbose: log every command run
 
 Env assumptions (see README): rooted 4KB-page AVD, frida-server running, host
@@ -41,6 +43,12 @@ DEVICE_FILES = f"/data/media/0/Android/data/{PKG}/files"
 READER_ACT = "com.amazon.kcp.reader.StandAloneBookReaderActivity"
 KEYS_TXT = "keys.txt"
 SKIP_TXT = "SKIP"                           # one ASIN per line; excluded from --all
+LIBRARY_DB = "files-4k/kindle_library.db"   # cached copy of the app's library db
+
+# `--offline` never touches the device: it works off the cached library db and
+# the already-pulled files-4k/<asin>/ dirs, so --list / --repackage keep working
+# with no AVD.  harvest_one() short-circuits to None under it (see there).
+OFFLINE = False
 
 # ------------------------------------------------------------- verbose logging
 # `--verbose/-v` turns these on.  vcmd() logs every shell / subprocess / frida
@@ -330,12 +338,18 @@ def brute_one(heap_path, bookdir):
 
 # ------------------------------------------------------------------- inventory
 def pull_library_db():
-    """Copy the app's kindle_library.db off-device and return the local path."""
-    dbp = "/tmp/kh_library.db"
+    """Copy the app's kindle_library.db off-device into files-4k/ and return the
+    local path.  With --offline, skip the device and reuse the cached copy."""
+    if OFFLINE:
+        if not os.path.exists(LIBRARY_DB):
+            raise SystemExit(f"--offline: no cached library db at {LIBRARY_DB}; "
+                             "run once online (e.g. --list) to populate it first")
+        return LIBRARY_DB
+    os.makedirs(os.path.dirname(LIBRARY_DB), exist_ok=True)
     adb(f"cp /data/data/{PKG}/databases/kindle_library.db /data/local/tmp/kl.db; "
         f"chmod 666 /data/local/tmp/kl.db", su=True)
-    run(["adb", "pull", "/data/local/tmp/kl.db", dbp], capture_output=True)
-    return dbp
+    run(["adb", "pull", "/data/local/tmp/kl.db", LIBRARY_DB], capture_output=True)
+    return LIBRARY_DB
 
 def book_state(asin):
     """DB download state for one ASIN (LOCAL once fully downloaded, else REMOTE /
@@ -467,6 +481,12 @@ def ensure_app_home(dev):
 
 def harvest_one(dev, asin, render_wait=15.0, dl_timeout=300, open_tries=3):
     """Download+open+dump+brute one book. Return hex key or None."""
+    # --offline never drives the device: this whole path (download/open/dump)
+    # needs the AVD, so there's nothing to do — callers fall back to any
+    # pre-existing key + already-pulled files-4k/<asin>/ for repackaging.
+    if OFFLINE:
+        print(f"  [{asin}] --offline: no cached key, skipping device harvest")
+        return None
     # 0. bail on non-harvestable TYPEs before touching the app.  --all already
     #    filters these out, but an explicit --asins <pdoc> would otherwise sink a
     #    full dl_timeout waiting for a download that never comes: downloadBook()
@@ -571,6 +591,8 @@ def repackage(asin, hexkey):
     bookdir = f"files-4k/{asin}"
     os.makedirs("out", exist_ok=True)
     epub = f"out/{asin}.epub"
+    if os.path.exists(epub):                 # already built — idempotent re-runs
+        return epub + " (cached)"
     prc = mobi_content_file(bookdir)
     if prc:                                  # Mobipocket/KF8
         stripped = f"out/{asin}.mobi"
@@ -590,13 +612,17 @@ def main():
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--repackage", action="store_true")
+    ap.add_argument("--offline", action="store_true",
+                    help="never touch the device: work off the cached library db "
+                         "and already-pulled books (composes with --list/--repackage)")
     ap.add_argument("--render-wait", type=float, default=8.0)
     ap.add_argument("-v", "--verbose", action="store_true",
                     help="log every shell/frida command as it runs, plus extra detail (to stderr)")
     args = ap.parse_args()
 
-    global VERBOSE
+    global VERBOSE, OFFLINE
     VERBOSE = args.verbose
+    OFFLINE = args.offline
 
     have = loaded_keys()
 
@@ -619,9 +645,12 @@ def main():
         # only real store books (BT_EBOOK) are drivable by-ASIN; skip personal
         # docs / newspapers / samples up front so we don't waste a 300s download
         # timeout on each of them (they never deliver via downloadBook()).
+        # Normally skip books we already cracked; with --repackage keep them —
+        # they're exactly the ones we want to (re)build an EPUB for.
         skip = skip_asins()
         targets = [a for a, t, s, bt in load_inventory()
-                   if a not in have and is_harvestable(bt) and a not in skip]
+                   if is_harvestable(bt) and a not in skip
+                   and (args.repackage or a not in have)]
         if skip:
             print(f"skipping {len(skip)} ASIN(s) from {SKIP_TXT}")
     else:
@@ -632,29 +661,31 @@ def main():
     print(f"harvesting {len(targets)} book(s)")
     vlog(f"targets: {targets}")
 
-    dev = frida.get_usb_device()
+    dev = None if OFFLINE else frida.get_usb_device()
     vlog(f"frida device: {dev}")
     for i, asin in enumerate(targets, 1):
         print(f"[{i}/{len(targets)}] {asin}")
-        if asin in have:
-            print("  already have key"); continue
-        key = None
-        for book_try in range(2):            # one whole-book retry for flaky crashes
-            try:
-                key = harvest_one(dev, asin, render_wait=args.render_wait)
-                break
-            except Exception as e:
-                print(f"  ERROR: {type(e).__name__}: {e}")
-                relaunch(dev)
+        key = have.get(asin)
         if key:
-            with open(KEYS_TXT, "a") as f:
-                f.write(f"{asin} {key}\n")
-            have[asin] = key
-            if args.repackage:
+            print("  already have key")
+        else:                                # no cached key — go get one
+            for book_try in range(2):        # one whole-book retry for flaky crashes
                 try:
-                    print("  ->", repackage(asin, key))
+                    key = harvest_one(dev, asin, render_wait=args.render_wait)
+                    break
                 except Exception as e:
-                    print(f"  repackage failed: {e}")
+                    print(f"  ERROR: {type(e).__name__}: {e}")
+                    relaunch(dev)
+            if key:
+                with open(KEYS_TXT, "a") as f:
+                    f.write(f"{asin} {key}\n")
+                have[asin] = key
+        # repackage any book we hold a key for, freshly harvested or pre-existing
+        if key and args.repackage:
+            try:
+                print("  ->", repackage(asin, key))
+            except Exception as e:
+                print(f"  repackage failed: {e}")
 
 if __name__ == "__main__":
     main()

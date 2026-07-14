@@ -25,3 +25,4 @@ rootAVD.log
 heap.bin
 heap.bin.idx
 *.dump
+SKIP

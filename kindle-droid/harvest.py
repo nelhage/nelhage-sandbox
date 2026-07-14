@@ -20,6 +20,7 @@ Usage:
   python harvest.py --list                      # print library inventory + status
   python harvest.py --asins B003JTHWKU,B0...    # harvest specific ASINs
   python harvest.py --all [--limit N]           # harvest everything missing a key
+                                                #   (ASINs in ./SKIP are excluded)
   python harvest.py --all --repackage           # also build EPUBs as we go
   python harvest.py -v --asins B0...            # -v/--verbose: log every command run
 
@@ -39,6 +40,7 @@ PKG = "com.amazon.kindle"
 DEVICE_FILES = f"/data/media/0/Android/data/{PKG}/files"
 READER_ACT = "com.amazon.kcp.reader.StandAloneBookReaderActivity"
 KEYS_TXT = "keys.txt"
+SKIP_TXT = "SKIP"                           # one ASIN per line; excluded from --all
 
 # ------------------------------------------------------------- verbose logging
 # `--verbose/-v` turns these on.  vcmd() logs every shell / subprocess / frida
@@ -419,6 +421,18 @@ def loaded_keys():
             d[p[0]] = p[1]
     return d
 
+def skip_asins():
+    """ASINs listed in SKIP_TXT (one per line, '#' comments allowed) to exclude
+    from --all — e.g. books that reliably crash or that we don't want."""
+    if not os.path.exists(SKIP_TXT):
+        return set()
+    out = set()
+    for line in open(SKIP_TXT):
+        a = line.split("#", 1)[0].strip()
+        if a:
+            out.add(a)
+    return out
+
 # ---------------------------------------------------------------- per-book job
 def wait_for(pred, timeout, interval=2.0, label=None):
     if label:
@@ -605,8 +619,11 @@ def main():
         # only real store books (BT_EBOOK) are drivable by-ASIN; skip personal
         # docs / newspapers / samples up front so we don't waste a 300s download
         # timeout on each of them (they never deliver via downloadBook()).
+        skip = skip_asins()
         targets = [a for a, t, s, bt in load_inventory()
-                   if a not in have and is_harvestable(bt)]
+                   if a not in have and is_harvestable(bt) and a not in skip]
+        if skip:
+            print(f"skipping {len(skip)} ASIN(s) from {SKIP_TXT}")
     else:
         ap.error("specify --list, --asins, or --all")
 

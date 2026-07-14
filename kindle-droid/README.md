@@ -3,14 +3,37 @@
 Goal: decrypt personally-purchased Kindle books (pulled off a rooted Android
 emulator) into DRM-free EPUBs for personal archival / cross-device use.
 
-**Status: fully automated end-to-end.** The whole library (~757 ebooks, incl.
-680 not-yet-downloaded) can now be harvested unattended by ASIN via `harvest.py`
-— it downloads, opens, dumps, brute-forces the key, and builds the EPUB. Proven
-on both DRM variants and on a fresh not-downloaded REMOTE book (1984, A Psalm for
-the Wild-Built). Keys recovered so far live in `keys.txt`; run
-`python harvest.py --all --repackage` to do the rest. See *Whole-library harvest*.
+## Dependencies
 
----
+You will need a running rooted Android emulator. Install Android Studio and create an AVD. Note that as-of this writing, the Kindle application does not support [16kb pages](https://developer.android.com/guide/practices/page-sizes), and so I used an older image that still uses 4kb pages -- I used specifically `system-images/android-36.1/google_apis_playstore/arm64-v8a/` aka "Google Play ARM 64 v8a System Image" for Android 16.
+
+Root the AVD using [rootAVD.sh](https://gitlab.com/newbit/rootAVD). Note that the bundled Magisk is old; Follow [these instructions](https://falasi.prose.sh/Rooting-an-Android-17-Emulator-in-2026) and use the `FAKEBOOTIMG` flow for newer Android versions.
+
+Once you have Magisk installed and the device is cold-booted, verify that `adb shell su -c id` works (shows UID 0 and a context containing "magisk"). You may need to manually enable it in the Magisk app inside the emulator at first.
+
+Install the Kindle app on the emulator. If you don't want to log in to the Play Store in the emulator, you can use [Aurora](https://f-droid.org/en/packages/com.aurora.store/) to access the store without logging in.
+
+Make sure `adb` is in your path, and the Python dependencies are installed, and then you should be able to use `harvest.py`. Sample usage:
+
+```
+# List all books in your library
+python harvest.py --list
+# Download one or more books, and find the encryption key
+python harvest.py --asins BXXXX,BYYYY
+
+# In addition, decrypt the book and repackage as an EPUB
+# Decrypted books will end up in `out/`
+python harvest.py --asins BXXXX,BYYYY --repackage
+
+# Operate on all books in your kindle library
+python harvest.py --all --repackage
+
+# If you want to skip specific books from `--all`, place their ASINs in the `SKIP` file, one per line, with an optional comment after a `#`
+```
+
+If you have any issues or questions, ask Claude (I've been using Claude Code with Opus 4.8).
+
+# Claude-written notes
 
 ## TL;DR of what we learned
 
@@ -45,27 +68,6 @@ Two facts worth reusing:
   16-byte *content* key persists (KRF keeps it for rendering), so we recover that.
 - KRF keeps only ~2–3 content keys cached at once (older books get evicted), so
   dump right after opening each book.
-
----
-
-## Book inventory (this device)
-
-Device: `sdk_gphone64_arm64` AVD, 4 KB pages, arm64, rooted (Magisk `su`).
-Content lives at `/data/media/0/Android/data/com.amazon.kindle/files/<ASIN>/`.
-Pulled copies are in `files-4k/<ASIN>/`.
-
-| ASIN | Title | Lock | Content key | EPUB |
-|------|-------|------|-------------|------|
-| B08V4QSV6W | The Dungeon Anarchist's Cookbook (DCC 3) | none | `2a510506b37a41542b77af4eac22e3b6` | ✅ |
-| B0FPCCYTL1 | Radiant Star (Ann Leckie) | CLIENT_ID | `80e3839aca3829c443bf19e241c87aa0` | ✅ |
-| B0G3S65GF9 | Out Law: A Dresden Files Novella | CLIENT_ID | `76294209551df704c3be13255efdedc5` | ✅ |
-| B08PBCD9Y7 | Carl's Doomsday Scenario (DCC 2) | none | — | ⬜ |
-| B093DJ7F3C | The Gate of the Feral Gods (DCC 4) | none | — | ⬜ |
-| B09R6C5X88 | The Butcher's Masquerade (DCC 5) | none | — | ⬜ |
-| B0F5PCZ5BW | Hell's Heart (Alexis Hall) | none | — | ⬜ |
-| B0FMSC5S4W | Platform Decay (Murderbot 8) | none | — | ⬜ |
-
-Recovered keys live in `keys.txt` (`<ASIN> <hexkey>` per line).
 
 ---
 

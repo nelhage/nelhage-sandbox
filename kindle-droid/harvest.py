@@ -40,7 +40,7 @@ Usage:
 Env assumptions (see README): rooted 4KB-page AVD, frida-server running, host
 frida venv active, `setenforce 0`.  krx_agent.js + dump_mem.js in cwd.
 """
-import argparse, glob, os, shlex, subprocess, sys, threading, time
+import argparse, glob, os, shlex, shutil, subprocess, sys, threading, time
 import numpy as np
 import frida
 from Crypto.Cipher import AES
@@ -167,6 +167,12 @@ def book_format(asin):
 def pull_book(asin, dest_parent="files-4k"):
     """Pull the device book dir into files-4k/<asin>/ (needed for brute + repackage)."""
     dest = os.path.join(dest_parent, asin)
+    # Clean any prior pull first.  A re-download (removeDownload + download)
+    # issues content fragments under NEW CR! ids, so a plain additive pull would
+    # leave the previous download's stale CR!*.kfx alongside the fresh ones —
+    # repackage then feeds those stale fragments the new key and fails with
+    # "Incorrect padding - Wrong key".
+    shutil.rmtree(dest, ignore_errors=True)
     os.makedirs(dest, exist_ok=True)
     # copy to a world-readable staging dir first (app dir is private)
     stage = f"/data/local/tmp/kh_{asin}"
@@ -524,7 +530,8 @@ def ensure_app_home(dev):
         adb("input keyevent KEYCODE_BACK")
         time.sleep(1.5)
 
-def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3):
+def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3,
+                no_redownload=False):
     """Download+open+dump+brute one book. Return hex key or None."""
     # --offline never drives the device: this whole path (download/open/dump)
     # needs the AVD, so there's nothing to do — callers fall back to any
@@ -666,11 +673,46 @@ def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3):
             key = brute(full_heap)
         try: os.remove(full_heap)
         except OSError: pass
+    # last resort (KFX): the key was never derived into this process's heap —
+    # e.g. the book was downloaded in a PRIOR session and re-opening it doesn't
+    # re-derive the key.  Remove the stale download and re-fetch it FRESH; the key
+    # is derived at download time, so a plain dump then finds it (the fast path).
+    if key is None and fmt == "kfx" and not no_redownload:
+        hexkey = redownload_and_recover(dev, asin)
+        if hexkey:
+            print(f"  [{asin}] *** KEY {hexkey} (after re-download) ***")
+            return hexkey
+
     if key is None:
         print(f"  [{asin}] KEY NOT FOUND"); return None
     hexkey = key.hex()
     print(f"  [{asin}] *** KEY {hexkey} ***")
     return hexkey
+
+def redownload_and_recover(dev, asin, dl_timeout=300):
+    """Remove a book's (stale) local download and re-fetch it fresh so the app
+    re-derives the content key at download time, then dump + brute.  Returns the
+    hex key or None.  This is the automated form of the manual 'Remove Download +
+    re-download' recovery for KFX books whose key the open+render path can't find
+    (the key was only ever derived at some prior session's download)."""
+    print(f"  [{asin}] removing download + re-fetching to re-derive the key…")
+    # frida-python maps the snake_case accessor to the JS removeDownload export.
+    agent_call(dev, "remove_download", asin)
+    wait_for(lambda: book_format(asin) is None, 60, 2.0, label="download removed")
+    agent_call(dev, "download", asin)
+    if not wait_for(lambda: book_state(asin) == "LOCAL", dl_timeout, 1.5,
+                    label="re-download (STATE=LOCAL)"):
+        print(f"  [{asin}] re-download did not land — giving up"); return None
+    bookdir = pull_book(asin)                       # fresh content (new CR! id)
+    heap = f"/tmp/kh_{asin}.redl.bin"
+    key = None
+    n = verify_and_dump(dev, asin, heap, baseline=None, verify=False)
+    if n > 0:
+        print(f"  [{asin}] re-download dump {n/1e6:.0f} MB; brute-forcing…")
+        key = brute_one(heap, bookdir, aligns=(16,))
+    try: os.remove(heap)
+    except OSError: pass
+    return key.hex() if key else None
 
 def mobi_content_file(bookdir):
     """The single Mobipocket/KF8 content file in a pulled book dir, or None."""
@@ -729,6 +771,10 @@ def main():
                     help="never touch the device: work off the cached library db "
                          "and already-pulled books (composes with --list/--repackage)")
     ap.add_argument("--render-wait", type=float, default=5.0)
+    ap.add_argument("--no-redownload", action="store_true",
+                    help="don't try removing + re-fetching a KFX book whose key "
+                         "the open+render path can't find (the re-download re-"
+                         "derives the key, but costs a full fresh download)")
     ap.add_argument("-v", "--verbose", action="store_true",
                     help="log every shell/frida command as it runs, plus extra detail (to stderr)")
     args = ap.parse_args()
@@ -784,7 +830,8 @@ def main():
         else:                                # no cached key — go get one
             for book_try in range(2):        # one whole-book retry for flaky crashes
                 try:
-                    key = harvest_one(dev, asin, render_wait=args.render_wait)
+                    key = harvest_one(dev, asin, render_wait=args.render_wait,
+                                      no_redownload=args.no_redownload)
                     break
                 except Exception as e:
                     print(f"  ERROR: {type(e).__name__}: {e}")

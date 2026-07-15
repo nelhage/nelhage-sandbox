@@ -83,6 +83,28 @@ rpc.exports = {
     });
   },
 
+  // Remove the LOCAL download for a book (mirrors the app's "Remove Download"):
+  // deletes the on-disk content and flips the library entry back to REMOTE, but
+  // keeps it in the library.  A subsequent download() then re-fetches it FRESH,
+  // which re-derives the content key into the heap — the fix for books whose key
+  // was only ever derived at a prior session's download and never re-derived on
+  // re-open (fast path + render both miss).  deleteContentLocally lives on the
+  // concrete LibraryManager (not the interface getLibraryManager() binds) and
+  // wants the content id (AMZNID0/<asin>/0/ from getBookId()), not the ASIN.
+  removeDownload(asin) {
+    return new Promise((resolve) => {
+      Java.perform(() => onMain(() => {
+        const sdk = findSDK();
+        const LM = Java.use('com.amazon.kindle.krx.library.LibraryManager');
+        const lm = Java.cast(sdk.getLibraryManager(), LM);
+        const book = lm.getContentFromAsin(asin, false);
+        if (!book) return { ok: false, err: 'no book for asin' };
+        lm.deleteContentLocally('' + book.getBookId());
+        return { ok: true, title: '' + book.getTitle() };
+      }).then(resolve).catch((e) => resolve({ ok: false, err: '' + e })));
+    });
+  },
+
   open(asin) {
     return new Promise((resolve) => {
       Java.perform(() => onMain(() => {

@@ -134,7 +134,7 @@ def make_full_test(book):
 
 
 def scan_heap(heap_path, book, log=lambda *_: None, prefix=24,
-              min_uniq=13, max_printable=10):
+              min_uniq=13, max_printable=10, aligns=(16, 8, 4, 1)):
     """Find every 16-byte heap window that decrypts the book's text records.
 
     Two-stage: (1) a vectorised PC1 + short HUFF/CDIC decode of record 1's prefix
@@ -154,7 +154,7 @@ def scan_heap(heap_path, book, log=lambda *_: None, prefix=24,
     cheap = _build_reader(comp, dict_secs, expand=True)   # reused, read-only
     full_test = make_full_test(book)
     hits, seen = [], set()
-    for align in (16, 8, 4, 1):
+    for align in aligns:
         idx = np.arange(0, len(buf) - 15, align)
         W = np.stack([buf[idx + j] for j in range(16)], axis=1)
         srt = np.sort(W, axis=1)

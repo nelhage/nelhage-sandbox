@@ -127,19 +127,36 @@ def top_activity():
     vlog("top activity: <none found>")
     return ""
 
-# Content-file extensions we recognise.  Only KFX is harvestable by this tool
-# (DRMION content keys live in CR!*.kfx); the app also delivers legacy
-# Mobipocket/KF8 books as <asin>_EBOK.prc / .azw / .azw3, which use a different
-# (older, separately-reversed) DRM scheme this tool doesn't handle.
+# Content-file extensions that carry the actual book.  A .prc / .azw / .azw3
+# extension is NOT enough to know the format: the app delivers both legacy
+# Mobipocket/KF8 (PalmDB "BOOKMOBI", crypto type 2 — handled by mobidrm) AND
+# Topaz ("TPZ0" magic — a wholly different, unsupported DRM) under a .prc name.
+# So we sniff the file magic, not just the extension.
 _MOBI_EXTS = {"prc", "azw", "azw3", "mobi"}
 
 def book_format(asin):
-    """Classify the on-disk content in files/<asin>/ as 'kfx', 'mobi', or None
-    (no recognised content file present — not downloaded, or some other format).
-    Sidecars (.apnx/.phl/.asc/.db/.ser/.ast/.metadata) are ignored."""
-    out = adb(f"ls {DEVICE_FILES}/{asin}/ 2>/dev/null", su=True)
-    exts = {name.rsplit(".", 1)[-1].lower() for name in out.split() if "." in name}
-    fmt = "kfx" if "kfx" in exts else "mobi" if exts & _MOBI_EXTS else None
+    """Classify the on-disk content in files/<asin>/ as one of:
+      'kfx'   — KFX container (DRMION content key; brute_one + repackage.py)
+      'mobi'  — Mobipocket/KF8, PalmDB 'BOOKMOBI' (brute_mobi + mobidrm)
+      'topaz' — Topaz 'TPZ0' container (a .prc/.azw, but NOT Mobipocket; this
+                tool has no Topaz DRM support, so callers skip it cleanly)
+      None    — no recognised content file (not downloaded, or something else)
+    Sidecars (.apnx/.phl/.asc/.db/.ser/.ast/.metadata) are ignored.  For the
+    ambiguous mobi-ish extensions we read the file's first bytes to tell a real
+    Mobipocket from a Topaz book (both ship as <asin>_EBOK.prc)."""
+    d = f"{DEVICE_FILES}/{asin}"
+    names = adb(f"ls {d}/ 2>/dev/null", su=True).split()
+    exts = {n.rsplit(".", 1)[-1].lower() for n in names if "." in n}
+    if "kfx" in exts:
+        fmt = "kfx"
+    elif exts & _MOBI_EXTS:
+        cf = next((n for n in names if n.rsplit(".", 1)[-1].lower() in _MOBI_EXTS), None)
+        # Topaz starts with 'TPZ0'; Mobipocket has 'BOOKMOBI' at offset 0x3C.
+        hexs = adb(f"head -c 64 {shlex.quote(d + '/' + cf)} | xxd -p", su=True) if cf else ""
+        head = bytes.fromhex("".join(hexs.split())) if hexs.strip() else b""
+        fmt = "topaz" if head[:4] == b"TPZ0" else "mobi"
+    else:
+        fmt = None
     vlog(f"book_format({asin}) = {fmt!r} (exts={sorted(exts)})")
     return fmt
 
@@ -545,8 +562,10 @@ def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3):
     #     Both open+dump+brute identically below; only the brute + repackage differ.
     fmt = book_format(asin)
     if fmt not in ("kfx", "mobi"):
-        print(f"  [{asin}] format is {fmt or 'unknown'!r} — skipping; this "
-              f"harvester handles KFX and Mobipocket/KF8")
+        why = ("Topaz (TPZ0) — no Topaz DRM support" if fmt == "topaz"
+               else f"format is {fmt or 'unknown'!r}")
+        print(f"  [{asin}] {why} — skipping; this harvester handles KFX and "
+              f"Mobipocket/KF8")
         return None
 
     # content is on disk now — pull it (needed for the brute's test pages and for

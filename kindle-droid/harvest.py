@@ -54,6 +54,10 @@ DEVICE_FILES = f"/data/media/0/Android/data/{PKG}/files"
 READER_ACT = "com.amazon.kcp.reader.StandAloneBookReaderActivity"
 KEYS_TXT = "keys.txt"
 SKIP_TXT = "SKIP"                           # one ASIN per line; excluded from --all
+# Sentinel "key" for a DRM-free (Mobipocket crypto type 0) book: there's no key
+# to recover, so harvest_one returns this and repackage() converts the raw .prc.
+# Stored in keys.txt like a real key so re-runs skip re-harvesting it.
+NODRM = "nodrm"
 LIBRARY_DB = "files-4k/kindle_library.db"   # cached copy of the app's library db
 
 # `--offline` never touches the device: it works off the cached library db and
@@ -578,6 +582,22 @@ def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3):
             return brute_one(heap, bookdir)
         return brute_mobi(heap, prc, log=vlog) if prc else None
 
+    # 1c. Mobipocket books can be DRM-free.  The encryption flag (0=none,
+    #     1=legacy, 2=Amazon DRM) decides: only type 2 needs a heap key.  Type 0
+    #     is unencrypted — there's nothing to brute, no need to even open/render;
+    #     signal NODRM so repackage() converts the .prc straight to EPUB.  (This
+    #     is why public-domain titles like the Divine Comedy showed up as a hard
+    #     "crypto type 0 not supported" crash from brute_mobi before.)  Any other
+    #     type we can't handle — skip cleanly instead of crashing.
+    if fmt == "mobi":
+        ct = mobi_crypto_type(prc) if prc else -1
+        if ct == 0:
+            print(f"  [{asin}] Mobipocket, no DRM (crypto type 0) — no key needed")
+            return NODRM
+        if ct != 2:
+            print(f"  [{asin}] Mobipocket crypto type {ct} unsupported — skipping")
+            return None
+
     # 2. FAST PATH (KFX only) — no render needed.  The content key is derived and
     #    cached in the native heap at DOWNLOAD time, not at render time (see NOTES):
     #    a freshly-downloaded book already has its key resident.  So try a plain
@@ -659,10 +679,25 @@ def mobi_content_file(bookdir):
             return f
     return None
 
+def mobi_crypto_type(prc):
+    """Mobipocket encryption flag from the PalmDB record-0 header: 0=none,
+    1=legacy Mobipocket, 2=Amazon DRM.  -1 if the file isn't parseable as
+    Mobipocket (e.g. a Topaz .prc, which book_format already routes away)."""
+    from mobidrm.mobidedrm import MobiBook
+    import struct
+    try:
+        ct, = struct.unpack(">H", MobiBook(prc).sect[0xC:0xE])
+        vlog(f"mobi_crypto_type({os.path.basename(prc)}) = {ct}")
+        return ct
+    except Exception as e:
+        vlog(f"mobi_crypto_type({os.path.basename(prc)}): {type(e).__name__}: {e}")
+        return -1
+
 def repackage(asin, hexkey):
-    """DRM-strip a recovered book to EPUB.  Dispatches on the pulled content's
+    """Turn a recovered book into an EPUB.  Dispatches on the pulled content's
     format: KFX -> repackage.py (.kfx-zip) -> calibre; Mobipocket/KF8 ->
-    mobidrm.decrypt_with_key (.mobi) -> calibre."""
+    mobidrm.decrypt_with_key (.mobi) -> calibre.  A NODRM 'key' means the .prc
+    is unencrypted (crypto type 0) — convert it straight through, no stripping."""
     bookdir = f"files-4k/{asin}"
     os.makedirs("out", exist_ok=True)
     epub = f"out/{asin}.epub"
@@ -670,6 +705,9 @@ def repackage(asin, hexkey):
         return epub + " (cached)"
     prc = mobi_content_file(bookdir)
     if prc:                                  # Mobipocket/KF8
+        if hexkey == NODRM:                  # unencrypted — no key to strip
+            run(["ebook-convert", prc, epub], check=True)
+            return epub
         stripped = f"out/{asin}.mobi"
         decrypt_with_key(prc, bytes.fromhex(hexkey), stripped)
         run(["ebook-convert", stripped, epub], check=True)

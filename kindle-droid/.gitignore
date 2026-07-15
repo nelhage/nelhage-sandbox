@@ -26,3 +26,6 @@ heap.bin
 heap.bin.idx
 *.dump
 SKIP
+scratch/
+*.log
+harvest.all.log

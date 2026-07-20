@@ -786,10 +786,17 @@ def main():
     have = loaded_keys()
 
     if args.list:
+        skip = skip_asins()
         inv = load_inventory()
         for asin, title, state, btype in inv:
-            mark = ("KEY" if asin in have else
-                    "   " if is_harvestable(btype) else "SKP")
+            if asin in have:
+                mark = "KEY"
+            elif asin in skip:
+                mark = "SKP"
+            elif is_harvestable(btype):
+                mark = "   "
+            else:
+                mark = "IGN"
             # tag non-harvestable rows with their TYPE (PDOC/NEWSPAPER/SAMPLE)
             tag = "" if is_harvestable(btype) else f" [{btype.replace('BT_EBOOK_','')}]"
             print(f"{mark} {asin} {state:6} {title[:60]}{tag}")

@@ -10,6 +10,9 @@ Mobipocket/KF8 (some titles land as <asin>_EBOK.prc): the key is the crypto-
 type-2 MOBI key, recovered from heap the same way (mobidrm.brute_mobi, since this
 app version's account secrets are AES-GCM-wrapped and out of DeDRM's offline
 reach) and stripped with vendored DeDRM (mobidrm.decrypt_with_key) -> calibre.
+Topaz (legacy titles, also <asin>_EBOK.prc but 'TPZ0' magic): the key is the
+8-byte bookKey, recovered from heap with a zlib-oracle brute (topazdrm.brute_topaz)
+and decrypted + converted with vendored DeDRM (topazdrm -> .htmlz) -> calibre.
 
 Two paths to get the key into (and out of) the native heap:
 
@@ -24,8 +27,9 @@ Two paths to get the key into (and out of) the native heap:
   so nothing this process derived it), actually render it: attach frida, call
   krx_agent open(asin), DETACH IMMEDIATELY (frida attached during the async load
   blocks the render), then the reader foregrounds + renders on its own and KRF
-  caches the key; dump the delta and brute.  Mobipocket/KF8 always uses this
-  path (its brute is minutes-long, not worth running speculatively).
+  caches the key; dump the delta and brute.  Mobipocket/KF8 and Topaz always use
+  this path — their keys are derived at render, not download (and the mobi brute
+  is minutes-long, not worth running speculatively).
 
 Usage:
   python harvest.py --list                      # print library inventory + status
@@ -48,6 +52,7 @@ from Crypto.Cipher import AES
 import androidvoucher as A
 from amazon.ion import simpleion
 from mobidrm import brute_mobi, decrypt_with_key
+from topazdrm import brute_topaz, decrypt_to_htmlz, is_topaz
 
 PKG = "com.amazon.kindle"
 DEVICE_FILES = f"/data/media/0/Android/data/{PKG}/files"
@@ -134,16 +139,16 @@ def top_activity():
 # Content-file extensions that carry the actual book.  A .prc / .azw / .azw3
 # extension is NOT enough to know the format: the app delivers both legacy
 # Mobipocket/KF8 (PalmDB "BOOKMOBI", crypto type 2 — handled by mobidrm) AND
-# Topaz ("TPZ0" magic — a wholly different, unsupported DRM) under a .prc name.
-# So we sniff the file magic, not just the extension.
+# Topaz ("TPZ0" magic — a wholly different container/DRM, handled by topazdrm)
+# under a .prc name.  So we sniff the file magic, not just the extension.
 _MOBI_EXTS = {"prc", "azw", "azw3", "mobi"}
 
 def book_format(asin):
     """Classify the on-disk content in files/<asin>/ as one of:
       'kfx'   — KFX container (DRMION content key; brute_one + repackage.py)
       'mobi'  — Mobipocket/KF8, PalmDB 'BOOKMOBI' (brute_mobi + mobidrm)
-      'topaz' — Topaz 'TPZ0' container (a .prc/.azw, but NOT Mobipocket; this
-                tool has no Topaz DRM support, so callers skip it cleanly)
+      'topaz' — Topaz 'TPZ0' container (a .prc/.azw, but NOT Mobipocket;
+                8-byte bookKey via brute_topaz + topazdrm -> htmlz -> calibre)
       None    — no recognised content file (not downloaded, or something else)
     Sidecars (.apnx/.phl/.asc/.db/.ser/.ast/.metadata) are ignored.  For the
     ambiguous mobi-ish extensions we read the file's first bytes to tell a real
@@ -443,6 +448,19 @@ def book_type(asin):
     vlog(f"book_type({asin}) = {t!r}")
     return t
 
+def book_meta(asin):
+    """(TITLE, AUTHOR) from the library db, ('', '') if absent.  Used to stamp
+    metadata onto formats that don't carry usable title/author (Topaz)."""
+    import sqlite3
+    con = sqlite3.connect(pull_library_db())
+    row = con.execute("SELECT TITLE, AUTHOR FROM KindleContent WHERE ID LIKE ? "
+                      "ORDER BY STATE='LOCAL' DESC LIMIT 1",
+                      (f"%/{asin}/%",)).fetchone()
+    con.close()
+    title, author = (row or (None, None))
+    vlog(f"book_meta({asin}) = ({title!r}, {author!r})")
+    return title or "", author or ""
+
 def is_harvestable(btype):
     """True for the TYPEs this KFX harvester can drive by-ASIN (store books only;
     personal docs / newspapers / samples are skipped -- see HARVESTABLE_TYPE)."""
@@ -451,21 +469,23 @@ def is_harvestable(btype):
 # The DB's CONTENT_TYPE column names the DRM/container format directly, so we can
 # tell a supported book from an unsupported one straight from the catalog (no
 # need to download + sniff magic -- see book_format for the on-disk equivalent).
-# We can decrypt KFX (DRMION key) and Mobipocket/KF8 (crypto-type-2 MOBI key);
-# Topaz, PDF and periodical subscriptions have no support here.
+# We can decrypt KFX (DRMION key), Mobipocket/KF8 (crypto-type-2 MOBI key) and
+# Topaz (8-byte bookKey) — all recovered from the app's heap.  PDF and periodical
+# subscriptions have no support here.
 SUPPORTED_CONTENT_TYPES = {
     "application/x-kfx-ebook":        "KFX",
     "application/x-mobipocket-ebook": "MOBI",
     "application/x-mobi8-ebook":      "KF8",
+    "application/x-topaz-ebook":      "TOPAZ",
 }
 _DRM_LABEL = {
-    "application/x-topaz-ebook":             "TOPAZ",
     "application/pdf":                       "PDF",
     "application/x-mobipocket-subscription": "SUBSCRIPTION",
 }
 
 def is_supported_drm(ctype):
-    """True for CONTENT_TYPEs this harvester can decrypt (KFX / Mobipocket / KF8)."""
+    """True for CONTENT_TYPEs this harvester can decrypt (KFX / Mobipocket / KF8
+    / Topaz)."""
     return ctype in SUPPORTED_CONTENT_TYPES
 
 def drm_label(ctype):
@@ -601,21 +621,23 @@ def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3,
     #     the same way from heap (brute_mobi) and strip with vendored DeDRM.
     #     Both open+dump+brute identically below; only the brute + repackage differ.
     fmt = book_format(asin)
-    if fmt not in ("kfx", "mobi"):
-        why = ("Topaz (TPZ0) — no Topaz DRM support" if fmt == "topaz"
-               else f"format is {fmt or 'unknown'!r}")
-        print(f"  [{asin}] {why} — skipping; this harvester handles KFX and "
-              f"Mobipocket/KF8")
+    if fmt not in ("kfx", "mobi", "topaz"):
+        print(f"  [{asin}] format is {fmt or 'unknown'!r} — skipping; this "
+              f"harvester handles KFX, Mobipocket/KF8 and Topaz")
         return None
 
     # content is on disk now — pull it (needed for the brute's test pages and for
     # repackage) and wire up the format-appropriate brute once, shared by both the
-    # fast path and the open+render fallback below.
+    # fast path and the open+render fallback below.  Topaz and Mobipocket both
+    # ship as <asin>_EBOK.prc; the brute + repackage differ (Topaz = 8-byte
+    # bookKey + zlib oracle; Mobi = 16-byte PC1 key), the open+render+dump is shared.
     bookdir = pull_book(asin)
-    prc = mobi_content_file(bookdir) if fmt == "mobi" else None
+    prc = mobi_content_file(bookdir) if fmt in ("mobi", "topaz") else None
     def brute(heap):
         if fmt == "kfx":
             return brute_one(heap, bookdir)
+        if fmt == "topaz":
+            return brute_topaz(heap, prc, log=vlog) if prc else None
         return brute_mobi(heap, prc, log=vlog) if prc else None
 
     # 1c. Mobipocket books can be DRM-free.  The encryption flag (0=none,
@@ -775,7 +797,18 @@ def repackage(asin, hexkey):
     if os.path.exists(epub):                 # already built — idempotent re-runs
         return epub + " (cached)"
     prc = mobi_content_file(bookdir)
-    if prc:                                  # Mobipocket/KF8
+    if prc and is_topaz(prc):                # Topaz (TPZ0)
+        # 8-byte bookKey -> decrypt + genbook -> HTML book (.htmlz) -> calibre.
+        # Topaz carries no usable title/author metadata, so stamp them from the
+        # library db.
+        htmlz = f"out/{asin}.htmlz"
+        decrypt_to_htmlz(prc, hexkey, htmlz)
+        title, author = book_meta(asin)
+        cmd = ["ebook-convert", htmlz, epub]
+        if title:  cmd += ["--title", title]
+        if author: cmd += ["--authors", author]
+        run(cmd, check=True)
+    elif prc:                                # Mobipocket/KF8
         if hexkey == NODRM:                  # unencrypted — no key to strip
             run(["ebook-convert", prc, epub], check=True)
             return epub

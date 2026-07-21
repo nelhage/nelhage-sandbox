@@ -448,32 +448,61 @@ def is_harvestable(btype):
     personal docs / newspapers / samples are skipped -- see HARVESTABLE_TYPE)."""
     return btype == HARVESTABLE_TYPE
 
+# The DB's CONTENT_TYPE column names the DRM/container format directly, so we can
+# tell a supported book from an unsupported one straight from the catalog (no
+# need to download + sniff magic -- see book_format for the on-disk equivalent).
+# We can decrypt KFX (DRMION key) and Mobipocket/KF8 (crypto-type-2 MOBI key);
+# Topaz, PDF and periodical subscriptions have no support here.
+SUPPORTED_CONTENT_TYPES = {
+    "application/x-kfx-ebook":        "KFX",
+    "application/x-mobipocket-ebook": "MOBI",
+    "application/x-mobi8-ebook":      "KF8",
+}
+_DRM_LABEL = {
+    "application/x-topaz-ebook":             "TOPAZ",
+    "application/pdf":                       "PDF",
+    "application/x-mobipocket-subscription": "SUBSCRIPTION",
+}
+
+def is_supported_drm(ctype):
+    """True for CONTENT_TYPEs this harvester can decrypt (KFX / Mobipocket / KF8)."""
+    return ctype in SUPPORTED_CONTENT_TYPES
+
+def drm_label(ctype):
+    """Short human tag for a CONTENT_TYPE (e.g. 'KFX', 'TOPAZ', 'PDF'), for --list."""
+    if ctype in SUPPORTED_CONTENT_TYPES:
+        return SUPPORTED_CONTENT_TYPES[ctype]
+    if ctype in _DRM_LABEL:
+        return _DRM_LABEL[ctype]
+    return (ctype or "?").rsplit("/", 1)[-1].replace("x-", "").upper()
+
 def load_inventory():
-    """Return list of (asin, title, state, btype) for ebook-shaped entries, from a
-    pulled library db.  Non-harvestable TYPEs (PDOC/NEWSPAPER/SAMPLE) are included
-    so --list can show them, but callers should filter with is_harvestable()."""
+    """Return list of (asin, title, state, btype, ctype) for ebook-shaped entries,
+    from a pulled library db.  Non-harvestable TYPEs (PDOC/NEWSPAPER/SAMPLE) and
+    unsupported DRM/container formats (Topaz/PDF) are included so --list can show
+    them, but callers should filter with is_harvestable() + is_supported_drm()."""
     import sqlite3
     con = sqlite3.connect(pull_library_db())
     rows = con.execute(
-        "SELECT ID, TITLE, STATE, TYPE FROM KindleContent "
+        "SELECT ID, TITLE, STATE, TYPE, CONTENT_TYPE FROM KindleContent "
         "WHERE TYPE LIKE '%EBOOK%' ORDER BY STATE, TITLE").fetchall()
     con.close()
     out, seen = [], {}
-    for cid, title, state, btype in rows:
+    for cid, title, state, btype, ctype in rows:
         parts = cid.split("/")
         asin = parts[1] if len(parts) > 1 else cid
         # an ASIN can appear as several rows (e.g. a stale FAILED_RETRYABLE +
         # the real LOCAL/REMOTE one); keep one, preferring a downloaded state.
         if asin in seen:
             if state == "LOCAL" and out[seen[asin]][2] != "LOCAL":
-                out[seen[asin]] = (asin, title, state, btype)
+                out[seen[asin]] = (asin, title, state, btype, ctype)
             continue
         seen[asin] = len(out)
-        out.append((asin, title, state, btype))
-    n_harv = sum(is_harvestable(b) for _, _, _, b in out)
-    vlog(f"inventory: {len(out)} ebook entries ({n_harv} harvestable BT_EBOOK, "
-         f"{len(out)-n_harv} pdoc/newspaper/sample skipped, "
-         f"{sum(s=='LOCAL' for _,_,s,_ in out)} LOCAL) from {len(rows)} db rows")
+        out.append((asin, title, state, btype, ctype))
+    n_harv = sum(is_harvestable(b) and is_supported_drm(c) for _, _, _, b, c in out)
+    vlog(f"inventory: {len(out)} ebook entries ({n_harv} harvestable, "
+         f"{len(out)-n_harv} skipped for TYPE/DRM, "
+         f"{sum(s=='LOCAL' for _,_,s,_,_ in out)} LOCAL) from {len(rows)} db rows")
     return out
 
 def loaded_keys():
@@ -788,19 +817,25 @@ def main():
     if args.list:
         skip = skip_asins()
         inv = load_inventory()
-        for asin, title, state, btype in inv:
+        for asin, title, state, btype, ctype in inv:
             if asin in have:
                 mark = "KEY"
             elif asin in skip:
                 mark = "SKP"
-            elif is_harvestable(btype):
+            elif is_harvestable(btype) and is_supported_drm(ctype):
                 mark = "   "
             else:
                 mark = "IGN"
-            # tag non-harvestable rows with their TYPE (PDOC/NEWSPAPER/SAMPLE)
-            tag = "" if is_harvestable(btype) else f" [{btype.replace('BT_EBOOK_','')}]"
+            # note WHY a row is ignored: non-ebook TYPE (PDOC/NEWSPAPER/SAMPLE),
+            # or a harvestable book in an unsupported DRM format (Topaz/PDF)
+            if not is_harvestable(btype):
+                tag = f" [{btype.replace('BT_EBOOK_','')}]"
+            elif not is_supported_drm(ctype):
+                tag = f" [{drm_label(ctype)}]"
+            else:
+                tag = ""
             print(f"{mark} {asin} {state:6} {title[:60]}{tag}")
-        n_harv = sum(is_harvestable(b) for _, _, _, b in inv)
+        n_harv = sum(is_harvestable(b) and is_supported_drm(c) for _, _, _, b, c in inv)
         print(f"\n{len(inv)} ebook entries ({n_harv} harvestable); "
               f"{len(have)} keys recovered")
         return
@@ -808,14 +843,15 @@ def main():
     if args.asins:
         targets = args.asins.split(",")
     elif args.all:
-        # only real store books (BT_EBOOK) are drivable by-ASIN; skip personal
-        # docs / newspapers / samples up front so we don't waste a 300s download
-        # timeout on each of them (they never deliver via downloadBook()).
+        # only real store books (BT_EBOOK) in a supported DRM format are drivable
+        # by-ASIN; skip personal docs / newspapers / samples (never deliver via
+        # downloadBook()) and unsupported formats (Topaz/PDF, which we can't
+        # decrypt) up front so we don't waste a 300s download timeout on each.
         # Normally skip books we already cracked; with --repackage keep them —
         # they're exactly the ones we want to (re)build an EPUB for.
         skip = skip_asins()
-        targets = [a for a, t, s, bt in load_inventory()
-                   if is_harvestable(bt) and a not in skip
+        targets = [a for a, t, s, bt, ct in load_inventory()
+                   if is_harvestable(bt) and is_supported_drm(ct) and a not in skip
                    and (args.repackage or a not in have)]
         if skip:
             print(f"skipping {len(skip)} ASIN(s) from {SKIP_TXT}")

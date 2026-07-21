@@ -35,19 +35,6 @@ struct regframe {
     uint64_t lr;     // x30
 };
 
-// ---- milestone configuration -------------------------------------------
-// M1 target is KRF's storage AES_set_encrypt_key(key=x0, bits=x1, ctx=x2):
-// the key pointer is in x0 and the key length in bits is in x1 (128 or 256).
-// For an M3 (real DRM AES) target, redefine these to match that routine's ABI.
-#ifndef KEY_REG
-#define KEY_REG 0        // register index holding the key pointer
-#endif
-#ifndef LEN_MODE_BITS
-#define LEN_MODE_BITS 1  // 1: LEN_REG holds key length in BITS; 0: in BYTES
-#endif
-#ifndef LEN_REG
-#define LEN_REG 1        // register index holding the key length
-#endif
 #ifndef LOOT_PATH
 #define LOOT_PATH "/data/local/tmp/loot.bin"
 #endif
@@ -58,12 +45,28 @@ struct regframe {
 // Cap so a bogus length never makes us read/write unbounded memory.
 #define MAX_KEY_LEN 64
 
+// Runtime config, written by the installer (install_hook.js) before it patches
+// the target, so ONE .so handles any routine's ABI without a rebuild.
+//   key_reg   : register index (x[0..8]) holding the key pointer
+//   len_mode  : 0 = fixed `len_val` bytes
+//               1 = x[len_val] holds key length in BITS  (AES: bits/8)
+//               2 = x[len_val] holds key length in BYTES
+//               3 = std::string at x[key_reg]: read the libc++ SSO string
+//   len_val   : fixed length, or the length-register index (per len_mode)
+// Default = KRF storage AES_set_encrypt_key(key=x0, bits=x1).
+struct hookcfg {
+    uint32_t key_reg;
+    uint32_t len_mode;
+    uint32_t len_val;
+};
+__attribute__((visibility("default"), used))
+volatile struct hookcfg g_cfg = { 0, 1, 1 };
+
 // Append a length-prefixed record { u32 len; key bytes } to the loot file.
 // Length-prefixed so repeated captures accumulate and the host can split them.
 static void loot_append(const uint8_t *key, uint32_t len) {
     int fd = open(LOOT_PATH, O_WRONLY | O_CREAT | O_APPEND, 0666);
     if (fd < 0) return;
-    // Best-effort; short writes on a small local file are not a concern here.
     (void)write(fd, &len, sizeof(len));
     (void)write(fd, key, len);
     close(fd);
@@ -71,16 +74,33 @@ static void loot_append(const uint8_t *key, uint32_t len) {
 
 __attribute__((visibility("default")))
 void hook_fn(struct regframe *r) {
-    const uint8_t *key = (const uint8_t *)(uintptr_t)r->x[KEY_REG];
-    uint64_t raw = r->x[LEN_REG];
-#if LEN_MODE_BITS
-    uint32_t len = (uint32_t)(raw / 8);
-#else
-    uint32_t len = (uint32_t)raw;
-#endif
+    uint32_t kr = g_cfg.key_reg <= 8 ? g_cfg.key_reg : 0;
+    const uint8_t *key = (const uint8_t *)(uintptr_t)r->x[kr];
+    uint32_t len = 0;
+
+    if (g_cfg.len_mode == 3) {
+        // libc++ std::string at *key: byte0 LSB=1 => long (heap): [ptr@+0x10,
+        // size@+0x08]; else short: size=byte0>>1, data starts at +0x01.
+        const uint8_t *s = key;
+        if (s) {
+            if (s[0] & 1) {
+                len = (uint32_t)*(const uint64_t *)(s + 8);
+                key = *(const uint8_t **)(s + 0x10);
+            } else {
+                len = s[0] >> 1;
+                key = s + 1;
+            }
+        }
+    } else if (g_cfg.len_mode == 0) {
+        len = g_cfg.len_val;
+    } else {
+        uint64_t raw = r->x[g_cfg.len_val <= 8 ? g_cfg.len_val : 1];
+        len = (uint32_t)(g_cfg.len_mode == 1 ? raw / 8 : raw);
+    }
+
     if (!key || len == 0 || len > MAX_KEY_LEN) {
         __android_log_print(ANDROID_LOG_INFO, LOG_TAG,
-                            "hook_fn: skip (key=%p len=%u)", (void *)key, len);
+                            "hook_fn: skip (key=%p len=%u)", (const void *)key, len);
         return;
     }
     loot_append(key, len);

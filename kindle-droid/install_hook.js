@@ -65,8 +65,9 @@ function loadSo(path) {
   if (!m) return { base: null, err: 'hook.so not in module list after load' };
   const hook = resolveExport(m, 'hook_fn');
   const tramp = resolveExport(m, 'tramp_slot');
+  const cfg = resolveExport(m, 'g_cfg');
   return { base: m.base.toString(), path: m.path, hook_fn: hook && hook.toString(),
-           tramp_slot: tramp && tramp.toString() };
+           tramp_slot: tramp && tramp.toString(), g_cfg: cfg && cfg.toString() };
 }
 
 // Build the trampoline into `tramp` and repoint `target`'s prologue at it.
@@ -123,15 +124,26 @@ rpc.exports = {
   // Returns the loaded base + resolved export addresses (throws on link failure).
   smoke(path) { return loadSo(path); },
 
-  // Full install: load hook.so, resolve KRF base, target = base+offset, build the
-  // trampoline, patch the prologue.  Call BEFORE detaching.
-  install(soPath, targetOffset) {
+  // Full install: load hook.so, resolve `module` (default the JNI KRF), target =
+  // module.base + offset, write the capture config to g_cfg, build the trampoline,
+  // patch the prologue.  Call BEFORE detaching.
+  //   opts = { module, keyReg, lenMode, lenVal }  (all optional; default = AES)
+  install(soPath, targetOffset, opts) {
+    opts = opts || {};
     const info = loadSo(soPath);
     if (!info.hook_fn || !info.tramp_slot) {
       return { ok: false, err: 'hook.so missing exports (hook_fn/tramp_slot)', info };
     }
-    const krf = Process.findModuleByName(KRF);
-    if (!krf) return { ok: false, err: KRF + ' not loaded' };
+    // Write capture config into g_cfg { u32 key_reg, len_mode, len_val }.
+    if (info.g_cfg && (opts.keyReg !== undefined || opts.lenMode !== undefined)) {
+      const c = ptr(info.g_cfg);
+      c.writeU32(opts.keyReg | 0);
+      c.add(4).writeU32(opts.lenMode | 0);
+      c.add(8).writeU32(opts.lenVal | 0);
+    }
+    const modName = opts.module || KRF;
+    const krf = Process.findModuleByName(modName);
+    if (!krf) return { ok: false, err: modName + ' not loaded' };
     const target = krf.base.add(ptr(targetOffset));
     // Idempotent: if the prologue already starts with our `ldr x16,#8` stub, the
     // hook is installed — re-patching would relocate our OWN jump (corruption).

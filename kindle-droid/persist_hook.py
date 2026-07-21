@@ -116,7 +116,18 @@ def load(s, name):
     return js
 
 
-def install_persistent(dev, off, path, retries=5):
+# Per-format native decrypt/key-setup routine to hook, and the capture config.
+#   kfx   -> KRF (JNI) AES_set_encrypt_key @0x3302714, key=x0, len=x1 bits
+#   mobi  -> libKRF.so PC1 @vaddr 0x37a548, key ptr=x0 (ctx wkey), fixed 16 bytes
+#   topaz -> libKRF.so cipher decrypt @vaddr 0x3f6790, key = libc++ std::string @x0
+HOOK_TARGET = {
+    "kfx":   (STORAGE_AES_OFF, {}),
+    "mobi":  (0x37a548, {"module": "libKRF.so", "keyReg": 0, "lenMode": 0, "lenVal": 16}),
+    "topaz": (0x3f6790, {"module": "libKRF.so", "keyReg": 0, "lenMode": 3, "lenVal": 0}),
+}
+
+
+def install_persistent(dev, off, path, opts=None, retries=5):
     """Attach, install the hook, detach — retried through this emulator's frequent
     transient frida/app failures. install() is idempotent, so a retry after a
     partial patch is safe."""
@@ -125,7 +136,7 @@ def install_persistent(dev, off, path, retries=5):
         s = attach(dev)
         try:
             inst = load(s, "install_hook.js")
-            res = inst.exports_sync.install(path, hex(off))
+            res = inst.exports_sync.install(path, hex(off), opts or {})
             if res.get("ok"):
                 print("[install] ok:", res)
                 return res
@@ -328,17 +339,24 @@ def cmd_m3(dev, args):
     print("[m3] => content decrypt does NOT route through 0x3302714; DRM AES is a separate impl.")
 
 
+def _swap_pairs(b):
+    """Swap each adjacent byte pair — PC1 stores its key as 8 little-endian u16
+    words, so the in-memory wkey is the found_key with each 2-byte pair swapped."""
+    return bytes(b[i ^ 1] for i in range(len(b) & ~1))
+
+
 def _format_oracle(fmt, bookdir):
-    """Return (test(key)->bool, note) for the book's format: does a candidate key
-    decrypt this format's content?  KFX→DRMION PKCS7, MOBI→PC1 full-record,
-    Topaz→8-byte stream-cipher zlib oracle."""
+    """Return (check(captured)->canonical_key_or_None, note): given a raw captured
+    key, does it (in some canonical framing) decrypt this format's content, and if
+    so what is the content key?  KFX→DRMION PKCS7, MOBI→PC1 full-record (try the
+    key and its pair-swap), Topaz→8-byte stream-cipher zlib oracle."""
     import glob as _glob
     if fmt == "kfx":
         pages = H.test_pages_for(bookdir)
         if len(pages) < 3:
             return None, "too few DRMION test pages"
         t = H.make_test(pages)
-        return (lambda k: len(k) == 16 and t(k)), f"{len(pages)} DRMION pages"
+        return (lambda k: k if (len(k) == 16 and t(k)) else None), f"{len(pages)} DRMION pages"
     prc = next(iter(_glob.glob(os.path.join(bookdir, "*_EBOK.prc"))
                     or _glob.glob(os.path.join(bookdir, "*.prc"))), None)
     if not prc:
@@ -347,11 +365,19 @@ def _format_oracle(fmt, bookdir):
         from mobidrm.mobidedrm import MobiBook
         from mobidrm.brute import make_full_test
         t = make_full_test(MobiBook(prc))
-        return (lambda k: len(k) == 16 and t(k)), f"PC1 oracle on {os.path.basename(prc)}"
+
+        def check(k):
+            if len(k) != 16:
+                return None
+            for cand in (k, _swap_pairs(k)):   # PC1 wkey is byte-pair-swapped
+                if t(cand):
+                    return cand
+            return None
+        return check, f"PC1 oracle on {os.path.basename(prc)}"
     if fmt == "topaz":
         from topazdrm.brute import oracle_record, _try_key
         orc = oracle_record(prc)
-        return (lambda k: _try_key(k, orc)), f"Topaz oracle on {os.path.basename(prc)}"
+        return (lambda k: k if _try_key(k, orc) else None), f"Topaz oracle on {os.path.basename(prc)}"
     return None, f"unknown format {fmt}"
 
 
@@ -373,12 +399,14 @@ def cmd_keyscan(dev, args):
         fmt = H.book_format(asin)
     bookdir = H.pull_book(asin)
     test, note = _format_oracle(fmt, bookdir)
-    print(f"[keyscan] {asin} format={fmt}; oracle: {note}")
-    if test is None:
-        print("[keyscan] no usable oracle; aborting"); return
+    off, opts = HOOK_TARGET.get(fmt, (None, None))
+    tgt = opts.get("module", "KRF(JNI)") if opts else "?"
+    print(f"[keyscan] {asin} format={fmt}; hooking {tgt}+{hex(off) if off else '?'}; oracle: {note}")
+    if test is None or off is None:
+        print("[keyscan] no usable oracle/target; aborting"); return
 
     clear_loot()
-    install_persistent(dev, STORAGE_AES_OFF, path)
+    install_persistent(dev, off, path, opts=opts)
     _wake()
     print(f"[keyscan] open({asin}) + detach; rendering unblocked ...")
     print("[keyscan] open ->", H.agent_call(dev, "open", asin))
@@ -396,13 +424,14 @@ def cmd_keyscan(dev, args):
     lens = Counter(len(k) for k in uniq)
     print(f"[keyscan] {len(keys)} captures, {len(uniq)} unique keys; lengths={dict(lens)}")
     for k in uniq:
-        if test(k):
-            print(f"\n[keyscan] *** {fmt} content key {k.hex()} CAPTURED via 0x3302714 "
-                  f"— {fmt} DOES use the KRF AES ***")
-            return
-    print(f"\n[keyscan] NO captured key decrypts the {fmt} content "
-          f"=> {fmt} content decrypt does NOT route through the KRF AES 0x3302714 "
-          f"(it uses a different cipher).")
+        canon = test(k)
+        if canon:
+            print(f"\n[keyscan] *** {fmt} CONTENT KEY RECOVERED: {canon.hex()} "
+                  f"(from captured {k.hex()}) ***")
+            return canon.hex()
+    print(f"\n[keyscan] NO captured key decrypts the {fmt} content at {tgt}+{hex(off)} "
+          f"(the hook fired {len(keys)}x but none validate).")
+    return None
 
 
 def _wake():

@@ -579,8 +579,26 @@ def ensure_app_home(dev):
         adb("input keyevent KEYCODE_BACK")
         time.sleep(1.5)
 
+def render_hook_key(dev, asin, fmt, bookdir):
+    """Recover the content key by hooking the format's native decrypt routine and
+    rendering the book with frida DETACHED — the persistent inline hook survives
+    detach, so the KRF anti-tamper /proc/self/maps scan passes, the book renders,
+    and we read the key straight from the routine's key argument.  Covers all
+    three formats (KFX/DRMION AES @KRF+0x3302714, MOBI PC1 @libKRF+0x37a548,
+    Topaz cipher @libKRF+0x3f6790) and, unlike dump+brute, catches keys that never
+    reside in scudo (voucher KFX, Harry-Potter MOBI).  Returns hex key or None.
+
+    Lazy-imports persist_hook (which imports this module) to dodge a load-time
+    cycle; needs hook.so + install_hook.js in cwd (persist_hook.py build/deploy)."""
+    try:
+        import persist_hook
+        return persist_hook.capture_key(dev, asin, fmt, bookdir, log=vlog)
+    except Exception as e:
+        vlog(f"  [{asin}] render-hook error: {e}")
+        return None
+
 def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3,
-                no_redownload=False):
+                no_redownload=False, no_renderhook=False):
     """Download+open+dump+brute one book. Return hex key or None."""
     # --offline never drives the device: this whole path (download/open/dump)
     # needs the AVD, so there's nothing to do — callers fall back to any
@@ -681,7 +699,21 @@ def harvest_one(dev, asin, render_wait=5.0, dl_timeout=300, open_tries=3,
             hexkey = key.hex()
             print(f"  [{asin}] *** KEY {hexkey} (fast path, no render) ***")
             return hexkey
-        print(f"  [{asin}] fast-path miss — falling back to open+render")
+        print(f"  [{asin}] fast-path miss — trying render-hook")
+
+    # 2.5 RENDER-HOOK (all formats) — deterministic in-render capture: hook the
+    #     format's native decrypt routine, render the book UNBLOCKED (frida
+    #     detached — the persistent hook beats the anti-tamper render-block), and
+    #     read the content key from the routine's key argument.  This is the
+    #     PRIMARY path for MOBI/Topaz (they skip the KFX-only fast path) and for
+    #     voucher KFX whose key never lands in scudo.  On a miss (e.g. hook.so not
+    #     built, or a different app version), fall through to dump+brute below.
+    if not no_renderhook:
+        hexkey = render_hook_key(dev, asin, fmt, bookdir)
+        if hexkey:
+            print(f"  [{asin}] *** KEY {hexkey} (render-hook) ***")
+            return hexkey
+        print(f"  [{asin}] render-hook miss — falling back to dump+brute")
 
     # 3. FALLBACK — open, render, delta-dump.  Reaches here when the key wasn't
     #    already resident (e.g. a book that was LOCAL from a PRIOR app session, so
@@ -837,6 +869,10 @@ def main():
                     help="don't try removing + re-fetching a KFX book whose key "
                          "the open+render path can't find (the re-download re-"
                          "derives the key, but costs a full fresh download)")
+    ap.add_argument("--no-renderhook", action="store_true",
+                    help="skip the render-hook key capture (hook the native "
+                         "decrypt routine + render detached) and use only the "
+                         "legacy dump+brute path")
     ap.add_argument("-v", "--verbose", action="store_true",
                     help="log every shell/frida command as it runs, plus extra detail (to stderr)")
     args = ap.parse_args()
@@ -907,7 +943,8 @@ def main():
             for book_try in range(2):        # one whole-book retry for flaky crashes
                 try:
                     key = harvest_one(dev, asin, render_wait=args.render_wait,
-                                      no_redownload=args.no_redownload)
+                                      no_redownload=args.no_redownload,
+                                      no_renderhook=args.no_renderhook)
                     break
                 except Exception as e:
                     print(f"  ERROR: {type(e).__name__}: {e}")

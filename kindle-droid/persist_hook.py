@@ -381,13 +381,55 @@ def _format_oracle(fmt, bookdir):
     return None, f"unknown format {fmt}"
 
 
+def capture_key(dev, asin, fmt, bookdir, pages=8, wait=20.0, log=print):
+    """Recover a book's content key by hooking its native decrypt routine and
+    rendering it UNBLOCKED (Frida detached — the persistent hook survives detach,
+    so the anti-tamper /proc/self/maps scan passes and the book renders).  Reads
+    the key straight from the routine's key argument, validates it against the
+    book's content with the format oracle, returns the hex key or None.
+
+    Works for all three formats (see HOOK_TARGET): KFX/DRMION AES, MOBI PC1,
+    Topaz stream cipher.  Assumes the caller has Kindle foreground + content on
+    disk (bookdir).  No heap dump / brute needed."""
+    test, note = _format_oracle(fmt, bookdir)
+    off, opts = HOOK_TARGET.get(fmt, (None, None))
+    if test is None or off is None:
+        log(f"  [{asin}] render-hook: no oracle/target for {fmt}")
+        return None
+    tgt = (opts.get("module") if opts else None) or "KRF(JNI)"
+    log(f"  [{asin}] render-hook: {tgt}+{hex(off)}; {note}")
+
+    path = deploy()
+    clear_loot()
+    install_persistent(dev, off, path, opts=opts)
+    # Back out of any already-open reader so open() triggers a FRESH render (an
+    # already-current book won't re-decrypt, starving the hook — the KFX symptom).
+    H.ensure_app_home(dev)
+    _wake()
+    H.agent_call(dev, "open", asin)          # attach, open, detach -> render runs
+    _wake()
+    H.wait_for(reader_focused, 40, 1.0, label="reader focused")
+    for _ in range(int(pages)):              # turn pages to force fresh decrypts
+        time.sleep(1.5)
+        H.adb("input keyevent 22")
+    time.sleep(wait)
+
+    dest = os.path.join(os.path.dirname(__file__), "loot.bin")
+    keys = parse_loot(dest) if pull_loot(dest) else []
+    uniq = list(dict.fromkeys(keys))
+    log(f"  [{asin}] render-hook: {len(keys)} captures, {len(uniq)} unique")
+    for k in uniq:
+        canon = test(k)
+        if canon:
+            return canon.hex()
+    return None
+
+
 def cmd_keyscan(dev, args):
-    """Render a book with the 0x3302714 hook and test EVERY captured AES key-setup
-    against the book's content with its format-appropriate oracle — answering
-    whether Mobipocket (PC1) and Topaz (custom stream cipher) route their content
-    decrypt through the same KRF AES, or a different routine."""
+    """CLI wrapper around capture_key: render a book with its format's decrypt-
+    routine hook and report the recovered content key."""
     asin = args.asin
-    path = deploy(appdir=args.appdir)
+    deploy(appdir=args.appdir)
     _wake(); H.launch_home()
     H.wait_for(lambda: H.PKG in (H.top_activity() or ""), 30, 1.0, label="Kindle foreground")
 
@@ -398,40 +440,12 @@ def cmd_keyscan(dev, args):
         H.wait_for(lambda: H.book_format(asin) is not None, 90, 2.0, label="download")
         fmt = H.book_format(asin)
     bookdir = H.pull_book(asin)
-    test, note = _format_oracle(fmt, bookdir)
-    off, opts = HOOK_TARGET.get(fmt, (None, None))
-    tgt = opts.get("module", "KRF(JNI)") if opts else "?"
-    print(f"[keyscan] {asin} format={fmt}; hooking {tgt}+{hex(off) if off else '?'}; oracle: {note}")
-    if test is None or off is None:
-        print("[keyscan] no usable oracle/target; aborting"); return
-
-    clear_loot()
-    install_persistent(dev, off, path, opts=opts)
-    _wake()
-    print(f"[keyscan] open({asin}) + detach; rendering unblocked ...")
-    print("[keyscan] open ->", H.agent_call(dev, "open", asin))
-    _wake()
-    H.wait_for(reader_focused, 40, 1.0, label="reader focused")
-    for _ in range(int(args.pages)):
-        time.sleep(1.5)
-        H.adb("input keyevent 22")
-    time.sleep(args.wait)
-
-    dest = os.path.join(os.path.dirname(__file__), "loot.bin")
-    keys = parse_loot(dest) if pull_loot(dest) else []
-    uniq = list(dict.fromkeys(keys))
-    from collections import Counter
-    lens = Counter(len(k) for k in uniq)
-    print(f"[keyscan] {len(keys)} captures, {len(uniq)} unique keys; lengths={dict(lens)}")
-    for k in uniq:
-        canon = test(k)
-        if canon:
-            print(f"\n[keyscan] *** {fmt} CONTENT KEY RECOVERED: {canon.hex()} "
-                  f"(from captured {k.hex()}) ***")
-            return canon.hex()
-    print(f"\n[keyscan] NO captured key decrypts the {fmt} content at {tgt}+{hex(off)} "
-          f"(the hook fired {len(keys)}x but none validate).")
-    return None
+    key = capture_key(dev, asin, fmt, bookdir, pages=args.pages, wait=args.wait)
+    if key:
+        print(f"\n[keyscan] *** {fmt} CONTENT KEY RECOVERED: {key} ***")
+    else:
+        print(f"\n[keyscan] no captured key decrypts the {fmt} content.")
+    return key
 
 
 def _wake():

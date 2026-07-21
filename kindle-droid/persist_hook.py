@@ -328,6 +328,83 @@ def cmd_m3(dev, args):
     print("[m3] => content decrypt does NOT route through 0x3302714; DRM AES is a separate impl.")
 
 
+def _format_oracle(fmt, bookdir):
+    """Return (test(key)->bool, note) for the book's format: does a candidate key
+    decrypt this format's content?  KFX→DRMION PKCS7, MOBI→PC1 full-record,
+    Topaz→8-byte stream-cipher zlib oracle."""
+    import glob as _glob
+    if fmt == "kfx":
+        pages = H.test_pages_for(bookdir)
+        if len(pages) < 3:
+            return None, "too few DRMION test pages"
+        t = H.make_test(pages)
+        return (lambda k: len(k) == 16 and t(k)), f"{len(pages)} DRMION pages"
+    prc = next(iter(_glob.glob(os.path.join(bookdir, "*_EBOK.prc"))
+                    or _glob.glob(os.path.join(bookdir, "*.prc"))), None)
+    if not prc:
+        return None, "no .prc found"
+    if fmt == "mobi":
+        from mobidrm.mobidedrm import MobiBook
+        from mobidrm.brute import make_full_test
+        t = make_full_test(MobiBook(prc))
+        return (lambda k: len(k) == 16 and t(k)), f"PC1 oracle on {os.path.basename(prc)}"
+    if fmt == "topaz":
+        from topazdrm.brute import oracle_record, _try_key
+        orc = oracle_record(prc)
+        return (lambda k: _try_key(k, orc)), f"Topaz oracle on {os.path.basename(prc)}"
+    return None, f"unknown format {fmt}"
+
+
+def cmd_keyscan(dev, args):
+    """Render a book with the 0x3302714 hook and test EVERY captured AES key-setup
+    against the book's content with its format-appropriate oracle — answering
+    whether Mobipocket (PC1) and Topaz (custom stream cipher) route their content
+    decrypt through the same KRF AES, or a different routine."""
+    asin = args.asin
+    path = deploy(appdir=args.appdir)
+    _wake(); H.launch_home()
+    H.wait_for(lambda: H.PKG in (H.top_activity() or ""), 30, 1.0, label="Kindle foreground")
+
+    fmt = H.book_format(asin)
+    if fmt is None:
+        print(f"[keyscan] {asin} not local; downloading ...")
+        H.agent_call(dev, "download", asin)
+        H.wait_for(lambda: H.book_format(asin) is not None, 90, 2.0, label="download")
+        fmt = H.book_format(asin)
+    bookdir = H.pull_book(asin)
+    test, note = _format_oracle(fmt, bookdir)
+    print(f"[keyscan] {asin} format={fmt}; oracle: {note}")
+    if test is None:
+        print("[keyscan] no usable oracle; aborting"); return
+
+    clear_loot()
+    install_persistent(dev, STORAGE_AES_OFF, path)
+    _wake()
+    print(f"[keyscan] open({asin}) + detach; rendering unblocked ...")
+    print("[keyscan] open ->", H.agent_call(dev, "open", asin))
+    _wake()
+    H.wait_for(reader_focused, 40, 1.0, label="reader focused")
+    for _ in range(int(args.pages)):
+        time.sleep(1.5)
+        H.adb("input keyevent 22")
+    time.sleep(args.wait)
+
+    dest = os.path.join(os.path.dirname(__file__), "loot.bin")
+    keys = parse_loot(dest) if pull_loot(dest) else []
+    uniq = list(dict.fromkeys(keys))
+    from collections import Counter
+    lens = Counter(len(k) for k in uniq)
+    print(f"[keyscan] {len(keys)} captures, {len(uniq)} unique keys; lengths={dict(lens)}")
+    for k in uniq:
+        if test(k):
+            print(f"\n[keyscan] *** {fmt} content key {k.hex()} CAPTURED via 0x3302714 "
+                  f"— {fmt} DOES use the KRF AES ***")
+            return
+    print(f"\n[keyscan] NO captured key decrypts the {fmt} content "
+          f"=> {fmt} content decrypt does NOT route through the KRF AES 0x3302714 "
+          f"(it uses a different cipher).")
+
+
 def _wake():
     H.adb("input keyevent KEYCODE_WAKEUP")
     H.adb("svc power stayon true")
@@ -339,13 +416,14 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("build")
     dp = sub.add_parser("deploy"); dp.add_argument("--appdir", action="store_true")
-    for name in ("smoke", "m1", "m2", "m3"):
+    for name in ("smoke", "m1", "m2", "m3", "keyscan"):
         p = sub.add_parser(name)
         default_asin = "B01LXW2IUQ" if name == "m3" else "B00KVI76ZS"
         p.add_argument("asin", nargs="?", default=default_asin)
         p.add_argument("--appdir", action="store_true", help="load from the app data dir")
         p.add_argument("--no-install", action="store_true", help="(m2) baseline: open+detach with NO hook")
-        p.add_argument("--pages", type=int, default=6, help="(m3) page-turns to force content decrypts")
+        p.add_argument("--key", help="(keyscan) known content key hex to search for (else keys.txt)")
+        p.add_argument("--pages", type=int, default=6, help="page-turns to force content decrypts")
         p.add_argument("--wait", type=float, default=(25.0 if name == "m1" else 40.0))
     args = ap.parse_args()
     H.VERBOSE = True
@@ -358,7 +436,8 @@ def main():
     H.setenforce_permissive()
     dev = frida.get_usb_device()
     print(f"device={dev}")
-    {"smoke": cmd_smoke, "m1": cmd_m1, "m2": cmd_m2, "m3": cmd_m3}[args.cmd](dev, args)
+    {"smoke": cmd_smoke, "m1": cmd_m1, "m2": cmd_m2, "m3": cmd_m3,
+     "keyscan": cmd_keyscan}[args.cmd](dev, args)
 
 
 if __name__ == "__main__":

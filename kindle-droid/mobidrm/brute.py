@@ -104,15 +104,35 @@ def _build_reader(comp, dict_secs, expand=False):
     return r
 
 
-def make_full_test(book):
-    """Return test(key)->bool doing the *decisive* check: two full records must
-    each decompress to valid text in the book's codepage with real tag density.
-    (HUFF/CDIC dictionaries hold real text, so a wrong key still yields plausible
-    word-salad — only a full, strictly-valid record reliably rejects it.)"""
+def make_full_test(book, nrec=8):
+    """Return test(key)->bool doing the *decisive* check on the first `nrec`
+    text records.
+
+    The decisive signal is the DECOMPRESSED RECORD LENGTH.  A MOBI text record
+    is a fixed-size (record_size, normally 4096) slab of the HTML stream, so a
+    correct decrypt decompresses every non-final record to (just under) that
+    size.  A WRONG key feeds garbage bits to the PalmDOC/HUFF-CDIC decoder, whose
+    bitstream then terminates at an essentially random point — overrunning the
+    record size (HUFF/CDIC dictionaries expand wildly: we see 10k–50k for a 4k
+    record) or falling well short.  This is key-, format- and version-independent,
+    unlike the old "valid codepage + tag density" test, which HUFF/CDIC word-salad
+    trivially passes (the dictionary is full of real tagged text fragments — the
+    exact false-positive that shipped wrong keys for KF8 books like B00SEFAIRI).
+
+    `_codepage_ok` is kept as a cheap secondary gate.  The final text record may
+    legitimately be short, so we only length-check records 1..num_text_records-1
+    (capped at `nrec`); tiny books with a single record fall back to record 1."""
+    import struct
     comp = book.compression
     codepage = book.mobi_codepage
     dict_secs = _dict_sections(book) if comp == 17480 else []
-    recs = {i: _record(book, i) for i in (1, 2)}
+    rsize, = struct.unpack('>H', book.sect[0x0A:0x0C])   # PalmDOC record size
+    if rsize <= 0:
+        rsize = 4096
+    ntext = book.records
+    last_full = min(nrec, ntext - 1)               # # of non-final records to test
+    idx = list(range(1, last_full + 1)) or [1]     # at least record 1 (tiny books)
+    recs = {i: _record(book, i) for i in idx}
 
     def reader():
         r = make_reader(comp)
@@ -120,15 +140,24 @@ def make_full_test(book):
             r.load_dicts(dict_secs)
         return r
 
+    hi = rsize + 64        # correct decodes land at rsize (HUFF) or rsize+1
+    lo = rsize - 256       # (uncompressed/PalmDOC trailing byte); wrong keys blow past
+
     def test(key):
-        for i in (1, 2):
+        lens = []
+        for i in idx:
             try:
                 full = reader().unpack(PC1(key, recs[i]))
             except Exception:
                 return False
+            if len(full) > hi:                     # decisive: overran the record
+                return False
             if not _codepage_ok(full, codepage):
                 return False
-        return True
+            lens.append(len(full))
+        # Non-final records must be near-full; allow one short one (chapter flush).
+        near_full = sum(1 for L in lens if L >= lo)
+        return near_full >= len(lens) - 1
 
     return test
 

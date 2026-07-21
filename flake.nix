@@ -42,6 +42,19 @@
           claudeEnv = {
             CLAUDE_CODE_SHELL_PREFIX = "${withDirenv}/bin/with-direnv";
           };
+          # Android NDK for kindle-droid (cross-compiling the native hook .so).
+          # Needs an unfree licence + accepted SDK licence, so import a config'd
+          # pkgs instance just for this (the shared legacyPackages has neither).
+          androidPkgs = import nixpkgs {
+            inherit system;
+            config = {
+              allowUnfree = true;
+              android_sdk.accept_license = true;
+            };
+          };
+          androidNdk = (androidPkgs.androidenv.composeAndroidPackages {
+            includeNDK = true;
+          }).ndk-bundle;
           pythonBase = pkgs.mkShell (
             {
               packages = [
@@ -81,7 +94,18 @@
           verso2docset = pythonBase;
           regexle = pythonBase;
           mnist-subliminal = pythonBase;
-          kindle-droid = pythonBase;
+          kindle-droid = pkgs.mkShell (
+            {
+              packages = [
+                pkgs.python3
+                pkgs.uv
+                pkgs.ruff
+                androidNdk
+              ];
+              ANDROID_NDK_ROOT = "${androidNdk}";
+            }
+            // claudeEnv
+          );
           pypy = pkgs.mkShell (
             {
               packages = [

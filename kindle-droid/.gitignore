@@ -30,3 +30,7 @@ scratch/
 *.log
 harvest.all.log
 scratchpad_tpz/
+
+# persistent-hook build artifact + captured keys
+hook.so
+loot.bin

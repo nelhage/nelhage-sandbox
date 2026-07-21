@@ -270,6 +270,64 @@ def cmd_m2(dev, args):
         print(f"[m2] FAIL — still not rendering after {args.wait}s (top={H.top_activity()!r})")
 
 
+def cmd_m3(dev, args):
+    """Locate the DRM content-AES the direct way: install the persistent hook on
+    KRF's AES key-setup (0x3302714 — set_decrypt_key routes through it too),
+    render a VOUCHER book UNBLOCKED (Frida detached), and test every captured key
+    against the book's DRMION pages. A hit proves the content decrypt IS the KRF
+    AES, only ever exercised at render (which was always blocked before)."""
+    import harvest  # for A (kfxdrm) via test_pages_for/make_test
+    asin = args.asin
+    path = deploy(appdir=args.appdir)
+    _wake(); H.launch_home()
+    H.wait_for(lambda: H.PKG in (H.top_activity() or ""), 30, 1.0, label="Kindle foreground")
+
+    # Ensure the book is downloaded with DRMION content.
+    if H.book_format(asin) != "kfx":
+        print(f"[m3] {asin} not local as kfx; downloading ...")
+        H.agent_call(dev, "download", asin)
+        if not H.wait_for(lambda: H.book_format(asin) == "kfx", 90, 2.0, label="download kfx"):
+            print(f"[m3] download did not land kfx (format={H.book_format(asin)}); aborting"); return
+    bookdir = H.pull_book(asin)
+    pages = H.test_pages_for(bookdir)
+    print(f"[m3] {len(pages)} DRMION test page(s) from {bookdir}")
+    if len(pages) < 3:
+        print("[m3] <3 test pages — can't validate; aborting"); return
+    test = H.make_test(pages)
+    # Sanity: does the stored key still work (i.e. content wasn't re-vouchered)?
+    known = None
+    for line in open(os.path.join(os.path.dirname(__file__), "keys.txt"), errors="ignore"):
+        if line.startswith(asin):
+            known = bytes.fromhex(line.split()[1])
+    print(f"[m3] stored key {'VALID' if (known and test(known)) else 'stale/absent'} for current on-disk content")
+
+    clear_loot()
+    install_persistent(dev, STORAGE_AES_OFF, path)
+    _wake()
+    print(f"[m3] open({asin}) + detach; rendering unblocked ...")
+    print("[m3] open ->", H.agent_call(dev, "open", asin))
+    _wake()
+    H.wait_for(reader_focused, 40, 1.0, label="reader focused")
+    # Turn pages to force fresh content-page decrypts.
+    for _ in range(int(args.pages)):
+        time.sleep(1.5)
+        H.adb("input keyevent 22")  # DPAD_RIGHT → next page
+    time.sleep(args.wait)
+
+    dest = os.path.join(os.path.dirname(__file__), "loot.bin")
+    keys = parse_loot(dest) if pull_loot(dest) else []
+    uniq16 = list(dict.fromkeys(k for k in keys if len(k) == 16))
+    print(f"[m3] {len(keys)} captures, {len(uniq16)} unique 16-byte keys; testing vs DRMION ...")
+    for k in uniq16:
+        if test(k):
+            print(f"\n[m3] *** DRM CONTENT KEY CAPTURED via 0x3302714: {k.hex()} ***")
+            print("[m3] => the DRM content-AES IS the KRF AES; it only runs at render.")
+            return
+    print("\n[m3] no captured key decrypts the DRMION.")
+    print(f"[m3]   (16-byte keys seen: {[k.hex() for k in uniq16]})")
+    print("[m3] => content decrypt does NOT route through 0x3302714; DRM AES is a separate impl.")
+
+
 def _wake():
     H.adb("input keyevent KEYCODE_WAKEUP")
     H.adb("svc power stayon true")
@@ -281,11 +339,13 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("build")
     dp = sub.add_parser("deploy"); dp.add_argument("--appdir", action="store_true")
-    for name in ("smoke", "m1", "m2"):
+    for name in ("smoke", "m1", "m2", "m3"):
         p = sub.add_parser(name)
-        p.add_argument("asin", nargs="?", default="B00KVI76ZS")
+        default_asin = "B01LXW2IUQ" if name == "m3" else "B00KVI76ZS"
+        p.add_argument("asin", nargs="?", default=default_asin)
         p.add_argument("--appdir", action="store_true", help="load from the app data dir")
         p.add_argument("--no-install", action="store_true", help="(m2) baseline: open+detach with NO hook")
+        p.add_argument("--pages", type=int, default=6, help="(m3) page-turns to force content decrypts")
         p.add_argument("--wait", type=float, default=(25.0 if name == "m1" else 40.0))
     args = ap.parse_args()
     H.VERBOSE = True
@@ -298,7 +358,7 @@ def main():
     H.setenforce_permissive()
     dev = frida.get_usb_device()
     print(f"device={dev}")
-    {"smoke": cmd_smoke, "m1": cmd_m1, "m2": cmd_m2}[args.cmd](dev, args)
+    {"smoke": cmd_smoke, "m1": cmd_m1, "m2": cmd_m2, "m3": cmd_m3}[args.cmd](dev, args)
 
 
 if __name__ == "__main__":

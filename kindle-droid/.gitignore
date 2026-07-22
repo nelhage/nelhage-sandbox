@@ -34,3 +34,6 @@ scratchpad_tpz/
 # persistent-hook build artifact + captured keys
 hook.so
 loot.bin
+
+# MYCD export: contains order ids / device ids
+ContentOwnershipData*.json

@@ -2,21 +2,28 @@
 """Push Kindle-library metadata into a Calibre library, matched by ASIN.
 
 Series comes from the app's `Groups`/`GroupItems` tables (Amazon's own series
-grouping).  Purchase dates come from a CSV scraped off Manage Your Content and
-Devices (see mycd_scrape.py), since the device DB has no acquisition date --
-`KindleContent.DELIVERY_DATE` is only when the emulator downloaded the file.
+grouping).  Purchase dates come from the `GetContentOwnershipData` JSON that
+Manage Your Content and Devices fetches for its content list -- the device DB
+has no acquisition date at all (`KindleContent.DELIVERY_DATE` is only when the
+emulator downloaded the file).  To capture it: open
 
-    ./calibre_meta.py series --dry-run
+    https://www.amazon.com/hz/mycd/digital-console/contentlist/booksAll/dateDsc/
+
+with DevTools' Network tab open, page through the whole list, and save the
+ajax response(s) as JSON.
+
+    ./calibre_meta.py -n series
     ./calibre_meta.py series
-    ./calibre_meta.py purchased mycd.csv
+    ./calibre_meta.py -n purchased ContentOwnershipData.json
+    ./calibre_meta.py purchased ContentOwnershipData.json
 """
 import argparse
-import csv
 import collections
+import datetime
+import json
 import os
 import sqlite3
 import subprocess
-import sys
 
 LIBRARY_DB = "files-4k/kindle_library.db"
 CALIBRE_LIB = os.path.expanduser("~/Calibre Library")
@@ -78,26 +85,46 @@ def cmd_series(args):
     print(f"\n{n} books updated, {miss} series members not in Calibre")
 
 
+def mycd_items(paths):
+    """asin -> acquiredTime (epoch ms), merged across one or more MYCD pages."""
+    out = {}
+    for path in paths:
+        blob = json.load(open(path))
+        # Unwrap either the whole ajax envelope or a bare item list.
+        if isinstance(blob, dict):
+            blob = blob.get("GetContentOwnershipData", blob)
+            blob = blob.get("items", blob)
+        for item in blob:
+            if item.get("asin") and item.get("acquiredTime"):
+                out[item["asin"].upper()] = item["acquiredTime"]
+    return out
+
+
 def cmd_purchased(args):
-    """Import 'date acquired' into a custom column (#purchased)."""
+    """Import 'date acquired' into a #purchased custom column."""
     books = calibre_asin_map()
-    rows = list(csv.DictReader(open(args.csv)))
+    acquired = mycd_items(args.json)
+    if not args.dry_run:
+        # No-op (and harmless error) if the column already exists.
+        subprocess.run(["calibredb", "--library-path", CALIBRE_LIB,
+                        "add_custom_column", "purchased", "Date Purchased",
+                        "datetime"], capture_output=True)
     n = miss = 0
-    for row in rows:
-        asin = (row.get("asin") or "").strip().upper()
-        date = (row.get("acquired") or "").strip()
+    for asin, ms in sorted(acquired.items(), key=lambda kv: kv[1]):
         ids = books.get(asin)
-        if not (asin and date):
-            continue
         if not ids:
             miss += 1
             continue
+        # Must be tz-aware: calibredb reads a naive timestamp as UTC, which
+        # would shift every date by the local offset.
+        when = datetime.datetime.fromtimestamp(
+            ms / 1000, datetime.timezone.utc).astimezone().isoformat()
         for bid in ids:
-            print(f"{asin} #{bid}: {date}")
+            print(f"{asin} #{bid}: {when}")
             calibredb(["set_metadata", str(bid),
-                       "--field", f"#purchased:{date}"], args.dry_run)
+                       "--field", f"#purchased:{when}"], args.dry_run)
             n += 1
-    print(f"\n{n} books updated, {miss} CSV rows not in Calibre")
+    print(f"\n{n} books updated, {miss} MYCD entries not in Calibre")
 
 
 def main():
@@ -107,7 +134,7 @@ def main():
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("series").set_defaults(func=cmd_series)
     sp = sub.add_parser("purchased")
-    sp.add_argument("csv", help="CSV with asin,acquired columns")
+    sp.add_argument("json", nargs="+", help="MYCD GetContentOwnershipData JSON")
     sp.set_defaults(func=cmd_purchased)
     args = p.parse_args()
     args.func(args)

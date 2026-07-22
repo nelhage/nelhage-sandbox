@@ -83,6 +83,9 @@
           regexle = pythonEnv;
           mnist-subliminal = pythonEnv;
 
+          # `pandoc` turns the generated Markdown into EPUB for e-readers.
+          pdf2md = withPackages [ pkgs.pandoc ] pythonEnv;
+
           pypy = withPackages [
             pkgs.pypy3
             pkgs.nodejs

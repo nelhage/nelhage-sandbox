@@ -9,6 +9,15 @@
   `flake.nix` and add an appropriate `.envrc` (e.g. `use flake ..#<env>`).
 - Commands you run in a subdirectory will automatically pick up changes to
   `.envrc` and `flake.nix`.
+- Every dev shell exports `$DIRENV_LIB`, pointing at `scripts/direnv-lib.sh`,
+  which defines shared direnv helpers such as `layout_uv`. To use them, source
+  it after `use flake`:
+
+  ```sh
+  use flake ..#myproject
+  source "$DIRENV_LIB"
+  layout uv
+  ```
 
 ## Publishing files to the web
 

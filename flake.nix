@@ -73,6 +73,22 @@
                   LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
                 }
               );
+
+          # Android NDK
+          # Needs an unfree licence + accepted SDK licence, so import a config'd
+          # pkgs instance just for this (the shared legacyPackages has neither).
+          androidPkgs = import nixpkgs {
+            inherit system;
+            config = {
+              allowUnfree = true;
+              android_sdk.accept_license = true;
+            };
+          };
+          androidNdk =
+            (androidPkgs.androidenv.composeAndroidPackages {
+              includeNDK = true;
+            }).ndk-bundle;
+
         in
         {
           default = baseEnv;
@@ -93,6 +109,15 @@
             pkgs.gcc
             pkgs.gnumake
           ] pythonEnv;
+
+          ff-profile =
+            (withPackages [
+              pkgs.samply
+              androidNdk
+            ] pythonEnv).overrideAttrs
+              (old: {
+                ANDROID_NDK_ROOT = "${androidNdk}";
+              });
         }
       );
     };

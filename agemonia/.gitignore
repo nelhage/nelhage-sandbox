@@ -1,0 +1,14 @@
+pdfs
+.venv
+.direnv
+
+# Derived from the PDF and cheap to regenerate; out/render alone is ~280MB.
+out/render
+out/text
+out/icons
+out/index.json
+out/**/*.png
+out/**/*.jpeg
+
+# out/md is kept: the per-page transcriptions are the source of
+# Agemonia-Rulebook.md and are expensive to reproduce.

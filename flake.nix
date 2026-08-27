@@ -102,6 +102,14 @@
           # `pandoc` turns the generated Markdown into EPUB for e-readers.
           pdf2md = withPackages [ pkgs.pandoc ] pythonEnv;
 
+          # Rulebook (image-heavy PDF) -> Markdown. `poppler_utils` supplies
+          # pdftotext/pdfimages/pdffonts for probing the PDF's structure;
+          # `imagemagick` crops and tiles rendered pages.
+          agemonia = withPackages [
+            pkgs.poppler-utils
+            pkgs.imagemagick
+          ] pythonEnv;
+
           pypy = withPackages [
             pkgs.pypy3
             pkgs.nodejs

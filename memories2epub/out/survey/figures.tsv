@@ -1,0 +1,69 @@
+page	kind	caption_title	caption_credit_or_note	bbox_x0	bbox_y0	bbox_x1	bbox_y1
+25	photo	IBM punched card	(no credit)	0.10	0.08	0.90	0.38
+25	photo	SSEC memory components	(Photograph courtesy of IBM Archives.)	0.10	0.48	0.68	0.82
+32	photo	Mercury delay line memory (above: tank)	(From J. P. Eckert, Proc. IRE 41, 1953, p. 1395)	0.10	0.09	0.90	0.39
+32	diagram	Mercury delay line memory (below: block diagram)	same caption as above; line art with lettered labels	0.10	0.42	0.90	0.83
+37	photo	An early magnetic drum	(Photograph and information courtesy of R.B. Arndt, Sperry Rand)	0.07	0.07	0.90	0.78
+40	photo	Ralph Palmer (above, left)	(Photograph courtesy of the IBM Archives.)	0.10	0.07	0.93	0.46
+40	photo	Ralph Palmer (below, right)	same caption	0.11	0.50	0.93	0.80
+47	photo	IBM 701 computer	(no credit)	0.07	0.09	0.89	0.39
+47	photo	Williams tube memory (unit)	(no credit)	0.07	0.51	0.44	0.79
+47	photo	Williams tube memory (single 3-inch tube, at right)	same caption	0.49	0.56	0.88	0.79
+58	diagram	Coincident current selection	(Illustration from the IBM News of November 10, 1967.) shaded line art	0.10	0.10	0.90	0.52
+62	photo	Mike Haynes (above)	(no credit)	0.11	0.09	0.50	0.38
+62	photo	Mike Haynes (below)	same caption	0.11	0.41	0.72	0.83
+66	diagram	MIT memory selection method	(Illustration from R. G. Counihan's internal IBM report of September 9, 1951.)	0.10	0.08	0.90	0.42
+67	diagram	IBM memory selection method	(Illustration from R. G. Counihan's internal IBM report of September 9, 1951.)	0.10	0.08	0.90	0.44
+69	photo	The first 4x4x4 core array	(no credit; light background)	0.10	0.08	0.90	0.47
+71	photo	The first functional ferrite core memory (above)	(no credit)	0.11	0.08	0.91	0.45
+71	photo	The first functional ferrite core memory (below, closeup)	same caption	0.10	0.47	0.91	0.82
+76	photo	Erich Bloch	(Photograph courtesy of R. W. Collier, IBM East Fishkill.)	0.11	0.08	0.93	0.58
+81	photo	Jay W. Forrester (above, left, 1950)	(Photographs courtesy of the MITRE Corporation Archives.)	0.07	0.08	0.89	0.45
+81	photo	Jay W. Forrester (below, 1970)	same caption	0.07	0.48	0.89	0.87
+86	facsimile	Forrester's notebook entry	(Photograph courtesy of the MIT Archives.) handwritten page, reproduced as line art (nothing in bg layer)	0.12	0.07	0.90	0.78
+88	photo	Early magnetic cores	(Photograph, taken in August 1950, courtesy of the MITRE Corporation Archives.) light background	0.10	0.08	0.90	0.30
+88	photo	Metallic magnetic core array	(Photograph courtesy of the MITRE Corporation Archives.)	0.12	0.56	0.88	0.88
+91	photo	Ceramic Memory I	(Photograph courtesy of the MITRE Corporation Archives.)	0.09	0.08	0.90	0.69
+96	photo	Core plane for Whirlwind	(Photograph courtesy of the MITRE Corporation Archives.) light background	0.10	0.08	0.90	0.55
+99	patent-drawing	The Rajchman patent	patent sheet 3,164,813 (Fig. 1, Fig. 2), line art with typeset header	0.10	0.07	0.90	0.82
+126	photo	Semiautomatic core test apparatus	(no credit)	0.10	0.08	0.93	0.44
+126	photo	Wiring core planes	(no credit)	0.10	0.55	0.91	0.86
+127	photo	Wired ferrite cores	(no credit)	0.09	0.07	0.91	0.84
+130	diagram	SAGE memory block diagram	hand-lettered block diagram from IBM report July 12, 1954	0.10	0.08	0.90	0.40
+130	diagram	SAGE memory timing chart	hand-lettered timing chart from IBM report July 12, 1954	0.10	0.51	0.90	0.85
+132	photo	ERA 1103 core plane	(Photograph and information courtesy of R. B. Arndt, Sperry Corporation.) light background	0.10	0.08	0.90	0.60
+136	photo	John W. Gibson	(Photograph courtesy of the IBM Archives.)	0.10	0.08	0.91	0.64
+138	photo	Colton rotary press	(no credit)	0.10	0.07	0.91	0.71
+141	photo	XD-1 memory prototype	(no credit)	0.10	0.08	0.84	0.45
+141	photo	SAGE memory	(no credit)	0.09	0.58	0.84	0.88
+157	photo	Switch core	(no credit)	0.17	0.11	0.61	0.32
+157	diagram	Memory schematic	hand-drawn figure from IBM engineering report, March 1955	0.10	0.50	0.90	0.75
+163	photo	Driver frame used in the Type 738 memory	(From the IBM Journal of Research and Development, April 1957, p. 102.)	0.07	0.08	0.89	0.80
+165	diagram	Block diagram of the Type 738 memory	(From the IBM Journal of Research and Development, April 1957, p. 104.) typeset block diagram	0.08	0.08	0.90	0.40
+165	diagram	Sense amplifier in the Type 738 memory	(From the IBM Journal of Research and Development, April 1957, p. 108.) circuit schematic	0.08	0.55	0.60	0.85
+172	photo	Core threading machine used in 1959	(no credit)	0.11	0.08	0.91	0.46
+172	photo	Needles passing through cores	(no credit)	0.11	0.62	0.91	0.85
+174	photo	Vacuum matrix	(no credit)	0.11	0.08	0.76	0.40
+174	photo	Core plane for the Type 738 memory	(From the IBM Journal of Research and Development, April 1957.)	0.11	0.52	0.91	0.81
+185	photo	Load-sharing matrix switch	(no credit) light background	0.10	0.08	0.90	0.45
+190	photo	IBM 7302 memory	(no credit)	0.14	0.09	0.93	0.65
+193	photo	Three-hole core	(no credit)	0.09	0.09	0.90	0.48
+193	diagram	Multihole cores	wiring schematics from internal IBM report June 25, 1957; hand-lettered	0.10	0.55	0.90	0.75
+196	diagram	Two core per bit storage cell	(From the IBM Journal of Research and Development, July 1961, p. 175.) typeset	0.10	0.08	0.90	0.36
+198	photo	Moe Every with Bill Rhodes	(no credit)	0.12	0.07	0.93	0.45
+217	diagram	System/360 microprogram control	(From the IBM Systems Journal 6, 1967, p. 226.) typeset block diagram	0.10	0.08	0.90	0.65
+236	diagram	Transformer Read-Only Store (TROS) (above)	(From the IBM Journal of Research and Development, September 1964, pp. 444-445.) shaded isometric	0.10	0.08	0.90	0.40
+236	diagram	Transformer Read-Only Store (TROS) (below)	same caption; shaded line art	0.10	0.44	0.90	0.66
+239	photo	Card Capacitor Read-Only Store (CCROS) (a: board)	(From the IBM Journal of Research and Development, March 1966, p. 143.)	0.10	0.09	0.57	0.60
+239	photo	Card Capacitor Read-Only Store (CCROS) (detail panels at right)	same caption; three small detail panels	0.59	0.19	0.88	0.56
+243	diagram	Balanced Capacitor Read-Only Store (BCROS)	(From the IBM Journal of Research and Development, July 1968, p. 308.) shaded schematic with dimension labels	0.10	0.08	0.90	0.66
+248	patent-drawing	Wire threading with offset (FIG. 4)	Judge's patent 3,314,131; "FIG. 4" label is part of the drawing	0.10	0.09	0.90	0.38
+248	patent-drawing	Wire threading with offset (FIG. 8)	same caption; "FIG. 8" label part of drawing	0.10	0.40	0.90	0.62
+254	photo	Mixing ferrite powder	(no credit; "Photograph was taken in the IBM plant in 1964.")	0.10	0.08	0.91	0.62
+256	photo	Rotary presses with 32 punches (above)	(no credit)	0.11	0.09	0.91	0.46
+256	photo	Rotary presses with 32 punches (below)	same caption	0.11	0.50	0.93	0.88
+261	graph	Ferrite core production	log-scale line chart, two ordinates, typeset axis labels	0.08	0.08	0.60	0.42
+261	photo	Repairing a ferrite core plane	(no credit)	0.07	0.52	0.84	0.84
+271	photo	Memory chip on core array	(From the IBM Journal of Research and Development, September 1981, p. 592.)	0.09	0.09	0.76	0.38
+271	photo	Semiconductor memory module	(From the IBM Journal of Research and Development, September 1981, p. 595.)	0.07	0.54	0.64	0.80
+317	table-like	Chronology (2-column: date | event)	pages 317-328 all same layout; not a ruled table	0.10	0.15	0.90	0.90

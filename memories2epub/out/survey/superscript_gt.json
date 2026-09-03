@@ -1,0 +1,35 @@
+{
+ "20": [
+  {"line": 7, "word": "IBM.", "n": 4},
+  {"line": 15, "word": "States.", "n": 6},
+  {"line": 24, "word": "Research.", "n": 7},
+  {"line": 32, "word": "calculations.", "n": 8, "legible": false}
+ ],
+ "21": [
+  {"line": 6, "word": "motion.", "n": 8},
+  {"line": 11, "word": "computers.", "n": 8},
+  {"line": 25, "word": "education?\"", "n": 7},
+  {"line": 29, "word": "operations.", "n": 9},
+  {"line": 33, "word": "$100,000.", "n": 10},
+  {"line": 35, "word": "1944.", "n": 9},
+  {"line": 37, "word": "construction.", "n": 11}
+ ],
+ "22": [
+  {"line": 6, "word": "figures.\"", "n": 12},
+  {"line": 12, "word": "tons.", "n": 12},
+  {"line": 16, "word": "Babbage.", "n": 13},
+  {"line": 26, "word": "contributions.", "n": 14},
+  {"line": 33, "word": "conceive.", "n": 10},
+  {"line": 36, "word": "director.", "n": 8}
+ ],
+ "60": [
+  {"line": 23, "word": "digit-level.\"", "n": 13},
+  {"line": 34, "word": "selected.", "n": 13}
+ ],
+ "130": [],
+ "210": [
+  {"line": 7, "word": "series.\"", "n": 14},
+  {"line": 14, "word": "rage.", "n": 12},
+  {"line": 28, "word": "computers.", "n": 12}
+ ]
+}

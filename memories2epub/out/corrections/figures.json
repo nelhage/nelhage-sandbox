@@ -1,0 +1,42 @@
+[
+  {
+    "page": 66,
+    "k": 1,
+    "md": "**MIT memory selection method** The memory selection scheme attributed by Counihan to MIT was described by Forrester in the *Journal of Applied Physics* in 1951. All cores in each x plane are wired by a single x drive line, and all cores in each y plane are wired by a single y drive line. All cores in the selected planes x~s~ and y~s~ receive half-select pulses, but only those at the intersection of planes x~s~ and y~s~ receive the sum of these two pulses, i.e., a full-select pulse for readout. Writing is accomplished by pulses (of polarity opposite to that used for reading) on the same x~s~ and y~s~ planes to create all 1s, plus half-select pulses on selected z planes with polarity chosen to prevent cores from switching, thus storing 0s. The Forrester scheme requires the coincidence of up to three current pulses through each core to write information, causing it to be termed a 3D selection scheme. (Illustration from R. G. Counihan’s internal IBM report of September 9, 1951.)"
+  },
+  {
+    "page": 67,
+    "k": 1,
+    "md": "**IBM memory selection method** The memory selection scheme attributed by Counihan to IBM was based on the proposal in Haynes’s thesis at the University of Illinois. An electronic drive circuit on top of the array is activated to send current through all word lines in plane x~s~, and an electronic circuit at the bottom of the array is activated to accept only current through word lines in plane y~s~. This causes current to flow only through one selected word line at the intersection of planes x~s~ and y~s~. For readout, all cores on this line are driven to a 0 state, inducing a signal from cores originally in the 1 state and no signal from cores originally in the 0 state. (Haynes’s thesis proposed that readout be achieved nondestructively by using a very small readout pulse on the selected word line.) Writing a word is accomplished by an opposite polarity word-line pulse, large enough to drive all cores to the 1 state, plus half-select pulses on selected z planes to prevent selected cores from being switched to the 1 state, thus storing 0s. This use of an inhibit pulse appears to have been suggested by Forrester’s work because Haynes’s thesis proposed the use of half-select pulses of like polarity on the word line and selected z planes. In either case Haynes’s method requires the coincidence of only two pulses through each core to write information, causing it to be called a 2D rather than a 3D selection scheme in later writings. (Illustration from R. G. Counihan’s internal IBM report of September 9, 1951.)"
+  },
+  {
+    "page": 69,
+    "k": 1,
+    "caption_text": "This 4×4×4 array of ferrite cores was successfully operated at IBM in May 1952. The core array was wired in the Forrester 3D selection manner, but two diode arrays provided external 2D selection of the X and Y drive lines, making it a 5D selection system by Haynes’s terminology. Only two of the 4×4 core planes can be seen because the other two are hidden under the support plates."
+  },
+  {
+    "page": 157,
+    "k": 2,
+    "caption_text": "This hand-drawn figure from an IBM engineering report of March 1955 was referred to as a 704 EDPM core memory layout showing main array, X, Y, and Z drivers, and sense amplifiers. The report described how 8×8 matrixes of switch cores could be used to drive a large memory array of 64×64 words of 36 bits each. The technique was similar to that used in the smaller 3D selection ferrite core buffers already developed for the IBM 702 computer."
+  },
+  {
+    "page": 185,
+    "k": 1,
+    "caption_text": "The switch cores used to drive the 2.18 microsecond cycle memory in Stretch were 1.8 inches long with a 125 mil inside diameter and 250 mil outside diameter. The unit standing on end in the center of the photograph held two rows (or matrixes) of 16 cores. Four of these units were packaged on the sides of a modified ferrite core plane as shown. Eight load-sharing switches, packaged in this manner, were used for each address selection coordinate of the memory. Each switch has 32 single-turn input windings and 16 nine-turn output windings."
+  },
+  {
+    "page": 196,
+    "k": 1,
+    "md": "**Two core per bit storage cell** The manner in which two cores of a single bit are threaded by drive and sense windings and the respective current and voltage polarities are indicated at left. The approximate flux states to which the pair of cores are driven for the storage of a 1 or 0 are shown at right. The read current is conducted through a two-turn winding in order to halve the drive-current requirements. This drive is applied to both cores with a polarity that switches them to the negative flux state. On removal of the read drive, both cores relax to the states indicated by Φ~R~ on the hysteresis loops. The cores may now be switched to the appropriate states corresponding to the information to be stored. (From the *IBM Journal of Research and Development*, July 1961, p. 175.)"
+  },
+  {
+    "page": 248,
+    "k": 1,
+    "caption_text": "Judge’s patent (3,314,131) shows how the two parts of the wiring jig are displaced relative to each other (Fig. 4 above). How this displacement is used to create an offset of two rows for the second set of wires threaded through the cores is shown in Fig. 8 below."
+  },
+  {
+    "page": 248,
+    "k": 2,
+    "caption_text": "Judge’s patent (3,314,131) shows how the two parts of the wiring jig are displaced relative to each other (Fig. 4 above). How this displacement is used to create an offset of two rows for the second set of wires threaded through the cores is shown in Fig. 8 below."
+  }
+]

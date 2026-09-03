@@ -1,0 +1,242 @@
+[
+ {
+  "page": 258,
+  "bbox": [
+   191,
+   2413,
+   249,
+   2436
+  ],
+  "text": "BOS"
+ },
+ {
+  "page": 259,
+  "bbox": [
+   424,
+   697,
+   479,
+   726
+  ],
+  "text": "I/O"
+ },
+ {
+  "page": 260,
+  "bbox": [
+   175,
+   1691,
+   421,
+   1737
+  ],
+  "text": "nevertheless"
+ },
+ {
+  "page": 262,
+  "bbox": [
+   190,
+   1651,
+   350,
+   1703
+  ],
+  "text": "low-cost"
+ },
+ {
+  "page": 262,
+  "line_bbox": [
+   192,
+   1837,
+   1496,
+   1879
+  ],
+  "text": "memories were prohibitively expensive, and substantially"
+ },
+ {
+  "page": 264,
+  "bbox": [
+   155,
+   660,
+   300,
+   690
+  ],
+  "italic": true
+ },
+ {
+  "page": 266,
+  "bbox": [
+   732,
+   555,
+   800,
+   587
+  ],
+  "text": "had"
+ },
+ {
+  "page": 267,
+  "line_bbox": [
+   137,
+   1087,
+   1438,
+   1127
+  ],
+  "text": "could now perform this operation just as cheaply. IBM"
+ },
+ {
+  "page": 267,
+  "bbox": [
+   1162,
+   2392,
+   1242,
+   2425
+  ],
+  "text": "and"
+ },
+ {
+  "page": 268,
+  "bbox": [
+   1255,
+   896,
+   1259,
+   901
+  ],
+  "text": ""
+ },
+ {
+  "page": 269,
+  "bbox": [
+   624,
+   410,
+   917,
+   461
+  ],
+  "text": "Data Systems,"
+ },
+ {
+  "page": 269,
+  "bbox": [
+   957,
+   411,
+   1325,
+   465
+  ],
+  "text": "General Products,"
+ },
+ {
+  "page": 269,
+  "bbox": [
+   130,
+   470,
+   375,
+   510
+  ],
+  "text": "Components"
+ },
+ {
+  "page": 270,
+  "bbox": [
+   1121,
+   259,
+   1396,
+   298
+  ],
+  "text": "unnecessarily"
+ },
+ {
+  "page": 270,
+  "bbox": [
+   177,
+   1688,
+   256,
+   1710
+  ],
+  "text": "now"
+ },
+ {
+  "page": 273,
+  "bbox": [
+   560,
+   1514,
+   807,
+   1567
+  ],
+  "text": "technologies."
+ },
+ {
+  "page": 273,
+  "bbox": [
+   1229,
+   2450,
+   1241,
+   2508
+  ],
+  "text": ""
+ },
+ {
+  "page": 274,
+  "bbox": [
+   1384,
+   757,
+   1502,
+   788
+  ],
+  "text": "IBM's"
+ },
+ {
+  "page": 274,
+  "bbox": [
+   437,
+   1696,
+   596,
+   1739
+  ],
+  "text": "enough\""
+ },
+ {
+  "page": 276,
+  "bbox": [
+   1260,
+   600,
+   1295,
+   636
+  ],
+  "text": "\"I"
+ },
+ {
+  "page": 277,
+  "bbox": [
+   669,
+   537,
+   730,
+   569
+  ],
+  "text": "the"
+ },
+ {
+  "page": 278,
+  "bbox": [
+   1311,
+   569,
+   1463,
+   624
+  ],
+  "text": "process."
+ },
+ {
+  "page": 278,
+  "bbox": [
+   1246,
+   895,
+   1249,
+   898
+  ],
+  "text": ""
+ },
+ {
+  "page": 280,
+  "bbox": [
+   517,
+   1323,
+   672,
+   1352
+  ],
+  "text": "memory"
+ }
+]

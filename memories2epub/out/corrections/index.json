@@ -1,0 +1,194 @@
+[
+ {
+  "i": 10,
+  "text": "Albers-Schönberg, E.",
+  "locators": "90, 105, 151",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 12,
+  "text": "Ampex",
+  "locators": "252",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 46,
+  "text": "Buffer memory",
+  "locators": "54-61, 129-132",
+  "see": "See also Ferrite core buffer; Magnetic core buffer",
+  "level": 0
+ },
+ {
+  "i": 53,
+  "text": "CDC",
+  "locators": "",
+  "see": "See Control Data Corp.",
+  "level": 0
+ },
+ {
+  "i": 67,
+  "text": "Constantine, Gregory, Jr.",
+  "locators": "166-168, 236",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 86,
+  "text": "CTR",
+  "locators": "",
+  "see": "See Computing-Tabulating-Recording Co.",
+  "level": 0
+ },
+ {
+  "i": 98,
+  "text": "Eckert-Mauchly Computer Co. (EMCC)",
+  "locators": "17-19",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 135,
+  "append": {
+   "text": "Ferrite cores",
+   "locators": "",
+   "see": "See Magnetic cores",
+   "level": 0
+  }
+ },
+ {
+  "i": 145,
+  "text": "Forrester Jay W.",
+  "locators": "47-49, 62, 74, 76, 77, 79, 81, 82, 84-87, 89-91, 93, 96-102, 105, 107, 112, 118, 123-124, 126, 127, 130, 131, 208-212, 260",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 154,
+  "text": "GE",
+  "locators": "",
+  "see": "See General Electric Co.",
+  "level": 0
+ },
+ {
+  "i": 163,
+  "append": {
+   "text": "Half-select pulse",
+   "locators": "44, 49",
+   "see": null,
+   "level": 0
+  }
+ },
+ {
+  "i": 237,
+  "text": "IBM 1401S",
+  "locators": "203-204",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 259,
+  "append": {
+   "text": "IBM System/360",
+   "locators": "",
+   "see": null,
+   "level": 0
+  }
+ },
+ {
+  "i": 291,
+  "text": "Johnniac Computer (Rand Corp.)",
+  "locators": "61, 115",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 291,
+  "append": {
+   "text": "Jones, Ivor",
+   "locators": "292",
+   "see": null,
+   "level": 0
+  }
+ },
+ {
+  "i": 309,
+  "text": "Los Alamos Scientific Laboratory",
+  "locators": "165",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 357,
+  "text": "reliability of",
+  "locators": "133-134, 138, 142-143",
+  "see": null,
+  "level": 1
+ },
+ {
+  "i": 391,
+  "text": "transistor use",
+  "locators": "144",
+  "see": null,
+  "level": 1
+ },
+ {
+  "i": 429,
+  "append": {
+   "text": "Haynes’s proposal",
+   "locators": "44, 51",
+   "see": null,
+   "level": 1
+  }
+ },
+ {
+  "i": 486,
+  "text": "vs. magnetic tape",
+  "locators": "18-19, 28",
+  "see": null,
+  "level": 1
+ },
+ {
+  "i": 512,
+  "text": "Schuenzel, Ernest C.",
+  "locators": "151, 153, 237, 259",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 523,
+  "text": "Simon, H. A.",
+  "locators": "261",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 556,
+  "text": "semiconductor drive circuits for",
+  "locators": "166-167",
+  "see": null,
+  "level": 1
+ },
+ {
+  "i": 613,
+  "text": "Walker, William J.",
+  "locators": "119-121, 150, 239",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 620,
+  "text": "Weizsäcker, Prof.",
+  "locators": "90",
+  "see": null,
+  "level": 0
+ },
+ {
+  "i": 640,
+  "text": "World War II",
+  "locators": "",
+  "see": null,
+  "level": 0
+ }
+]

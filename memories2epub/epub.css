@@ -1,0 +1,28 @@
+body { font-family: serif; line-height: 1.4; margin: 0 4%; }
+h1 { font-family: sans-serif; font-weight: normal; font-size: 1.7em; margin: 2.5em 0 2.5em 0; page-break-before: always; }
+h1 .chapno { display: block; font-weight: bold; font-size: 2.2em; line-height: 1; margin-bottom: 0.1em; }
+h2 { font-family: serif; font-weight: bold; font-size: 1em; margin: 1.6em 0 0 0; }
+h2 + p { text-indent: 0; }
+p { margin: 0; text-indent: 1.5em; text-align: justify; }
+h1 + p, blockquote + p, figure + p, ol + p, .pb + p, p.first { text-indent: 0; }
+blockquote { margin: 1em 0 1em 1.5em; font-size: 0.95em; }
+blockquote p { text-indent: 0; margin-bottom: 0.6em; }
+ol { margin: 1em 0; }
+ol li { margin-bottom: 0.5em; }
+figure { margin: 1.5em 0; text-align: center; page-break-inside: avoid; }
+figure img { max-width: 100%; }
+figcaption { font-size: 0.85em; text-align: left; margin-top: 0.6em; text-indent: 0; }
+sup { font-size: 0.7em; line-height: 0; vertical-align: super; }
+a.noteref { text-decoration: none; }
+.pb { display: inline; }
+.note { margin: 0 0 0.7em 2.2em; text-indent: -2.2em; font-size: 0.95em; }
+.note p { text-indent: -2.2em; margin: 0; }
+.noteno { display: inline-block; width: 2.2em; text-indent: 0; }
+.backlink { text-decoration: none; margin-left: 0.4em; }
+dl { margin: 1em 0; }
+dt { float: left; clear: left; width: 4.5em; font-weight: bold; margin: 0; }
+dd { margin: 0 0 0.6em 5em; }
+.index p { margin: 0; text-indent: 0; }
+.ix0 { margin-left: 1.5em; text-indent: -1.5em; }
+.ix1 { margin-left: 3em; text-indent: -1.5em; }
+.ix0 p, .ix1 p { text-indent: inherit; margin: 0; }

@@ -110,6 +110,25 @@
             pkgs.imagemagick
           ] pythonEnv;
 
+          # Scanned book -> EPUB. `tesseract` does the bulk OCR (hOCR output
+          # keeps per-word confidences + bboxes); `poppler-utils` renders and
+          # probes pages; `imagemagick` crops figures; `pandoc` builds the EPUB.
+          memories2epub =
+            (withPackages [
+              pkgs.poppler-utils
+              (pkgs.tesseract.override { enableLanguages = [ "eng" ]; })
+              pkgs.imagemagick
+              pkgs.pandoc
+              pkgs.epubcheck
+            ] pythonEnv).overrideAttrs
+              (
+                old:
+                lib.optionalAttrs pkgs.stdenv.isLinux {
+                  # numpy/scipy wheels dlopen libz.
+                  LD_LIBRARY_PATH = "${old.LD_LIBRARY_PATH or ""}:${pkgs.zlib}/lib";
+                }
+              );
+
           pypy = withPackages [
             pkgs.pypy3
             pkgs.nodejs

@@ -99,6 +99,10 @@
           regexle = pythonEnv;
           mnist-subliminal = pythonEnv;
 
+          # Wiki log dump -> git repository. `git` replays the revisions via
+          # fast-import.
+          collusion-wiki = withPackages [ pkgs.git ] pythonEnv;
+
           # `pandoc` turns the generated Markdown into EPUB for e-readers.
           pdf2md = withPackages [ pkgs.pandoc ] pythonEnv;
 

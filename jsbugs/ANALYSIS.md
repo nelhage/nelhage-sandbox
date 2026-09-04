@@ -5,10 +5,58 @@ at a time from `data/sample_patches`.
 
 ---
 
+## 2026-09-04 Analysis wrt Nelson's JIT taxonomy
+
+### Bug 01 — CVE-2023-2724 (High): `v8::Object::SetAccessorProperty`
+- Runtime (vs optimizer; Invariant violation; mutability)
+    - Runtime incorrectly permitted a mutation
+    - JIT assumed no such mutation was possible
+
+### Bug 02 — CVE-2026-7999 (Low): Wasm string `PrepareForGetCodeUnit` load elimination
+- Optimizer (vs data model; incorrect invariant assumed; object representation)
+    - JIT assumed a given string repr was immutable
+    - The **logical value** was immutable, but the runtime could shift to a different representation
+
+### Bug 03 — CVE-2026-10936 (High): Turboshaft loop-header `dominating_frame_state`
+- Optimizer (JIT)
+    - Unsound handling of CFG control flow
+- Brittle engineering: the bug would have been caught by a very cheap DCHECK (essentially a single integer compare)
+
+### Bug 04 — CVE-2021-4061 (High): JS→Wasm call inlining (kill-switch fix)
+- Optimizer (vs object model; incorrect invariant assumed)
+    - JS↔Wasm interop:
+        - Type confusion when a Wasm module imports a JS function and then re-exports it
+    - JIT assumed wasm functions all used the same ambient "instance" object (the wasm module)
+
+### Bug 05 — CVE-2025-11215 (Medium): off-by-one OOB read in `RegExpMatchGlobalAtom_OneCharPattern`
+- Runtime (trivial off-by-one)
+
+### Bug 06 — CVE-2025-12433 (High): TDZ hole-check elision misses `break` edges
+- VM frontend (bytecode compiler)
+    - Unsound dataflow over an AST
+
+### Bug 07 — CVE-2025-13042 (High): Maglev leftover register allocations
+- VM optimizer (internal; invariant violation; regalloc vs codegen)
+    - Invariant violation in the register allocator
+
+### Bug 08 — CVE-2026-5871 (High): Maglev phi-untagging Smi→HeapNumber type widening
+- VM optimizer (unsound type analysis; interaction with data model)
+    - Confusion between the data model type lattice and the codegen's own representation tracking
+
+### Bug 09 — CVE-2021-4078 (High): clobbered argument frame in `Runtime_DefineClass`
+- Runtime (mutability)
+    - Runtime mutates the caller's frame inappropriately
+
+
+### Bug 10 — CVE-2026-7936 (Medium): flushed-bytecode field in `InterpreterEntryTrampoline`
+- JIT (vs data model; incorrect invariant assumed; lifetimes)
+    - JIT assumed that function bytecode was immortal, but the runtime would flush it under certain circumstances
+
+---
+
 ## Summary
 
-Ten V8 security fixes, analyzed one at a time. Per-bug write-ups follow; this
-section is the synthesis.
+Ten V8 security fixes, analyzed one at a time. Per-bug write-ups follow; this section is the synthesis.
 
 Columns reflect the analytical axes that emerged: **locus** (where it lives —
 treated as load-bearing, since "inside the optimizer" vs. "bytecode-gen with no

@@ -149,6 +149,10 @@
               (old: {
                 ANDROID_NDK_ROOT = "${androidNdk}";
               });
+
+          uke = withPackages [
+            pkgs.typst
+          ] baseEnv;
         }
       );
     };

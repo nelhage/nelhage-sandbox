@@ -1,0 +1,6381 @@
+{
+ "authors": [
+  {
+   "id": 8,
+   "old": "Butcher, Jim",
+   "old_sort": "Butcher, Jim",
+   "new": "Jim Butcher",
+   "sort": "Butcher, Jim",
+   "books": 18,
+   "note": ""
+  },
+  {
+   "id": 9,
+   "old": "Leckie, Ann",
+   "old_sort": "Leckie, Ann",
+   "new": "Ann Leckie",
+   "sort": "Leckie, Ann",
+   "books": 6,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 10,
+   "old": "Dinniman, Matt",
+   "old_sort": "Dinniman, Matt",
+   "new": "Matt Dinniman",
+   "sort": "Dinniman, Matt",
+   "books": 4,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 11,
+   "old": "Scalzi, John",
+   "old_sort": "Scalzi, John",
+   "new": "John Scalzi",
+   "sort": "Scalzi, John",
+   "books": 8,
+   "note": ""
+  },
+  {
+   "id": 12,
+   "old": "Trotman, C. Spike",
+   "old_sort": "Trotman, C. Spike",
+   "new": "C. Spike Trotman",
+   "sort": "Trotman, C. Spike",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 15,
+   "old": "Cline, Ernest",
+   "old_sort": "Cline, Ernest",
+   "new": "Ernest Cline",
+   "sort": "Cline, Ernest",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 16,
+   "old": "Stout, Lynn",
+   "old_sort": "Stout, Lynn",
+   "new": "Lynn Stout",
+   "sort": "Stout, Lynn",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 17,
+   "old": "Coates, Ta-Nehisi",
+   "old_sort": "Coates, Ta-Nehisi",
+   "new": "Ta-Nehisi Coates",
+   "sort": "Coates, Ta-Nehisi",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 19,
+   "old": "Dante Alighieri",
+   "old_sort": "Alighieri, Dante",
+   "new": "Dante Alighieri",
+   "sort": "Dante Alighieri",
+   "books": 2,
+   "note": "Conventionally sorted under D, not Alighieri."
+  },
+  {
+   "id": 20,
+   "old": "Heifetz, Ronald A.",
+   "old_sort": "Heifetz, Ronald A.",
+   "new": "Ronald A. Heifetz",
+   "sort": "Heifetz, Ronald A.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 21,
+   "old": "Wolfe, Tom",
+   "old_sort": "Wolfe, Tom",
+   "new": "Tom Wolfe",
+   "sort": "Wolfe, Tom",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 22,
+   "old": "Payson, Eleanor",
+   "old_sort": "Payson, Eleanor",
+   "new": "Eleanor Payson",
+   "sort": "Payson, Eleanor",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 23,
+   "old": "Krugman, Paul",
+   "old_sort": "Krugman, Paul",
+   "new": "Paul Krugman",
+   "sort": "Krugman, Paul",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 24,
+   "old": "Stephenson, Neal",
+   "old_sort": "Stephenson, Neal",
+   "new": "Neal Stephenson",
+   "sort": "Stephenson, Neal",
+   "books": 5,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 25,
+   "old": "Dorner, Dietrich",
+   "old_sort": "Dorner, Dietrich",
+   "new": "Dietrich Dorner",
+   "sort": "Dorner, Dietrich",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 26,
+   "old": "Stoppard, Tom",
+   "old_sort": "Stoppard, Tom",
+   "new": "Tom Stoppard",
+   "sort": "Stoppard, Tom",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 27,
+   "old": "Larkwood, A. K.",
+   "old_sort": "Larkwood, A. K.",
+   "new": "A. K. Larkwood",
+   "sort": "Larkwood, A. K.",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 28,
+   "old": "Bennett, Robert Jackson",
+   "old_sort": "Bennett, Robert Jackson",
+   "new": "Robert Jackson Bennett",
+   "sort": "Bennett, Robert Jackson",
+   "books": 2,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 29,
+   "old": "Wright, Robert",
+   "old_sort": "Wright, Robert",
+   "new": "Robert Wright",
+   "sort": "Wright, Robert",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 30,
+   "old": "Miéville, China",
+   "old_sort": "Miéville, China",
+   "new": "China Miéville",
+   "sort": "Miéville, China",
+   "books": 2,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 31,
+   "old": "Reynolds, Alastair",
+   "old_sort": "Reynolds, Alastair",
+   "new": "Alastair Reynolds",
+   "sort": "Reynolds, Alastair",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 32,
+   "old": "Wells, Martha",
+   "old_sort": "Wells, Martha",
+   "new": "Martha Wells",
+   "sort": "Wells, Martha",
+   "books": 11,
+   "note": ""
+  },
+  {
+   "id": 33,
+   "old": "Garver, Lori",
+   "old_sort": "Garver, Lori",
+   "new": "Lori Garver",
+   "sort": "Garver, Lori",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 38,
+   "old": "Port, Dina Roth",
+   "old_sort": "Port, Dina Roth",
+   "new": "Dina Roth Port",
+   "sort": "Port, Dina Roth",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 39,
+   "old": "George, Zak",
+   "old_sort": "George, Zak",
+   "new": "Zak George",
+   "sort": "George, Zak",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 40,
+   "old": "Emily Bronte",
+   "old_sort": "Bronte, Emily",
+   "new": "Emily Brontë",
+   "sort": "Brontë, Emily",
+   "books": 1,
+   "note": "Restore diaeresis."
+  },
+  {
+   "id": 41,
+   "old": "Deane, Maya",
+   "old_sort": "Deane, Maya",
+   "new": "Maya Deane",
+   "sort": "Deane, Maya",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 42,
+   "old": "Howey, Hugh",
+   "old_sort": "Howey, Hugh",
+   "new": "Hugh Howey",
+   "sort": "Howey, Hugh",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 43,
+   "old": "Barber, Elizabeth Wayland",
+   "old_sort": "Barber, Elizabeth Wayland",
+   "new": "Elizabeth Wayland Barber",
+   "sort": "Barber, Elizabeth Wayland",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 44,
+   "old": "Morgan, Richard K.",
+   "old_sort": "Morgan, Richard K.",
+   "new": "Richard K. Morgan",
+   "sort": "Morgan, Richard K.",
+   "books": 3,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 45,
+   "old": "Giridharadas, Anand",
+   "old_sort": "Giridharadas, Anand",
+   "new": "Anand Giridharadas",
+   "sort": "Giridharadas, Anand",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 46,
+   "old": "Doescher, Ian",
+   "old_sort": "Doescher, Ian",
+   "new": "Ian Doescher",
+   "sort": "Doescher, Ian",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 47,
+   "old": "Andrews, Ilona",
+   "old_sort": "Andrews, Ilona",
+   "new": "Ilona Andrews",
+   "sort": "Andrews, Ilona",
+   "books": 8,
+   "note": ""
+  },
+  {
+   "id": 48,
+   "old": "Klein, Ezra",
+   "old_sort": "Klein, Ezra",
+   "new": "Ezra Klein",
+   "sort": "Klein, Ezra",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 49,
+   "old": "Joy Ph.D., Melanie",
+   "old_sort": "Joy Ph.D., Melanie",
+   "new": "Melanie Joy",
+   "sort": "Joy, Melanie",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 50,
+   "old": "Dunkelman, Marc J.",
+   "old_sort": "Dunkelman, Marc J.",
+   "new": "Marc J. Dunkelman",
+   "sort": "Dunkelman, Marc J.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 51,
+   "old": "Bancroft, Lundy",
+   "old_sort": "Bancroft, Lundy",
+   "new": "Lundy Bancroft",
+   "sort": "Bancroft, Lundy",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 52,
+   "old": "Bobrow-Strain, Aaron",
+   "old_sort": "Bobrow-Strain, Aaron",
+   "new": "Aaron Bobrow-Strain",
+   "sort": "Bobrow-Strain, Aaron",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 53,
+   "old": "Aaronovitch, Ben",
+   "old_sort": "Aaronovitch, Ben",
+   "new": "Ben Aaronovitch",
+   "sort": "Aaronovitch, Ben",
+   "books": 8,
+   "note": ""
+  },
+  {
+   "id": 54,
+   "old": "Owens, Delia",
+   "old_sort": "Owens, Delia",
+   "new": "Delia Owens",
+   "sort": "Owens, Delia",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 55,
+   "old": "Labatut, Benjamín",
+   "old_sort": "Labatut, Benjamín",
+   "new": "Benjamín Labatut",
+   "sort": "Labatut, Benjamín",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 56,
+   "old": "Lowenstein, Roger",
+   "old_sort": "Lowenstein, Roger",
+   "new": "Roger Lowenstein",
+   "sort": "Lowenstein, Roger",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 57,
+   "old": "Clinton, Hillary Rodham",
+   "old_sort": "Clinton, Hillary Rodham",
+   "new": "Hillary Rodham Clinton",
+   "sort": "Clinton, Hillary Rodham",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 58,
+   "old": "Braverman, Blair",
+   "old_sort": "Braverman, Blair",
+   "new": "Blair Braverman",
+   "sort": "Braverman, Blair",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 59,
+   "old": "Coover, Colleen",
+   "old_sort": "Coover, Colleen",
+   "new": "Colleen Coover",
+   "sort": "Coover, Colleen",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 60,
+   "old": "Beckett, Samuel",
+   "old_sort": "Beckett, Samuel",
+   "new": "Samuel Beckett",
+   "sort": "Beckett, Samuel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 61,
+   "old": "Richards, Douglas E.",
+   "old_sort": "Richards, Douglas E.",
+   "new": "Douglas E. Richards",
+   "sort": "Richards, Douglas E.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 62,
+   "old": "O'Reilly, Tim",
+   "old_sort": "O'Reilly, Tim",
+   "new": "Tim O'Reilly",
+   "sort": "O'Reilly, Tim",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 63,
+   "old": "Anders, Charlie Jane",
+   "old_sort": "Anders, Charlie Jane",
+   "new": "Charlie Jane Anders",
+   "sort": "Anders, Charlie Jane",
+   "books": 6,
+   "note": ""
+  },
+  {
+   "id": 64,
+   "old": "Bregman, Rutger",
+   "old_sort": "Bregman, Rutger",
+   "new": "Rutger Bregman",
+   "sort": "Bregman, Rutger",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 65,
+   "old": "Banks, Iain M.",
+   "old_sort": "Banks, Iain M.",
+   "new": "Iain M. Banks",
+   "sort": "Banks, Iain M.",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 66,
+   "old": "Novik, Naomi",
+   "old_sort": "Novik, Naomi",
+   "new": "Naomi Novik",
+   "sort": "Novik, Naomi",
+   "books": 6,
+   "note": ""
+  },
+  {
+   "id": 67,
+   "old": "Shepherd, Richard",
+   "old_sort": "Shepherd, Richard",
+   "new": "Richard Shepherd",
+   "sort": "Shepherd, Richard",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 68,
+   "old": "de Maupassant, Guy",
+   "old_sort": "de Maupassant, Guy",
+   "new": "Guy de Maupassant",
+   "sort": "Maupassant, Guy de",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 69,
+   "old": "Price PhD, Devon",
+   "old_sort": "Price PhD, Devon",
+   "new": "Devon Price",
+   "sort": "Price, Devon",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 70,
+   "old": "Wiener, Anna",
+   "old_sort": "Wiener, Anna",
+   "new": "Anna Wiener",
+   "sort": "Wiener, Anna",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 71,
+   "old": "Gladstone, Max",
+   "old_sort": "Gladstone, Max",
+   "new": "Max Gladstone",
+   "sort": "Gladstone, Max",
+   "books": 4,
+   "note": ""
+  },
+  {
+   "id": 72,
+   "old": "Scott, James C.",
+   "old_sort": "Scott, James C.",
+   "new": "James C. Scott",
+   "sort": "Scott, James C.",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 73,
+   "old": "Kolbert, Elizabeth",
+   "old_sort": "Kolbert, Elizabeth",
+   "new": "Elizabeth Kolbert",
+   "sort": "Kolbert, Elizabeth",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 74,
+   "old": "Marquet, L. David",
+   "old_sort": "Marquet, L. David",
+   "new": "L. David Marquet",
+   "sort": "Marquet, L. David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 75,
+   "old": "Marcotte, Amanda",
+   "old_sort": "Marcotte, Amanda",
+   "new": "Amanda Marcotte",
+   "sort": "Marcotte, Amanda",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 76,
+   "old": "Gaiman, Neil",
+   "old_sort": "Gaiman, Neil",
+   "new": "Neil Gaiman",
+   "sort": "Gaiman, Neil",
+   "books": 4,
+   "note": ""
+  },
+  {
+   "id": 77,
+   "old": "Gillen, Kieron",
+   "old_sort": "Gillen, Kieron",
+   "new": "Kieron Gillen",
+   "sort": "Gillen, Kieron",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 78,
+   "old": "Doyle, Sady",
+   "old_sort": "Doyle, Sady",
+   "new": "Sady Doyle",
+   "sort": "Doyle, Sady",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 79,
+   "old": "Vanderbilt, Tom",
+   "old_sort": "Vanderbilt, Tom",
+   "new": "Tom Vanderbilt",
+   "sort": "Vanderbilt, Tom",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 80,
+   "old": "Palmer, Ada",
+   "old_sort": "Palmer, Ada",
+   "new": "Ada Palmer",
+   "sort": "Palmer, Ada",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 81,
+   "old": "Chambers, Becky",
+   "old_sort": "Chambers, Becky",
+   "new": "Becky Chambers",
+   "sort": "Chambers, Becky",
+   "books": 7,
+   "note": ""
+  },
+  {
+   "id": 82,
+   "old": "Zevin, Gabrielle",
+   "old_sort": "Zevin, Gabrielle",
+   "new": "Gabrielle Zevin",
+   "sort": "Zevin, Gabrielle",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 83,
+   "old": "Sorkin, Andrew Ross",
+   "old_sort": "Sorkin, Andrew Ross",
+   "new": "Andrew Ross Sorkin",
+   "sort": "Sorkin, Andrew Ross",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 84,
+   "old": "Straub, Emma",
+   "old_sort": "Straub, Emma",
+   "new": "Emma Straub",
+   "sort": "Straub, Emma",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 85,
+   "old": "El-Mohtar, Amal",
+   "old_sort": "El-Mohtar, Amal",
+   "new": "Amal El-Mohtar",
+   "sort": "El-Mohtar, Amal",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 87,
+   "old": "Litwack, David",
+   "old_sort": "Litwack, David",
+   "new": "David Litwack",
+   "sort": "Litwack, David",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 88,
+   "old": "Kahneman, Daniel",
+   "old_sort": "Kahneman, Daniel",
+   "new": "Daniel Kahneman",
+   "sort": "Kahneman, Daniel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 89,
+   "old": "Perlroth, Nicole",
+   "old_sort": "Perlroth, Nicole",
+   "new": "Nicole Perlroth",
+   "sort": "Perlroth, Nicole",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 90,
+   "old": "Jemisin, N. K.",
+   "old_sort": "Jemisin, N. K.",
+   "new": "N. K. Jemisin",
+   "sort": "Jemisin, N. K.",
+   "books": 6,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 91,
+   "old": "Bacigalupi, Paolo",
+   "old_sort": "Bacigalupi, Paolo",
+   "new": "Paolo Bacigalupi",
+   "sort": "Bacigalupi, Paolo",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 92,
+   "old": "Rothfuss, Patrick",
+   "old_sort": "Rothfuss, Patrick",
+   "new": "Patrick Rothfuss",
+   "sort": "Rothfuss, Patrick",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 93,
+   "old": "Abraham, Daniel",
+   "old_sort": "Abraham, Daniel",
+   "new": "Daniel Abraham",
+   "sort": "Abraham, Daniel",
+   "books": 5,
+   "note": ""
+  },
+  {
+   "id": 94,
+   "old": "Standage, Tom",
+   "old_sort": "Standage, Tom",
+   "new": "Tom Standage",
+   "sort": "Standage, Tom",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 95,
+   "old": "Cogman, Genevieve",
+   "old_sort": "Cogman, Genevieve",
+   "new": "Genevieve Cogman",
+   "sort": "Cogman, Genevieve",
+   "books": 8,
+   "note": ""
+  },
+  {
+   "id": 96,
+   "old": "Sanderson, Brandon",
+   "old_sort": "Sanderson, Brandon",
+   "new": "Brandon Sanderson",
+   "sort": "Sanderson, Brandon",
+   "books": 8,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 97,
+   "old": "Roose, Kevin",
+   "old_sort": "Roose, Kevin",
+   "new": "Kevin Roose",
+   "sort": "Roose, Kevin",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 98,
+   "old": "Davies, Dan",
+   "old_sort": "Davies, Dan",
+   "new": "Dan Davies",
+   "sort": "Davies, Dan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 100,
+   "old": "Dickinson, Seth",
+   "old_sort": "Dickinson, Seth",
+   "new": "Seth Dickinson",
+   "sort": "Dickinson, Seth",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 101,
+   "old": "Stross, Charles",
+   "old_sort": "Stross, Charles",
+   "new": "Charles Stross",
+   "sort": "Stross, Charles",
+   "books": 20,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 102,
+   "old": "Liu, Cixin",
+   "old_sort": "Liu, Cixin",
+   "new": "Cixin Liu",
+   "sort": "Liu, Cixin",
+   "books": 2,
+   "note": "Display as on English editions; still sorts under Liu."
+  },
+  {
+   "id": 103,
+   "old": "Mann, Charles C.",
+   "old_sort": "Mann, Charles C.",
+   "new": "Charles C. Mann",
+   "sort": "Mann, Charles C.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 104,
+   "old": "Newitz, Annalee",
+   "old_sort": "Newitz, Annalee",
+   "new": "Annalee Newitz",
+   "sort": "Newitz, Annalee",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 105,
+   "old": "Harrow, Alix E.",
+   "old_sort": "Harrow, Alix E.",
+   "new": "Alix E. Harrow",
+   "sort": "Harrow, Alix E.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 106,
+   "old": "Walker, Pete",
+   "old_sort": "Walker, Pete",
+   "new": "Pete Walker",
+   "sort": "Walker, Pete",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 107,
+   "old": "Doughty, Andrew",
+   "old_sort": "Doughty, Andrew",
+   "new": "Andrew Doughty",
+   "sort": "Doughty, Andrew",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 108,
+   "old": "Kuhn, Thomas S.",
+   "old_sort": "Kuhn, Thomas S.",
+   "new": "Thomas S. Kuhn",
+   "sort": "Kuhn, Thomas S.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 109,
+   "old": "Morgenstern, Erin",
+   "old_sort": "Morgenstern, Erin",
+   "new": "Erin Morgenstern",
+   "sort": "Morgenstern, Erin",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 110,
+   "old": "Kidder, Tracy",
+   "old_sort": "Kidder, Tracy",
+   "new": "Tracy Kidder",
+   "sort": "Kidder, Tracy",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 111,
+   "old": "Larson, Erik",
+   "old_sort": "Larson, Erik",
+   "new": "Erik Larson",
+   "sort": "Larson, Erik",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 112,
+   "old": "Kowal, Mary Robinette",
+   "old_sort": "Kowal, Mary Robinette",
+   "new": "Mary Robinette Kowal",
+   "sort": "Kowal, Mary Robinette",
+   "books": 7,
+   "note": ""
+  },
+  {
+   "id": 113,
+   "old": "Elkind, Peter",
+   "old_sort": "Elkind, Peter",
+   "new": "Peter Elkind",
+   "sort": "Elkind, Peter",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 114,
+   "old": "McLean, Bethany",
+   "old_sort": "McLean, Bethany",
+   "new": "Bethany McLean",
+   "sort": "McLean, Bethany",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 115,
+   "old": "Galbraith, Robert",
+   "old_sort": "Galbraith, Robert",
+   "new": "Robert Galbraith",
+   "sort": "Galbraith, Robert",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 116,
+   "old": "Silver, Nate",
+   "old_sort": "Silver, Nate",
+   "new": "Nate Silver",
+   "sort": "Silver, Nate",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 117,
+   "old": "Mieville, China",
+   "old_sort": "Mieville, China",
+   "new": "China Miéville",
+   "sort": "Miéville, China",
+   "books": 5,
+   "note": "Accent-less duplicate of Miéville; merged.",
+   "merge": true
+  },
+  {
+   "id": 118,
+   "old": "O'Malley, Daniel",
+   "old_sort": "O'Malley, Daniel",
+   "new": "Daniel O'Malley",
+   "sort": "O'Malley, Daniel",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 119,
+   "old": "Crawford, Michael",
+   "old_sort": "Crawford, Michael",
+   "new": "Michael Crawford",
+   "sort": "Crawford, Michael",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 120,
+   "old": "Galland, Nicole",
+   "old_sort": "Galland, Nicole",
+   "new": "Nicole Galland",
+   "sort": "Galland, Nicole",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 121,
+   "old": "Haidt, Jonathan",
+   "old_sort": "Haidt, Jonathan",
+   "new": "Jonathan Haidt",
+   "sort": "Haidt, Jonathan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 122,
+   "old": "Yglesias, Matthew",
+   "old_sort": "Yglesias, Matthew",
+   "new": "Matthew Yglesias",
+   "sort": "Yglesias, Matthew",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 123,
+   "old": "Lynch, Scott",
+   "old_sort": "Lynch, Scott",
+   "new": "Scott Lynch",
+   "sort": "Lynch, Scott",
+   "books": 4,
+   "note": ""
+  },
+  {
+   "id": 125,
+   "old": "Valente, Catherynne M.",
+   "old_sort": "Valente, Catherynne M.",
+   "new": "Catherynne M. Valente",
+   "sort": "Valente, Catherynne M.",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 126,
+   "old": "Lewis, Michael",
+   "old_sort": "Lewis, Michael",
+   "new": "Michael Lewis",
+   "sort": "Lewis, Michael",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 127,
+   "old": "Stiefvater, Maggie",
+   "old_sort": "Stiefvater, Maggie",
+   "new": "Maggie Stiefvater",
+   "sort": "Stiefvater, Maggie",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 128,
+   "old": "Miller, Tom",
+   "old_sort": "Miller, Tom",
+   "new": "Tom Miller",
+   "sort": "Miller, Tom",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 129,
+   "old": "Vinge, Vernor",
+   "old_sort": "Vinge, Vernor",
+   "new": "Vernor Vinge",
+   "sort": "Vinge, Vernor",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 130,
+   "old": "Connaughton, Jeff",
+   "old_sort": "Connaughton, Jeff",
+   "new": "Jeff Connaughton",
+   "sort": "Connaughton, Jeff",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 131,
+   "old": "Holmberg, Charlie N.",
+   "old_sort": "Holmberg, Charlie N.",
+   "new": "Charlie N. Holmberg",
+   "sort": "Holmberg, Charlie N.",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 132,
+   "old": "Wallace, David Foster",
+   "old_sort": "Wallace, David Foster",
+   "new": "David Foster Wallace",
+   "sort": "Wallace, David Foster",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 133,
+   "old": "Sawyer, Robert J.",
+   "old_sort": "Sawyer, Robert J.",
+   "new": "Robert J. Sawyer",
+   "sort": "Sawyer, Robert J.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 134,
+   "old": "Le Guin, Ursula K.",
+   "old_sort": "Le Guin, Ursula K.",
+   "new": "Ursula K. Le Guin",
+   "sort": "Le Guin, Ursula K.",
+   "books": 3,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 135,
+   "old": "Arendt, Hannah",
+   "old_sort": "Arendt, Hannah",
+   "new": "Hannah Arendt",
+   "sort": "Arendt, Hannah",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 136,
+   "old": "Atwood, Margaret",
+   "old_sort": "Atwood, Margaret",
+   "new": "Margaret Atwood",
+   "sort": "Atwood, Margaret",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 138,
+   "old": "Wright, Hyrum",
+   "old_sort": "Wright, Hyrum",
+   "new": "Hyrum Wright",
+   "sort": "Wright, Hyrum",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 139,
+   "old": "Manshreck, Tom",
+   "old_sort": "Manshreck, Tom",
+   "new": "Tom Manshreck",
+   "sort": "Manshreck, Tom",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 140,
+   "old": "Winters, Titus",
+   "old_sort": "Winters, Titus",
+   "new": "Titus Winters",
+   "sort": "Winters, Titus",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 141,
+   "old": "Alexander, Michelle",
+   "old_sort": "Alexander, Michelle",
+   "new": "Michelle Alexander",
+   "sort": "Alexander, Michelle",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 142,
+   "old": "Eco, Umberto",
+   "old_sort": "Eco, Umberto",
+   "new": "Umberto Eco",
+   "sort": "Eco, Umberto",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 143,
+   "old": "Brooks, Frederick P.",
+   "old_sort": "Brooks, Frederick P.",
+   "new": "Frederick P. Brooks",
+   "sort": "Brooks, Frederick P.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 144,
+   "old": "deBirmingham, E.D.",
+   "old_sort": "deBirmingham, E.D.",
+   "new": "E. D. deBirmingham",
+   "sort": "deBirmingham, E. D.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 145,
+   "old": "Moo, Cooper",
+   "old_sort": "Moo, Cooper",
+   "new": "Cooper Moo",
+   "sort": "Moo, Cooper",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 146,
+   "old": "Brassey, Joseph",
+   "old_sort": "Brassey, Joseph",
+   "new": "Joseph Brassey",
+   "sort": "Brassey, Joseph",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 147,
+   "old": "Bear, Erik",
+   "old_sort": "Bear, Erik",
+   "new": "Erik Bear",
+   "sort": "Bear, Erik",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 148,
+   "old": "Teppo, Mark",
+   "old_sort": "Teppo, Mark",
+   "new": "Mark Teppo",
+   "sort": "Teppo, Mark",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 149,
+   "old": "Bear, Greg",
+   "old_sort": "Bear, Greg",
+   "new": "Greg Bear",
+   "sort": "Bear, Greg",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 150,
+   "old": "Bradley, Kaliane",
+   "old_sort": "Bradley, Kaliane",
+   "new": "Kaliane Bradley",
+   "sort": "Bradley, Kaliane",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 151,
+   "old": "Bungay, Stephen",
+   "old_sort": "Bungay, Stephen",
+   "new": "Stephen Bungay",
+   "sort": "Bungay, Stephen",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 152,
+   "old": "Goldstein, Rebecca",
+   "old_sort": "Goldstein, Rebecca",
+   "new": "Rebecca Goldstein",
+   "sort": "Goldstein, Rebecca",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 153,
+   "old": "Robinson, Kim Stanley",
+   "old_sort": "Robinson, Kim Stanley",
+   "new": "Kim Stanley Robinson",
+   "sort": "Robinson, Kim Stanley",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 154,
+   "old": "Yergin, Daniel",
+   "old_sort": "Yergin, Daniel",
+   "new": "Daniel Yergin",
+   "sort": "Yergin, Daniel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 155,
+   "old": "Chiang, Ted",
+   "old_sort": "Chiang, Ted",
+   "new": "Ted Chiang",
+   "sort": "Chiang, Ted",
+   "books": 4,
+   "note": ""
+  },
+  {
+   "id": 156,
+   "old": "Haig, Matt",
+   "old_sort": "Haig, Matt",
+   "new": "Matt Haig",
+   "sort": "Haig, Matt",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 157,
+   "old": "Priestley, Marc 'Elvis'",
+   "old_sort": "Priestley, Marc 'Elvis'",
+   "new": "Marc 'Elvis' Priestley",
+   "sort": "Priestley, Marc 'Elvis'",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 159,
+   "old": "Stewart, Matthew",
+   "old_sort": "Stewart, Matthew",
+   "new": "Matthew Stewart",
+   "sort": "Stewart, Matthew",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 160,
+   "old": "Mechner, Jordan",
+   "old_sort": "Mechner, Jordan",
+   "new": "Jordan Mechner",
+   "sort": "Mechner, Jordan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 161,
+   "old": "Grossman, Lev",
+   "old_sort": "Grossman, Lev",
+   "new": "Lev Grossman",
+   "sort": "Grossman, Lev",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 162,
+   "old": "Catton, Eleanor",
+   "old_sort": "Catton, Eleanor",
+   "new": "Eleanor Catton",
+   "sort": "Catton, Eleanor",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 163,
+   "old": "Rhodes, Richard",
+   "old_sort": "Rhodes, Richard",
+   "new": "Richard Rhodes",
+   "sort": "Rhodes, Richard",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 164,
+   "old": "Geller, Tamar",
+   "old_sort": "Geller, Tamar",
+   "new": "Tamar Geller",
+   "sort": "Geller, Tamar",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 165,
+   "old": "Leonard, Christopher",
+   "old_sort": "Leonard, Christopher",
+   "new": "Christopher Leonard",
+   "sort": "Leonard, Christopher",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 166,
+   "old": "Emrys, Ruthanna",
+   "old_sort": "Emrys, Ruthanna",
+   "new": "Ruthanna Emrys",
+   "sort": "Emrys, Ruthanna",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 167,
+   "old": "Kelly, Lynne",
+   "old_sort": "Kelly, Lynne",
+   "new": "Lynne Kelly",
+   "sort": "Kelly, Lynne",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 168,
+   "old": "Hurley, Kameron",
+   "old_sort": "Hurley, Kameron",
+   "new": "Kameron Hurley",
+   "sort": "Hurley, Kameron",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 169,
+   "old": "Mostert, Noel",
+   "old_sort": "Mostert, Noel",
+   "new": "Noel Mostert",
+   "sort": "Mostert, Noel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 170,
+   "old": "Hackwith, A. J.",
+   "old_sort": "Hackwith, A. J.",
+   "new": "A. J. Hackwith",
+   "sort": "Hackwith, A. J.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 171,
+   "old": "DeWitt, Helen",
+   "old_sort": "DeWitt, Helen",
+   "new": "Helen DeWitt",
+   "sort": "DeWitt, Helen",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 172,
+   "old": "Salsburg, David",
+   "old_sort": "Salsburg, David",
+   "new": "David Salsburg",
+   "sort": "Salsburg, David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 173,
+   "old": "Zahn, Timothy",
+   "old_sort": "Zahn, Timothy",
+   "new": "Timothy Zahn",
+   "sort": "Zahn, Timothy",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 174,
+   "old": "Jeong, Sarah",
+   "old_sort": "Jeong, Sarah",
+   "new": "Sarah Jeong",
+   "sort": "Jeong, Sarah",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 175,
+   "old": "Gertner, Jon",
+   "old_sort": "Gertner, Jon",
+   "new": "Jon Gertner",
+   "sort": "Gertner, Jon",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 176,
+   "old": "Collins, Suzanne",
+   "old_sort": "Collins, Suzanne",
+   "new": "Suzanne Collins",
+   "sort": "Collins, Suzanne",
+   "books": 2,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 177,
+   "old": "Jemisin, N.K.",
+   "old_sort": "Jemisin, N.K.",
+   "new": "N. K. Jemisin",
+   "sort": "Jemisin, N. K.",
+   "books": 1,
+   "note": "Spacing variant; merged with N. K. Jemisin.",
+   "merge": true
+  },
+  {
+   "id": 178,
+   "old": "Fitzgerald, F. Scott",
+   "old_sort": "Fitzgerald, F. Scott",
+   "new": "F. Scott Fitzgerald",
+   "sort": "Fitzgerald, F. Scott",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 179,
+   "old": "Bakke, Gretchen",
+   "old_sort": "Bakke, Gretchen",
+   "new": "Gretchen Bakke",
+   "sort": "Bakke, Gretchen",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 180,
+   "old": "Taibbi, Matt",
+   "old_sort": "Taibbi, Matt",
+   "new": "Matt Taibbi",
+   "sort": "Taibbi, Matt",
+   "books": 4,
+   "note": ""
+  },
+  {
+   "id": 181,
+   "old": "Harkaway, Nick",
+   "old_sort": "Harkaway, Nick",
+   "new": "Nick Harkaway",
+   "sort": "Harkaway, Nick",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 182,
+   "old": "Addison, Katherine",
+   "old_sort": "Addison, Katherine",
+   "new": "Katherine Addison",
+   "sort": "Addison, Katherine",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 183,
+   "old": "Comeau, Joey",
+   "old_sort": "Comeau, Joey",
+   "new": "Joey Comeau",
+   "sort": "Comeau, Joey",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 184,
+   "old": "Larsson, Stieg",
+   "old_sort": "Larsson, Stieg",
+   "new": "Stieg Larsson",
+   "sort": "Larsson, Stieg",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 186,
+   "old": "Avent, Ryan",
+   "old_sort": "Avent, Ryan",
+   "new": "Ryan Avent",
+   "sort": "Avent, Ryan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 187,
+   "old": "McCullough, David",
+   "old_sort": "McCullough, David",
+   "new": "David McCullough",
+   "sort": "McCullough, David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 188,
+   "old": "Haldeman, Joe",
+   "old_sort": "Haldeman, Joe",
+   "new": "Joe Haldeman",
+   "sort": "Haldeman, Joe",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 189,
+   "old": "Dekker, Sidney",
+   "old_sort": "Dekker, Sidney",
+   "new": "Sidney Dekker",
+   "sort": "Dekker, Sidney",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 190,
+   "old": "Fforde, Jasper",
+   "old_sort": "Fforde, Jasper",
+   "new": "Jasper Fforde",
+   "sort": "Fforde, Jasper",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 192,
+   "old": "Stone, Brad",
+   "old_sort": "Stone, Brad",
+   "new": "Brad Stone",
+   "sort": "Stone, Brad",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 193,
+   "old": "Baker, Dean",
+   "old_sort": "Baker, Dean",
+   "new": "Dean Baker",
+   "sort": "Baker, Dean",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 194,
+   "old": "King, Mervyn",
+   "old_sort": "King, Mervyn",
+   "new": "Mervyn King",
+   "sort": "King, Mervyn",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 195,
+   "old": "Forsyth, Mark",
+   "old_sort": "Forsyth, Mark",
+   "new": "Mark Forsyth",
+   "sort": "Forsyth, Mark",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 196,
+   "old": "Mukherjee, Siddhartha",
+   "old_sort": "Mukherjee, Siddhartha",
+   "new": "Siddhartha Mukherjee",
+   "sort": "Mukherjee, Siddhartha",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 197,
+   "old": "Postrel, Virginia I.",
+   "old_sort": "Postrel, Virginia I.",
+   "new": "Virginia I. Postrel",
+   "sort": "Postrel, Virginia I.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 198,
+   "old": "Prescod-Weinstein, Chanda",
+   "old_sort": "Prescod-Weinstein, Chanda",
+   "new": "Chanda Prescod-Weinstein",
+   "sort": "Prescod-Weinstein, Chanda",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 199,
+   "old": "Rocha, Kit",
+   "old_sort": "Rocha, Kit",
+   "new": "Kit Rocha",
+   "sort": "Rocha, Kit",
+   "books": 4,
+   "note": ""
+  },
+  {
+   "id": 200,
+   "old": "Power, Samantha",
+   "old_sort": "Power, Samantha",
+   "new": "Samantha Power",
+   "sort": "Power, Samantha",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 201,
+   "old": "Jacobs, Jane",
+   "old_sort": "Jacobs, Jane",
+   "new": "Jane Jacobs",
+   "sort": "Jacobs, Jane",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 202,
+   "old": "Gloss, Molly",
+   "old_sort": "Gloss, Molly",
+   "new": "Molly Gloss",
+   "sort": "Gloss, Molly",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 203,
+   "old": "Hoffman, David E.",
+   "old_sort": "Hoffman, David E.",
+   "new": "David E. Hoffman",
+   "sort": "Hoffman, David E.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 204,
+   "old": "Bujold, Lois McMaster",
+   "old_sort": "Bujold, Lois McMaster",
+   "new": "Lois McMaster Bujold",
+   "sort": "Bujold, Lois McMaster",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 205,
+   "old": "Cherny, Andrei",
+   "old_sort": "Cherny, Andrei",
+   "new": "Andrei Cherny",
+   "sort": "Cherny, Andrei",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 206,
+   "old": "Vaughan, Diane",
+   "old_sort": "Vaughan, Diane",
+   "new": "Diane Vaughan",
+   "sort": "Vaughan, Diane",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 207,
+   "old": "Levinson, Marc",
+   "old_sort": "Levinson, Marc",
+   "new": "Marc Levinson",
+   "sort": "Levinson, Marc",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 208,
+   "old": "Isaacson, Walter",
+   "old_sort": "Isaacson, Walter",
+   "new": "Walter Isaacson",
+   "sort": "Isaacson, Walter",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 209,
+   "old": "Childs, Mary",
+   "old_sort": "Childs, Mary",
+   "new": "Mary Childs",
+   "sort": "Childs, Mary",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 211,
+   "old": "Konnikova, Maria",
+   "old_sort": "Konnikova, Maria",
+   "new": "Maria Konnikova",
+   "sort": "Konnikova, Maria",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 212,
+   "old": "Mackenzie, Dana",
+   "old_sort": "Mackenzie, Dana",
+   "new": "Dana Mackenzie",
+   "sort": "Mackenzie, Dana",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 213,
+   "old": "Pearl, Judea",
+   "old_sort": "Pearl, Judea",
+   "new": "Judea Pearl",
+   "sort": "Pearl, Judea",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 214,
+   "old": "Deutsch, David",
+   "old_sort": "Deutsch, David",
+   "new": "David Deutsch",
+   "sort": "Deutsch, David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 215,
+   "old": "Frankel, Mike",
+   "old_sort": "Frankel, Mike",
+   "new": "Mike Frankel",
+   "sort": "Frankel, Mike",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 216,
+   "old": "Isaac, Mike",
+   "old_sort": "Isaac, Mike",
+   "new": "Mike Isaac",
+   "sort": "Isaac, Mike",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 217,
+   "old": "Eyles, Don",
+   "old_sort": "Eyles, Don",
+   "new": "Don Eyles",
+   "sort": "Eyles, Don",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 218,
+   "old": "Higgs, John",
+   "old_sort": "Higgs, John",
+   "new": "John Higgs",
+   "sort": "Higgs, John",
+   "books": 1,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 219,
+   "old": "Miodownik, Mark",
+   "old_sort": "Miodownik, Mark",
+   "new": "Mark Miodownik",
+   "sort": "Miodownik, Mark",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 220,
+   "old": "Pan, Jessica",
+   "old_sort": "Pan, Jessica",
+   "new": "Jessica Pan",
+   "sort": "Pan, Jessica",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 221,
+   "old": "Ferber, Richard",
+   "old_sort": "Ferber, Richard",
+   "new": "Richard Ferber",
+   "sort": "Ferber, Richard",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 222,
+   "old": "Sobel, Dava",
+   "old_sort": "Sobel, Dava",
+   "new": "Dava Sobel",
+   "sort": "Sobel, Dava",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 223,
+   "old": "Soares, Nate",
+   "old_sort": "Soares, Nate",
+   "new": "Nate Soares",
+   "sort": "Soares, Nate",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 224,
+   "old": "Yudkowsky, Eliezer",
+   "old_sort": "Yudkowsky, Eliezer",
+   "new": "Eliezer Yudkowsky",
+   "sort": "Yudkowsky, Eliezer",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 225,
+   "old": "Muir, Tamsyn",
+   "old_sort": "Muir, Tamsyn",
+   "new": "Tamsyn Muir",
+   "sort": "Muir, Tamsyn",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 226,
+   "old": "Newport, Cal",
+   "old_sort": "Newport, Cal",
+   "new": "Cal Newport",
+   "sort": "Newport, Cal",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 227,
+   "old": "Petzinger Jr., Thomas",
+   "old_sort": "Petzinger Jr., Thomas",
+   "new": "Thomas Petzinger Jr.",
+   "sort": "Petzinger, Thomas, Jr.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 228,
+   "old": "Paxton, Robert O.",
+   "old_sort": "Paxton, Robert O.",
+   "new": "Robert O. Paxton",
+   "sort": "Paxton, Robert O.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 229,
+   "old": "Martine, Arkady",
+   "old_sort": "Martine, Arkady",
+   "new": "Arkady Martine",
+   "sort": "Martine, Arkady",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 230,
+   "old": "Mcewan, Ian",
+   "old_sort": "Mcewan, Ian",
+   "new": "Ian McEwan",
+   "sort": "McEwan, Ian",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 231,
+   "old": "Nix, Garth",
+   "old_sort": "Nix, Garth",
+   "new": "Garth Nix",
+   "sort": "Nix, Garth",
+   "books": 5,
+   "note": ""
+  },
+  {
+   "id": 232,
+   "old": "McGuire, Seanan",
+   "old_sort": "McGuire, Seanan",
+   "new": "Seanan McGuire",
+   "sort": "McGuire, Seanan",
+   "books": 4,
+   "note": ""
+  },
+  {
+   "id": 233,
+   "old": "Mandel, Emily St. John",
+   "old_sort": "Mandel, Emily St. John",
+   "new": "Emily St. John Mandel",
+   "sort": "Mandel, Emily St. John",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 234,
+   "old": "Moriarty, Chris",
+   "old_sort": "Moriarty, Chris",
+   "new": "Chris Moriarty",
+   "sort": "Moriarty, Chris",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 235,
+   "old": "Hamilton, Peter F.",
+   "old_sort": "Hamilton, Peter F.",
+   "new": "Peter F. Hamilton",
+   "sort": "Hamilton, Peter F.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 236,
+   "old": "Goodman, Rob",
+   "old_sort": "Goodman, Rob",
+   "new": "Rob Goodman",
+   "sort": "Goodman, Rob",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 237,
+   "old": "Soni, Jimmy",
+   "old_sort": "Soni, Jimmy",
+   "new": "Jimmy Soni",
+   "sort": "Soni, Jimmy",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 238,
+   "old": "Chapman, Gary",
+   "old_sort": "Chapman, Gary",
+   "new": "Gary Chapman",
+   "sort": "Chapman, Gary",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 239,
+   "old": "Orlov, Melissa",
+   "old_sort": "Orlov, Melissa",
+   "new": "Melissa Orlov",
+   "sort": "Orlov, Melissa",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 240,
+   "old": "Orr, Julian E.",
+   "old_sort": "Orr, Julian E.",
+   "new": "Julian E. Orr",
+   "sort": "Orr, Julian E.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 241,
+   "old": "Gladwell, Malcolm",
+   "old_sort": "Gladwell, Malcolm",
+   "new": "Malcolm Gladwell",
+   "sort": "Gladwell, Malcolm",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 242,
+   "old": "Weinstein, Jeremy M.",
+   "old_sort": "Weinstein, Jeremy M.",
+   "new": "Jeremy M. Weinstein",
+   "sort": "Weinstein, Jeremy M.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 243,
+   "old": "Sahami, Mehran",
+   "old_sort": "Sahami, Mehran",
+   "new": "Mehran Sahami",
+   "sort": "Sahami, Mehran",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 244,
+   "old": "Reich, Rob",
+   "old_sort": "Reich, Rob",
+   "new": "Rob Reich",
+   "sort": "Reich, Rob",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 245,
+   "old": "Morrison, Grant",
+   "old_sort": "Morrison, Grant",
+   "new": "Grant Morrison",
+   "sort": "Morrison, Grant",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 246,
+   "old": "Bostrom, Nick",
+   "old_sort": "Bostrom, Nick",
+   "new": "Nick Bostrom",
+   "sort": "Bostrom, Nick",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 247,
+   "old": "DeMarco, Tom",
+   "old_sort": "DeMarco, Tom",
+   "new": "Tom DeMarco",
+   "sort": "DeMarco, Tom",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 248,
+   "old": "DeLong, Bradford",
+   "old_sort": "DeLong, Bradford",
+   "new": "Bradford DeLong",
+   "sort": "DeLong, Bradford",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 249,
+   "old": "Lafferty, Mur",
+   "old_sort": "Lafferty, Mur",
+   "new": "Mur Lafferty",
+   "sort": "Lafferty, Mur",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 250,
+   "old": "VanderMeer, Ann",
+   "old_sort": "VanderMeer, Ann",
+   "new": "Ann VanderMeer",
+   "sort": "VanderMeer, Ann",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 251,
+   "old": "Bardugo, Leigh",
+   "old_sort": "Bardugo, Leigh",
+   "new": "Leigh Bardugo",
+   "sort": "Bardugo, Leigh",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 252,
+   "old": "Zachary, G. Pascal",
+   "old_sort": "Zachary, G. Pascal",
+   "new": "G. Pascal Zachary",
+   "sort": "Zachary, G. Pascal",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 253,
+   "old": "Knight, Phil",
+   "old_sort": "Knight, Phil",
+   "new": "Phil Knight",
+   "sort": "Knight, Phil",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 254,
+   "old": "Wolfe, Gene",
+   "old_sort": "Wolfe, Gene",
+   "new": "Gene Wolfe",
+   "sort": "Wolfe, Gene",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 255,
+   "old": "Clavell, James",
+   "old_sort": "Clavell, James",
+   "new": "James Clavell",
+   "sort": "Clavell, James",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 256,
+   "old": "Zimmerman, Jessa",
+   "old_sort": "Zimmerman, Jessa",
+   "new": "Jessa Zimmerman",
+   "sort": "Zimmerman, Jessa",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 258,
+   "old": "Harvey, David",
+   "old_sort": "Harvey, David",
+   "new": "David Harvey",
+   "sort": "Harvey, David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 259,
+   "old": "Earley, Jay",
+   "old_sort": "Earley, Jay",
+   "new": "Jay Earley",
+   "sort": "Earley, Jay",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 260,
+   "old": "Klein, Gary A.",
+   "old_sort": "Klein, Gary A.",
+   "new": "Gary A. Klein",
+   "sort": "Klein, Gary A.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 261,
+   "old": "Webb, Jonice",
+   "old_sort": "Webb, Jonice",
+   "new": "Jonice Webb",
+   "sort": "Webb, Jonice",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 262,
+   "old": "Gall, John",
+   "old_sort": "Gall, John",
+   "new": "John Gall",
+   "sort": "Gall, John",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 263,
+   "old": "Monteiro, Mike",
+   "old_sort": "Monteiro, Mike",
+   "new": "Mike Monteiro",
+   "sort": "Monteiro, Mike",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 264,
+   "old": "Brasington, Leigh",
+   "old_sort": "Brasington, Leigh",
+   "new": "Leigh Brasington",
+   "sort": "Brasington, Leigh",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 265,
+   "old": "Edited by George R. R. Martin",
+   "old_sort": "Martin, Edited by George R. R.",
+   "new": "George R. R. Martin",
+   "sort": "Martin, George R. R.",
+   "books": 1,
+   "note": "'Edited by' was baked into the name.",
+   "merge": true
+  },
+  {
+   "id": 267,
+   "old": "Brown, Pierce",
+   "old_sort": "Brown, Pierce",
+   "new": "Pierce Brown",
+   "sort": "Brown, Pierce",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 268,
+   "old": "Spufford, Francis",
+   "old_sort": "Spufford, Francis",
+   "new": "Francis Spufford",
+   "sort": "Spufford, Francis",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 269,
+   "old": "Lee, Yoon Ha",
+   "old_sort": "Lee, Yoon Ha",
+   "new": "Yoon Ha Lee",
+   "sort": "Lee, Yoon Ha",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 270,
+   "old": "North, Ryan",
+   "old_sort": "North, Ryan",
+   "new": "Ryan North",
+   "sort": "North, Ryan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 271,
+   "old": "Bogost, Ian",
+   "old_sort": "Bogost, Ian",
+   "new": "Ian Bogost",
+   "sort": "Bogost, Ian",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 272,
+   "old": "Montfort, Nick",
+   "old_sort": "Montfort, Nick",
+   "new": "Nick Montfort",
+   "sort": "Montfort, Nick",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 273,
+   "old": "Aaronson, Scott",
+   "old_sort": "Aaronson, Scott",
+   "new": "Scott Aaronson",
+   "sort": "Aaronson, Scott",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 274,
+   "old": "Veaux, Franklin",
+   "old_sort": "Veaux, Franklin",
+   "new": "Franklin Veaux",
+   "sort": "Veaux, Franklin",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 275,
+   "old": "Rickert, Eve",
+   "old_sort": "Rickert, Eve",
+   "new": "Eve Rickert",
+   "sort": "Rickert, Eve",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 276,
+   "old": "Weir, Andy",
+   "old_sort": "Weir, Andy",
+   "new": "Andy Weir",
+   "sort": "Weir, Andy",
+   "books": 2,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 277,
+   "old": "Clarke, Susanna",
+   "old_sort": "Clarke, Susanna",
+   "new": "Susanna Clarke",
+   "sort": "Clarke, Susanna",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 278,
+   "old": "Perlstein, Rick",
+   "old_sort": "Perlstein, Rick",
+   "new": "Rick Perlstein",
+   "sort": "Perlstein, Rick",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 279,
+   "old": "Johnston, David Cay",
+   "old_sort": "Johnston, David Cay",
+   "new": "David Cay Johnston",
+   "sort": "Johnston, David Cay",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 281,
+   "old": "Brooks, Geraldine",
+   "old_sort": "Brooks, Geraldine",
+   "new": "Geraldine Brooks",
+   "sort": "Brooks, Geraldine",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 282,
+   "old": "Butler, Octavia E.",
+   "old_sort": "Butler, Octavia E.",
+   "new": "Octavia E. Butler",
+   "sort": "Butler, Octavia E.",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 284,
+   "old": "Egoscue, Pete",
+   "old_sort": "Egoscue, Pete",
+   "new": "Pete Egoscue",
+   "sort": "Egoscue, Pete",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 285,
+   "old": "Hock, Dee",
+   "old_sort": "Hock, Dee",
+   "new": "Dee Hock",
+   "sort": "Hock, Dee",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 286,
+   "old": "Taormino, Tristan",
+   "old_sort": "Taormino, Tristan",
+   "new": "Tristan Taormino",
+   "sort": "Taormino, Tristan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 287,
+   "old": "Fishman, Charles",
+   "old_sort": "Fishman, Charles",
+   "new": "Charles Fishman",
+   "sort": "Fishman, Charles",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 288,
+   "old": "Kundtz, David",
+   "old_sort": "Kundtz, David",
+   "new": "David Kundtz",
+   "sort": "Kundtz, David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 289,
+   "old": "Galloway, Scott",
+   "old_sort": "Galloway, Scott",
+   "new": "Scott Galloway",
+   "sort": "Galloway, Scott",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 290,
+   "old": "Gill, Tatiana",
+   "old_sort": "Gill, Tatiana",
+   "new": "Tatiana Gill",
+   "sort": "Gill, Tatiana",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 291,
+   "old": "Hardy, Janet",
+   "old_sort": "Hardy, Janet",
+   "new": "Janet Hardy",
+   "sort": "Hardy, Janet",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 293,
+   "old": "Jang, Jadie",
+   "old_sort": "Jang, Jadie",
+   "new": "Jadie Jang",
+   "sort": "Jang, Jadie",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 294,
+   "old": "Levenson, Thomas",
+   "old_sort": "Levenson, Thomas",
+   "new": "Thomas Levenson",
+   "sort": "Levenson, Thomas",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 295,
+   "old": "Schneier, Bruce",
+   "old_sort": "Schneier, Bruce",
+   "new": "Bruce Schneier",
+   "sort": "Schneier, Bruce",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 296,
+   "old": "Meyer, Scott",
+   "old_sort": "Meyer, Scott",
+   "new": "Scott Meyer",
+   "sort": "Meyer, Scott",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 297,
+   "old": "Higgs, JMR",
+   "old_sort": "Higgs, JMR",
+   "new": "John Higgs",
+   "sort": "Higgs, John",
+   "books": 1,
+   "note": "J.M.R. Higgs is John Higgs's byline on the KLF book; merged.",
+   "merge": true
+  },
+  {
+   "id": 298,
+   "old": "Bear, Elizabeth",
+   "old_sort": "Bear, Elizabeth",
+   "new": "Elizabeth Bear",
+   "sort": "Bear, Elizabeth",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 299,
+   "old": "Ornstein, Norman J.",
+   "old_sort": "Ornstein, Norman J.",
+   "new": "Norman J. Ornstein",
+   "sort": "Ornstein, Norman J.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 300,
+   "old": "Mann, Thomas E.",
+   "old_sort": "Mann, Thomas E.",
+   "new": "Thomas E. Mann",
+   "sort": "Mann, Thomas E.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 301,
+   "old": "Williams, Walter Jon",
+   "old_sort": "Williams, Walter Jon",
+   "new": "Walter Jon Williams",
+   "sort": "Williams, Walter Jon",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 302,
+   "old": "France, David",
+   "old_sort": "France, David",
+   "new": "David France",
+   "sort": "France, David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 303,
+   "old": "Vance, J. D.",
+   "old_sort": "Vance, J. D.",
+   "new": "J. D. Vance",
+   "sort": "Vance, J. D.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 304,
+   "old": "Vineyard, Missy",
+   "old_sort": "Vineyard, Missy",
+   "new": "Missy Vineyard",
+   "sort": "Vineyard, Missy",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 305,
+   "old": "Hall, Alexis",
+   "old_sort": "Hall, Alexis",
+   "new": "Alexis Hall",
+   "sort": "Hall, Alexis",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 306,
+   "old": "Aoki, Ryka",
+   "old_sort": "Aoki, Ryka",
+   "new": "Ryka Aoki",
+   "sort": "Aoki, Ryka",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 307,
+   "old": "Asher, Neal",
+   "old_sort": "Asher, Neal",
+   "new": "Neal Asher",
+   "sort": "Asher, Neal",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 308,
+   "old": "Reid, Susan",
+   "old_sort": "Reid, Susan",
+   "new": "Susan Reid",
+   "sort": "Reid, Susan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 309,
+   "old": "Elliott, Melissa",
+   "old_sort": "Elliott, Melissa",
+   "new": "Melissa Elliott",
+   "sort": "Elliott, Melissa",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 310,
+   "old": "Rumelt, Richard",
+   "old_sort": "Rumelt, Richard",
+   "new": "Richard Rumelt",
+   "sort": "Rumelt, Richard",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 311,
+   "old": "Charles, Stross",
+   "old_sort": "Charles, Stross",
+   "new": "Charles Stross",
+   "sort": "Stross, Charles",
+   "books": 1,
+   "note": "First/last swapped; merges into Charles Stross.",
+   "merge": true
+  },
+  {
+   "id": 312,
+   "old": "Valdes, Valerie",
+   "old_sort": "Valdes, Valerie",
+   "new": "Valerie Valdes",
+   "sort": "Valdes, Valerie",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 313,
+   "old": "Clark, John Drury",
+   "old_sort": "Clark, John Drury",
+   "new": "John Drury Clark",
+   "sort": "Clark, John Drury",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 314,
+   "old": "Meyers, Scott",
+   "old_sort": "Meyers, Scott",
+   "new": "Scott Meyers",
+   "sort": "Meyers, Scott",
+   "books": 1,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 315,
+   "old": "Reeves, Richard V.",
+   "old_sort": "Reeves, Richard V.",
+   "new": "Richard V. Reeves",
+   "sort": "Reeves, Richard V.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 316,
+   "old": "Lakoff, George",
+   "old_sort": "Lakoff, George",
+   "new": "George Lakoff",
+   "sort": "Lakoff, George",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 317,
+   "old": "Mindell, David A.",
+   "old_sort": "Mindell, David A.",
+   "new": "David A. Mindell",
+   "sort": "Mindell, David A.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 318,
+   "old": "Perrow, Charles",
+   "old_sort": "Perrow, Charles",
+   "new": "Charles Perrow",
+   "sort": "Perrow, Charles",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 319,
+   "old": "McAlevey, Jane F.",
+   "old_sort": "McAlevey, Jane F.",
+   "new": "Jane F. McAlevey",
+   "sort": "McAlevey, Jane F.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 320,
+   "old": "Mowat, Farley",
+   "old_sort": "Mowat, Farley",
+   "new": "Farley Mowat",
+   "sort": "Mowat, Farley",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 321,
+   "old": "Sloan, Robin",
+   "old_sort": "Sloan, Robin",
+   "new": "Robin Sloan",
+   "sort": "Sloan, Robin",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 323,
+   "old": "King, Thomas A.",
+   "old_sort": "King, Thomas A.",
+   "new": "Thomas A. King",
+   "sort": "King, Thomas A.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 324,
+   "old": "Dweck, Carol",
+   "old_sort": "Dweck, Carol",
+   "new": "Carol Dweck",
+   "sort": "Dweck, Carol",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 325,
+   "old": "Golden, Arthur",
+   "old_sort": "Golden, Arthur",
+   "new": "Arthur Golden",
+   "sort": "Golden, Arthur",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 327,
+   "old": "Jennings, Ken",
+   "old_sort": "Jennings, Ken",
+   "new": "Ken Jennings",
+   "sort": "Jennings, Ken",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 328,
+   "old": "McNeil, Joanne",
+   "old_sort": "McNeil, Joanne",
+   "new": "Joanne McNeil",
+   "sort": "McNeil, Joanne",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 329,
+   "old": "Higginbotham, Adam",
+   "old_sort": "Higginbotham, Adam",
+   "new": "Adam Higginbotham",
+   "sort": "Higginbotham, Adam",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 330,
+   "old": "Frederick, Ph.D., Ronald J.",
+   "old_sort": "Frederick, Ph.D., Ronald J.",
+   "new": "Ronald J. Frederick",
+   "sort": "Frederick, Ronald J.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 332,
+   "old": "Oram, Andy",
+   "old_sort": "Oram, Andy",
+   "new": "Andy Oram",
+   "sort": "Oram, Andy",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 334,
+   "old": "Goscinny, René",
+   "old_sort": "Goscinny, René",
+   "new": "René Goscinny",
+   "sort": "Goscinny, René",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 335,
+   "old": "Suarez, Daniel",
+   "old_sort": "Suarez, Daniel",
+   "new": "Daniel Suarez",
+   "sort": "Suarez, Daniel",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 336,
+   "old": "Okrent, Daniel",
+   "old_sort": "Okrent, Daniel",
+   "new": "Daniel Okrent",
+   "sort": "Okrent, Daniel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 337,
+   "old": "Slade, Rachel",
+   "old_sort": "Slade, Rachel",
+   "new": "Rachel Slade",
+   "sort": "Slade, Rachel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 338,
+   "old": "Smith, Ali",
+   "old_sort": "Smith, Ali",
+   "new": "Ali Smith",
+   "sort": "Smith, Ali",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 339,
+   "old": "Chachra, Deb",
+   "old_sort": "Chachra, Deb",
+   "new": "Deb Chachra",
+   "sort": "Chachra, Deb",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 340,
+   "old": "Shetterly, Margot Lee",
+   "old_sort": "Shetterly, Margot Lee",
+   "new": "Margot Lee Shetterly",
+   "sort": "Shetterly, Margot Lee",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 341,
+   "old": "Ziblatt, Daniel",
+   "old_sort": "Ziblatt, Daniel",
+   "new": "Daniel Ziblatt",
+   "sort": "Ziblatt, Daniel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 342,
+   "old": "Levitsky, Steven",
+   "old_sort": "Levitsky, Steven",
+   "new": "Steven Levitsky",
+   "sort": "Levitsky, Steven",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 343,
+   "old": "P.N.ELROD",
+   "old_sort": "P.N.ELROD",
+   "new": "P. N. Elrod",
+   "sort": "Elrod, P. N.",
+   "books": 1,
+   "note": "All-caps, unspaced."
+  },
+  {
+   "id": 344,
+   "old": "Sarno, John E.",
+   "old_sort": "Sarno, John E.",
+   "new": "John E. Sarno",
+   "sort": "Sarno, John E.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 345,
+   "old": "Siegel, Lee",
+   "old_sort": "Siegel, Lee",
+   "new": "Lee Siegel",
+   "sort": "Siegel, Lee",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 346,
+   "old": "Marshall, Peter",
+   "old_sort": "Marshall, Peter",
+   "new": "Peter Marshall",
+   "sort": "Marshall, Peter",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 347,
+   "old": "Rowling, J.K.",
+   "old_sort": "Rowling, J.K.",
+   "new": "J.K. Rowling",
+   "sort": "Rowling, J.K.",
+   "books": 1,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 348,
+   "old": "Pratchett, Terry",
+   "old_sort": "Pratchett, Terry",
+   "new": "Terry Pratchett",
+   "sort": "Pratchett, Terry",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 349,
+   "old": "O'Gieblyn, Meghan",
+   "old_sort": "O'Gieblyn, Meghan",
+   "new": "Meghan O'Gieblyn",
+   "sort": "O'Gieblyn, Meghan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 350,
+   "old": "Aslan, Reza",
+   "old_sort": "Aslan, Reza",
+   "new": "Reza Aslan",
+   "sort": "Aslan, Reza",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 351,
+   "old": "Konczal, Mike",
+   "old_sort": "Konczal, Mike",
+   "new": "Mike Konczal",
+   "sort": "Konczal, Mike",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 352,
+   "old": "Herman, Arthur",
+   "old_sort": "Herman, Arthur",
+   "new": "Arthur Herman",
+   "sort": "Herman, Arthur",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 353,
+   "old": "Yang, Andrew",
+   "old_sort": "Yang, Andrew",
+   "new": "Andrew Yang",
+   "sort": "Yang, Andrew",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 354,
+   "old": "Blow, Charles M.",
+   "old_sort": "Blow, Charles M.",
+   "new": "Charles M. Blow",
+   "sort": "Blow, Charles M.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 355,
+   "old": "Cipri, Nino",
+   "old_sort": "Cipri, Nino",
+   "new": "Nino Cipri",
+   "sort": "Cipri, Nino",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 356,
+   "old": "Carse, James",
+   "old_sort": "Carse, James",
+   "new": "James Carse",
+   "sort": "Carse, James",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 357,
+   "old": "Chu, Andrea Long",
+   "old_sort": "Chu, Andrea Long",
+   "new": "Andrea Long Chu",
+   "sort": "Chu, Andrea Long",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 358,
+   "old": "Hughes, Sam",
+   "old_sort": "Hughes, Sam",
+   "new": "Sam Hughes",
+   "sort": "Hughes, Sam",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 359,
+   "old": "Hamid, Mohsin",
+   "old_sort": "Hamid, Mohsin",
+   "new": "Mohsin Hamid",
+   "sort": "Hamid, Mohsin",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 360,
+   "old": "Betts, Dominic",
+   "old_sort": "Betts, Dominic",
+   "new": "Dominic Betts",
+   "sort": "Betts, Dominic",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 361,
+   "old": "Subramanian, Mani",
+   "old_sort": "Subramanian, Mani",
+   "new": "Mani Subramanian",
+   "sort": "Subramanian, Mani",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 362,
+   "old": "Simonazzi, Fernando",
+   "old_sort": "Simonazzi, Fernando",
+   "new": "Fernando Simonazzi",
+   "sort": "Simonazzi, Fernando",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 363,
+   "old": "Melnik, Grigori",
+   "old_sort": "Melnik, Grigori",
+   "new": "Grigori Melnik",
+   "sort": "Melnik, Grigori",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 364,
+   "old": "Dominguez, Julian",
+   "old_sort": "Dominguez, Julian",
+   "new": "Julian Dominguez",
+   "sort": "Dominguez, Julian",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 365,
+   "old": "Ghodsee, Kristen R.",
+   "old_sort": "Ghodsee, Kristen R.",
+   "new": "Kristen R. Ghodsee",
+   "sort": "Ghodsee, Kristen R.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 366,
+   "old": "Houston, Keith",
+   "old_sort": "Houston, Keith",
+   "new": "Keith Houston",
+   "sort": "Houston, Keith",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 367,
+   "old": "Watts, Peter",
+   "old_sort": "Watts, Peter",
+   "new": "Peter Watts",
+   "sort": "Watts, Peter",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 368,
+   "old": "Barrett, Raymond",
+   "old_sort": "Barrett, Raymond",
+   "new": "Raymond Barrett",
+   "sort": "Barrett, Raymond",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 369,
+   "old": "Bloom, John",
+   "old_sort": "Bloom, John",
+   "new": "John Bloom",
+   "sort": "Bloom, John",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 370,
+   "old": "Ratey, John J.",
+   "old_sort": "Ratey, John J.",
+   "new": "John J. Ratey",
+   "sort": "Ratey, John J.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 371,
+   "old": "Hallowell, Edward M.",
+   "old_sort": "Hallowell, Edward M.",
+   "new": "Edward M. Hallowell",
+   "sort": "Hallowell, Edward M.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 373,
+   "old": "Manne, Kate",
+   "old_sort": "Manne, Kate",
+   "new": "Kate Manne",
+   "sort": "Manne, Kate",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 374,
+   "old": "Richardson, Leonard",
+   "old_sort": "Richardson, Leonard",
+   "new": "Leonard Richardson",
+   "sort": "Richardson, Leonard",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 375,
+   "old": "Sheppard, Thomas",
+   "old_sort": "Sheppard, Thomas",
+   "new": "Thomas Sheppard",
+   "sort": "Sheppard, Thomas",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 376,
+   "old": "Al-Faqih, Kamal",
+   "old_sort": "Al-Faqih, Kamal",
+   "new": "Kamal Al-Faqih",
+   "sort": "Al-Faqih, Kamal",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 377,
+   "old": "Quinn, Julia",
+   "old_sort": "Quinn, Julia",
+   "new": "Julia Quinn",
+   "sort": "Quinn, Julia",
+   "books": 3,
+   "note": ""
+  },
+  {
+   "id": 378,
+   "old": "Flavall, Stephen",
+   "old_sort": "Flavall, Stephen",
+   "new": "Stephen Flavall",
+   "sort": "Flavall, Stephen",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 379,
+   "old": "Moore, Scotto",
+   "old_sort": "Moore, Scotto",
+   "new": "Scotto Moore",
+   "sort": "Moore, Scotto",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 380,
+   "old": "Carreyrou, John",
+   "old_sort": "Carreyrou, John",
+   "new": "John Carreyrou",
+   "sort": "Carreyrou, John",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 381,
+   "old": "Lovecraft, H. P.",
+   "old_sort": "Lovecraft, H. P.",
+   "new": "H. P. Lovecraft",
+   "sort": "Lovecraft, H. P.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 382,
+   "old": "Sherman, John",
+   "old_sort": "Sherman, John",
+   "new": "John Sherman",
+   "sort": "Sherman, John",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 383,
+   "old": "Slayton, Rebecca",
+   "old_sort": "Slayton, Rebecca",
+   "new": "Rebecca Slayton",
+   "sort": "Slayton, Rebecca",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 384,
+   "old": "Shilts, Randy",
+   "old_sort": "Shilts, Randy",
+   "new": "Randy Shilts",
+   "sort": "Shilts, Randy",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 385,
+   "old": "Hazan, Eric",
+   "old_sort": "Hazan, Eric",
+   "new": "Eric Hazan",
+   "sort": "Hazan, Eric",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 386,
+   "old": "Honnold, Alex",
+   "old_sort": "Honnold, Alex",
+   "new": "Alex Honnold",
+   "sort": "Honnold, Alex",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 387,
+   "old": "Hooks, Bell",
+   "old_sort": "Hooks, Bell",
+   "new": "bell hooks",
+   "sort": "hooks, bell",
+   "books": 1,
+   "note": "Author styles her name in lowercase."
+  },
+  {
+   "id": 388,
+   "old": "Fagone, Jason",
+   "old_sort": "Fagone, Jason",
+   "new": "Jason Fagone",
+   "sort": "Fagone, Jason",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 389,
+   "old": "Sale, Anna",
+   "old_sort": "Sale, Anna",
+   "new": "Anna Sale",
+   "sort": "Sale, Anna",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 390,
+   "old": "Buber, Martin",
+   "old_sort": "Buber, Martin",
+   "new": "Martin Buber",
+   "sort": "Buber, Martin",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 391,
+   "old": "Yu, Charles",
+   "old_sort": "Yu, Charles",
+   "new": "Charles Yu",
+   "sort": "Yu, Charles",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 392,
+   "old": "Odell, Jenny",
+   "old_sort": "Odell, Jenny",
+   "new": "Jenny Odell",
+   "sort": "Odell, Jenny",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 393,
+   "old": "Pollan, Michael",
+   "old_sort": "Pollan, Michael",
+   "new": "Michael Pollan",
+   "sort": "Pollan, Michael",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 394,
+   "old": "Ellis, Warren",
+   "old_sort": "Ellis, Warren",
+   "new": "Warren Ellis",
+   "sort": "Ellis, Warren",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 395,
+   "old": "Bilton, Nick",
+   "old_sort": "Bilton, Nick",
+   "new": "Nick Bilton",
+   "sort": "Bilton, Nick",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 396,
+   "old": "Gleeson-White, Jane",
+   "old_sort": "Gleeson-White, Jane",
+   "new": "Jane Gleeson-White",
+   "sort": "Gleeson-White, Jane",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 397,
+   "old": "Willis, Connie",
+   "old_sort": "Willis, Connie",
+   "new": "Connie Willis",
+   "sort": "Willis, Connie",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 398,
+   "old": "Nerenberg, Jenara",
+   "old_sort": "Nerenberg, Jenara",
+   "new": "Jenara Nerenberg",
+   "sort": "Nerenberg, Jenara",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 399,
+   "old": "Macintyre, Ben",
+   "old_sort": "Macintyre, Ben",
+   "new": "Ben Macintyre",
+   "sort": "Macintyre, Ben",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 400,
+   "old": "Dalrymple, William",
+   "old_sort": "Dalrymple, William",
+   "new": "William Dalrymple",
+   "sort": "Dalrymple, William",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 401,
+   "old": "Mayer, Jane",
+   "old_sort": "Mayer, Jane",
+   "new": "Jane Mayer",
+   "sort": "Mayer, Jane",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 402,
+   "old": "Graeber, David",
+   "old_sort": "Graeber, David",
+   "new": "David Graeber",
+   "sort": "Graeber, David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 403,
+   "old": "Sonduck, Michael M.",
+   "old_sort": "Sonduck, Michael M.",
+   "new": "Michael M. Sonduck",
+   "sort": "Sonduck, Michael M.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 404,
+   "old": "DeLisi, Peter S.",
+   "old_sort": "DeLisi, Peter S.",
+   "new": "Peter S. DeLisi",
+   "sort": "DeLisi, Peter S.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 405,
+   "old": "Kampas, Paul J.",
+   "old_sort": "Kampas, Paul J.",
+   "new": "Paul J. Kampas",
+   "sort": "Kampas, Paul J.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 406,
+   "old": "Schein, Edgar H.",
+   "old_sort": "Schein, Edgar H.",
+   "new": "Edgar H. Schein",
+   "sort": "Schein, Edgar H.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 407,
+   "old": "Kofman, Fred",
+   "old_sort": "Kofman, Fred",
+   "new": "Fred Kofman",
+   "sort": "Kofman, Fred",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 408,
+   "old": "Bogira, Steve",
+   "old_sort": "Bogira, Steve",
+   "new": "Steve Bogira",
+   "sort": "Bogira, Steve",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 409,
+   "old": "Schulman, Sarah",
+   "old_sort": "Schulman, Sarah",
+   "new": "Sarah Schulman",
+   "sort": "Schulman, Sarah",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 410,
+   "old": "Schlosser, Eric",
+   "old_sort": "Schlosser, Eric",
+   "new": "Eric Schlosser",
+   "sort": "Schlosser, Eric",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 411,
+   "old": "Tchaikovsky, Adrian",
+   "old_sort": "Tchaikovsky, Adrian",
+   "new": "Adrian Tchaikovsky",
+   "sort": "Tchaikovsky, Adrian",
+   "books": 2,
+   "note": ""
+  },
+  {
+   "id": 412,
+   "old": "Miller, Chris",
+   "old_sort": "Miller, Chris",
+   "new": "Chris Miller",
+   "sort": "Miller, Chris",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 414,
+   "old": "Petersen, Anne Helen",
+   "old_sort": "Petersen, Anne Helen",
+   "new": "Anne Helen Petersen",
+   "sort": "Petersen, Anne Helen",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 415,
+   "old": "Wilkerson, Isabel",
+   "old_sort": "Wilkerson, Isabel",
+   "new": "Isabel Wilkerson",
+   "sort": "Wilkerson, Isabel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 416,
+   "old": "Miller, Madeline",
+   "old_sort": "Miller, Madeline",
+   "new": "Madeline Miller",
+   "sort": "Miller, Madeline",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 417,
+   "old": "Brooks, John",
+   "old_sort": "Brooks, John",
+   "new": "John Brooks",
+   "sort": "Brooks, John",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 419,
+   "old": "Hochschild, Adam",
+   "old_sort": "Hochschild, Adam",
+   "new": "Adam Hochschild",
+   "sort": "Hochschild, Adam",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 420,
+   "old": "Padoan, Amanda",
+   "old_sort": "Padoan, Amanda",
+   "new": "Amanda Padoan",
+   "sort": "Padoan, Amanda",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 421,
+   "old": "Zuckerman, Peter",
+   "old_sort": "Zuckerman, Peter",
+   "new": "Peter Zuckerman",
+   "sort": "Zuckerman, Peter",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 422,
+   "old": "Coram, Robert",
+   "old_sort": "Coram, Robert",
+   "new": "Robert Coram",
+   "sort": "Coram, Robert",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 423,
+   "old": "McDougall, Christopher",
+   "old_sort": "McDougall, Christopher",
+   "new": "Christopher McDougall",
+   "sort": "McDougall, Christopher",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 424,
+   "old": "Saramago, José",
+   "old_sort": "Saramago, José",
+   "new": "José Saramago",
+   "sort": "Saramago, José",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 425,
+   "old": "Ryan, Anthony",
+   "old_sort": "Ryan, Anthony",
+   "new": "Anthony Ryan",
+   "sort": "Ryan, Anthony",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 426,
+   "old": "Wiedeman, Reeves",
+   "old_sort": "Wiedeman, Reeves",
+   "new": "Reeves Wiedeman",
+   "sort": "Wiedeman, Reeves",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 427,
+   "old": "Stearns, R. E.",
+   "old_sort": "Stearns, R. E.",
+   "new": "R. E. Stearns",
+   "sort": "Stearns, R. E.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 428,
+   "old": "McCulloch, Gretchen",
+   "old_sort": "McCulloch, Gretchen",
+   "new": "Gretchen McCulloch",
+   "sort": "McCulloch, Gretchen",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 429,
+   "old": "Helyar, John",
+   "old_sort": "Helyar, John",
+   "new": "John Helyar",
+   "sort": "Helyar, John",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 430,
+   "old": "Burrough, Bryan",
+   "old_sort": "Burrough, Bryan",
+   "new": "Bryan Burrough",
+   "sort": "Burrough, Bryan",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 431,
+   "old": "Hertling, William",
+   "old_sort": "Hertling, William",
+   "new": "William Hertling",
+   "sort": "Hertling, William",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 432,
+   "old": "Egan, Greg",
+   "old_sort": "Egan, Greg",
+   "new": "Greg Egan",
+   "sort": "Egan, Greg",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 433,
+   "old": "Heller, Rachel",
+   "old_sort": "Heller, Rachel",
+   "new": "Rachel Heller",
+   "sort": "Heller, Rachel",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 434,
+   "old": "Levine, Amir",
+   "old_sort": "Levine, Amir",
+   "new": "Amir Levine",
+   "sort": "Levine, Amir",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 435,
+   "old": "Collins, Harry",
+   "old_sort": "Collins, Harry",
+   "new": "Harry Collins",
+   "sort": "Collins, Harry",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 436,
+   "old": "Newman, Kim",
+   "old_sort": "Newman, Kim",
+   "new": "Kim Newman",
+   "sort": "Newman, Kim",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 437,
+   "old": "VanderMeer, Jeff",
+   "old_sort": "VanderMeer, Jeff",
+   "new": "Jeff VanderMeer",
+   "sort": "VanderMeer, Jeff",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 439,
+   "old": "Kluger, Jeffrey",
+   "old_sort": "Kluger, Jeffrey",
+   "new": "Jeffrey Kluger",
+   "sort": "Kluger, Jeffrey",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 440,
+   "old": "Hume, David",
+   "old_sort": "Hume, David",
+   "new": "David Hume",
+   "sort": "Hume, David",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 441,
+   "old": "Dunbar-Ortiz, Roxanne",
+   "old_sort": "Dunbar-Ortiz, Roxanne",
+   "new": "Roxanne Dunbar-Ortiz",
+   "sort": "Dunbar-Ortiz, Roxanne",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 442,
+   "old": "Simone, Sierra",
+   "old_sort": "Simone, Sierra",
+   "new": "Sierra Simone",
+   "sort": "Simone, Sierra",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 443,
+   "old": "Brill, Steven",
+   "old_sort": "Brill, Steven",
+   "new": "Steven Brill",
+   "sort": "Brill, Steven",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 444,
+   "old": "Gibson, Lindsay C.",
+   "old_sort": "Gibson, Lindsay C.",
+   "new": "Lindsay C. Gibson",
+   "sort": "Gibson, Lindsay C.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 445,
+   "old": "Guin, Ursula K. Le",
+   "old_sort": "Guin, Ursula K. Le",
+   "new": "Ursula K. Le Guin",
+   "sort": "Le Guin, Ursula K.",
+   "books": 1,
+   "note": "Surname mis-split; merges with the other Le Guin entry.",
+   "merge": true
+  },
+  {
+   "id": 446,
+   "old": "Zuckerman, Gregory",
+   "old_sort": "Zuckerman, Gregory",
+   "new": "Gregory Zuckerman",
+   "sort": "Zuckerman, Gregory",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 447,
+   "old": "Lockhart, Paul",
+   "old_sort": "Lockhart, Paul",
+   "new": "Paul Lockhart",
+   "sort": "Lockhart, Paul",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 448,
+   "old": "Clark, P. Djèlí",
+   "old_sort": "Clark, P. Djèlí",
+   "new": "P. Djèlí Clark",
+   "sort": "Clark, P. Djèlí",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 449,
+   "old": "Martin, George R. R.",
+   "old_sort": "Martin, George R. R.",
+   "new": "George R. R. Martin",
+   "sort": "Martin, George R. R.",
+   "books": 5,
+   "note": "",
+   "merge": true
+  },
+  {
+   "id": 450,
+   "old": "Maas, Sarah J.",
+   "old_sort": "Maas, Sarah J.",
+   "new": "Sarah J. Maas",
+   "sort": "Maas, Sarah J.",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 451,
+   "old": "Black, Michael Ian",
+   "old_sort": "Black, Michael Ian",
+   "new": "Michael Ian Black",
+   "sort": "Black, Michael Ian",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 452,
+   "old": "Rowland, Alexandra",
+   "old_sort": "Rowland, Alexandra",
+   "new": "Alexandra Rowland",
+   "sort": "Rowland, Alexandra",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 453,
+   "old": "Jones, Garett",
+   "old_sort": "Jones, Garett",
+   "new": "Garett Jones",
+   "sort": "Jones, Garett",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 454,
+   "old": "Newman, Wendy",
+   "old_sort": "Newman, Wendy",
+   "new": "Wendy Newman",
+   "sort": "Newman, Wendy",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 456,
+   "old": "Orwell, George",
+   "old_sort": "Orwell, George",
+   "new": "George Orwell",
+   "sort": "Orwell, George",
+   "books": 1,
+   "note": ""
+  },
+  {
+   "id": 467,
+   "old": "Pugh, Emerson W",
+   "old_sort": "Pugh, Emerson W",
+   "new": "Emerson W. Pugh",
+   "sort": "Pugh, Emerson W.",
+   "books": 1,
+   "note": ""
+  }
+ ],
+ "book_authors": [
+  {
+   "id": 491,
+   "title": "How Democracies Die",
+   "old": [
+    "Ziblatt, Daniel",
+    "Levitsky, Steven"
+   ],
+   "new": [
+    "Steven Levitsky",
+    "Daniel Ziblatt"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 296,
+   "title": "The Book of Why",
+   "old": [
+    "Mackenzie, Dana",
+    "Pearl, Judea"
+   ],
+   "new": [
+    "Judea Pearl",
+    "Dana Mackenzie"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 147,
+   "title": "The Smartest Guys in the Room",
+   "old": [
+    "Elkind, Peter",
+    "McLean, Bethany"
+   ],
+   "new": [
+    "Bethany McLean",
+    "Peter Elkind"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 621,
+   "title": "Barbarians at the Gate",
+   "old": [
+    "Helyar, John",
+    "Burrough, Bryan"
+   ],
+   "new": [
+    "Bryan Burrough",
+    "John Helyar"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 477,
+   "title": "Making Software: What Really Works, and Why We Believe It",
+   "old": [
+    "Greg Wilson",
+    "Oram, Andy"
+   ],
+   "new": [
+    "Andy Oram",
+    "Greg Wilson"
+   ],
+   "note": "Editor order"
+  },
+  {
+   "id": 432,
+   "title": "It's Even Worse Than It Looks: How the American Constitutional System Collided With the New Politics of Extremism",
+   "old": [
+    "Ornstein, Norman J.",
+    "Mann, Thomas E."
+   ],
+   "new": [
+    "Thomas E. Mann",
+    "Norman J. Ornstein"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 333,
+   "title": "A Mind at Play: How Claude Shannon Invented the Information Age",
+   "old": [
+    "Goodman, Rob",
+    "Soni, Jimmy"
+   ],
+   "new": [
+    "Jimmy Soni",
+    "Rob Goodman"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 608,
+   "title": "Buried in the Sky: The Extraordinary Story of the Sherpa Climbers on K2's Deadliest Day",
+   "old": [
+    "Padoan, Amanda",
+    "Zuckerman, Peter"
+   ],
+   "new": [
+    "Peter Zuckerman",
+    "Amanda Padoan"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 625,
+   "title": "Attached: The New Science of Adult Attachment and How It Can Help You Find—and Keep—Love",
+   "old": [
+    "Heller, Rachel",
+    "Levine, Amir"
+   ],
+   "new": [
+    "Amir Levine",
+    "Rachel Heller"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 527,
+   "title": "Driven to Distraction (Revised)",
+   "old": [
+    "Ratey, John J.",
+    "Hallowell, Edward M."
+   ],
+   "new": [
+    "Edward M. Hallowell",
+    "John J. Ratey"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 584,
+   "title": "DEC Is Dead, Long Live DEC: The Lasting Legacy of Digital Equipment Corporation",
+   "old": [
+    "Sonduck, Michael M.",
+    "DeLisi, Peter S.",
+    "Kampas, Paul J.",
+    "Schein, Edgar H."
+   ],
+   "new": [
+    "Edgar H. Schein",
+    "Peter S. DeLisi",
+    "Paul J. Kampas",
+    "Michael M. Sonduck"
+   ],
+   "note": "Byline order (Schein is lead author)"
+  },
+  {
+   "id": 338,
+   "title": "System Error",
+   "old": [
+    "Weinstein, Jeremy M.",
+    "Sahami, Mehran",
+    "Reich, Rob"
+   ],
+   "new": [
+    "Rob Reich",
+    "Mehran Sahami",
+    "Jeremy M. Weinstein"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 186,
+   "title": "Software Engineering at Google",
+   "old": [
+    "Wright, Hyrum",
+    "Manshreck, Tom",
+    "Winters, Titus"
+   ],
+   "new": [
+    "Titus Winters",
+    "Tom Manshreck",
+    "Hyrum Wright"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 315,
+   "title": "If Anyone Builds It, Everyone Dies",
+   "old": [
+    "Soares, Nate",
+    "Yudkowsky, Eliezer"
+   ],
+   "new": [
+    "Eliezer Yudkowsky",
+    "Nate Soares"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 109,
+   "title": "This Is How You Lose the Time War",
+   "old": [
+    "Gladstone, Max",
+    "El-Mohtar, Amal"
+   ],
+   "new": [
+    "Amal El-Mohtar",
+    "Max Gladstone"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 55,
+   "title": "Zak George's Dog Training Revolution",
+   "old": [
+    "Port, Dina Roth",
+    "George, Zak"
+   ],
+   "new": [
+    "Zak George",
+    "Dina Roth Port"
+   ],
+   "note": "Zak George is primary author"
+  },
+  {
+   "id": 54,
+   "title": "Zak George's Guide to a Well-Behaved Dog",
+   "old": [
+    "Port, Dina Roth",
+    "George, Zak"
+   ],
+   "new": [
+    "Zak George",
+    "Dina Roth Port"
+   ],
+   "note": "Zak George is primary author"
+  },
+  {
+   "id": 478,
+   "title": "Le Petit Nicolas (French Edition)",
+   "old": [
+    "Jean-Jacques Sempé",
+    "Goscinny, René"
+   ],
+   "new": [
+    "René Goscinny",
+    "Jean-Jacques Sempé"
+   ],
+   "note": "Writer before illustrator"
+  },
+  {
+   "id": 156,
+   "title": "The Rise and Fall of D.O.D.O.: A Novel",
+   "old": [
+    "Galland, Nicole",
+    "Stephenson, Neal"
+   ],
+   "new": [
+    "Neal Stephenson",
+    "Nicole Galland"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 390,
+   "title": "Racing the Beam (Platform Studies)",
+   "old": [
+    "Bogost, Ian",
+    "Montfort, Nick"
+   ],
+   "new": [
+    "Nick Montfort",
+    "Ian Bogost"
+   ],
+   "note": "Byline order"
+  },
+  {
+   "id": 422,
+   "title": "More Than Two",
+   "old": [
+    "Gill, Tatiana",
+    "Hardy, Janet",
+    "Veaux, Franklin"
+   ],
+   "new": [
+    "Franklin Veaux",
+    "Eve Rickert"
+   ],
+   "note": "Actual authors (per the book's own description); Gill was illustrator, Hardy wrote the foreword"
+  },
+  {
+   "id": 381,
+   "title": "Rogues",
+   "old": [
+    "Edited by George R. R. Martin",
+    "Gardner Dozois"
+   ],
+   "new": [
+    "George R. R. Martin",
+    "Gardner Dozois"
+   ],
+   "note": "Strip 'Edited by'"
+  },
+  {
+   "id": 481,
+   "title": "Judgment of Paris: California vs. France and the Historic 1976 Paris Tasting That Revolutionized Wine (A Gift for Wine Lovers)",
+   "old": [
+    "Unknown"
+   ],
+   "new": [
+    "George M. Taber"
+   ],
+   "note": "Was 'Unknown'"
+  },
+  {
+   "id": 18,
+   "title": "Merriam-Webster's French-English Translation Dictionary, Kindle Edition (French Edition)",
+   "old": [
+    "Unknown"
+   ],
+   "new": [
+    "Merriam-Webster"
+   ],
+   "note": "Was 'Unknown'"
+  },
+  {
+   "id": 267,
+   "title": "The Drama of the Gifted Child",
+   "old": [
+    "Unknown"
+   ],
+   "new": [
+    "Alice Miller"
+   ],
+   "note": "Was 'Unknown'"
+  },
+  {
+   "id": 235,
+   "title": "The Immortal Life of Henrietta Lacks",
+   "old": [
+    "Unknown"
+   ],
+   "new": [
+    "Rebecca Skloot"
+   ],
+   "note": "Was 'Unknown'"
+  },
+  {
+   "id": 185,
+   "title": "The New Oxford American Dictionary",
+   "old": [
+    "Unknown"
+   ],
+   "new": [
+    "Angus Stevenson",
+    "Christine A. Lindberg"
+   ],
+   "note": "Was 'Unknown'; editors of the 3rd ed."
+  },
+  {
+   "id": 166,
+   "title": "The Puppy Primer",
+   "old": [
+    "Unknown"
+   ],
+   "new": [
+    "Patricia B. McConnell",
+    "Brenda Scidmore"
+   ],
+   "note": "Was 'Unknown'"
+  },
+  {
+   "id": 42,
+   "title": "You Mean I'm Not Lazy, Stupid or Crazy?!: The Classic Self-Help Book for Adults with Attention Deficit Disorder (The Classic Self-Help Book for Adults w/ Attention Deficit Disorder)",
+   "old": [
+    "Unknown"
+   ],
+   "new": [
+    "Kate Kelly",
+    "Peggy Ramundo"
+   ],
+   "note": "Was 'Unknown'"
+  },
+  {
+   "id": 395,
+   "title": "Proofs and Refutations",
+   "old": [
+    "Unknown"
+   ],
+   "new": [
+    "Imre Lakatos"
+   ],
+   "note": "Was 'Unknown'"
+  }
+ ],
+ "series": [
+  {
+   "id": 27,
+   "title": "Harry Potter and the Sorcerer's Stone (Book 1)",
+   "author": "J.K. Rowling",
+   "old_series": null,
+   "old_index": null,
+   "series": "Harry Potter",
+   "index": 1,
+   "note": "Missing; the rest of the series is set",
+   "kind": "add"
+  },
+  {
+   "id": 669,
+   "title": "A Trade of Blood (Ana and Din Mysteries)",
+   "author": "Robert Jackson Bennett",
+   "old_series": null,
+   "old_index": null,
+   "series": "Shadow of the Leviathan",
+   "index": 3,
+   "note": "Ana and Din #3 (2026)",
+   "kind": "add"
+  },
+  {
+   "id": 676,
+   "title": "A Parade of Horribles",
+   "author": "Matt Dinniman",
+   "old_series": null,
+   "old_index": null,
+   "series": "Dungeon Crawler Carl",
+   "index": 8,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 670,
+   "title": "The Eye of the Bedlam Bride",
+   "author": "Matt Dinniman",
+   "old_series": null,
+   "old_index": null,
+   "series": "Dungeon Crawler Carl",
+   "index": 6,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 680,
+   "title": "This Inevitable Ruin",
+   "author": "Matt Dinniman",
+   "old_series": null,
+   "old_index": null,
+   "series": "Dungeon Crawler Carl",
+   "index": 7,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 360,
+   "title": "Side Jobs (Dresden Files)",
+   "author": "Butcher, Jim",
+   "old_series": null,
+   "old_index": null,
+   "series": "Dresden Files",
+   "index": 12.5,
+   "note": "Short-story collection, after Changes",
+   "kind": "add"
+  },
+  {
+   "id": 609,
+   "title": "Brief Cases (Dresden Files)",
+   "author": "Butcher, Jim",
+   "old_series": null,
+   "old_index": null,
+   "series": "Dresden Files",
+   "index": 15.5,
+   "note": "Short-story collection, after Skin Game",
+   "kind": "add"
+  },
+  {
+   "id": 220,
+   "title": "The Law: A Dresden Files Novella",
+   "author": "Butcher, Jim",
+   "old_series": null,
+   "old_index": null,
+   "series": "Dresden Files",
+   "index": 17.5,
+   "note": "Novella, 2022, after Battle Ground",
+   "kind": "add"
+  },
+  {
+   "id": 12,
+   "title": "Out Law: A Dresden Files Novella",
+   "author": "Butcher, Jim",
+   "old_series": null,
+   "old_index": null,
+   "series": "Dresden Files",
+   "index": 18.5,
+   "note": "Novella, May 2026, after Twelve Months",
+   "kind": "add"
+  },
+  {
+   "id": 446,
+   "title": "Escape from Yokai Land: 11 (Laundry Files)",
+   "author": "Charles, Stross",
+   "old_series": null,
+   "old_index": null,
+   "series": "Laundry Files",
+   "index": 11.5,
+   "note": "Novella (2022). Library catalogs call it #12, which collides with your existing Season of Skulls = 12",
+   "kind": "add"
+  },
+  {
+   "id": 150,
+   "title": "The Slow Regard of Silent Things (The Kingkiller Chronicle)",
+   "author": "Rothfuss, Patrick",
+   "old_series": null,
+   "old_index": null,
+   "series": "The Kingkiller Chronicle",
+   "index": 2.5,
+   "note": "Novella",
+   "kind": "add"
+  },
+  {
+   "id": 450,
+   "title": "Edgedancer: From the Stormlight Archive",
+   "author": "Sanderson, Brandon",
+   "old_series": null,
+   "old_index": null,
+   "series": "The Stormlight Archive",
+   "index": 2.5,
+   "note": "Novella",
+   "kind": "add"
+  },
+  {
+   "id": 469,
+   "title": "Mistborn Trilogy",
+   "author": "Sanderson, Brandon",
+   "old_series": null,
+   "old_index": null,
+   "series": "Mistborn",
+   "index": 1,
+   "note": "Omnibus of books 1–3",
+   "kind": "add"
+  },
+  {
+   "id": 569,
+   "title": "Home: Habitat, Range, Niche, Territory (The Murderbot Diaries)",
+   "author": "Wells, Martha",
+   "old_series": null,
+   "old_index": null,
+   "series": "The Murderbot Diaries",
+   "index": 4.5,
+   "note": "Short story between Exit Strategy and Network Effect",
+   "kind": "add"
+  },
+  {
+   "id": 387,
+   "title": "Rapport: Friendship, Solidarity, Communion, Empathy (The Murderbot Diaries)",
+   "author": "Wells, Martha",
+   "old_series": null,
+   "old_index": null,
+   "series": "The Murderbot Diaries",
+   "index": 7.5,
+   "note": "Novella (2025), published between 7 and 8",
+   "kind": "add"
+  },
+  {
+   "id": 225,
+   "title": "The Lady Astronaut of Mars",
+   "author": "Kowal, Mary Robinette",
+   "old_series": null,
+   "old_index": null,
+   "series": "Lady Astronaut",
+   "index": 4.5,
+   "note": "Original novelette; Goodreads numbers it 4.5",
+   "kind": "add"
+  },
+  {
+   "id": 87,
+   "title": "Unlocked: An Oral History of Haden's Syndrome: A Tor.Com Original (Kindle Single) (Lock In Series)",
+   "author": "Scalzi, John",
+   "old_series": null,
+   "old_index": null,
+   "series": "Lock In",
+   "index": 0.5,
+   "note": "Prequel novella",
+   "kind": "add"
+  },
+  {
+   "id": 643,
+   "title": "Ajax Penumbra 1969 (Kindle Single)",
+   "author": "Sloan, Robin",
+   "old_series": null,
+   "old_index": null,
+   "series": "Mr. Penumbra's 24-Hour Bookstore",
+   "index": 0.5,
+   "note": "Prequel",
+   "kind": "add"
+  },
+  {
+   "id": 459,
+   "title": "Mr. Penumbra's 24-Hour Bookstore: A Novel",
+   "author": "Sloan, Robin",
+   "old_series": null,
+   "old_index": null,
+   "series": "Mr. Penumbra's 24-Hour Bookstore",
+   "index": 1,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 421,
+   "title": "Ninefox Gambit (Machineries of Empire Book 1)",
+   "author": "Lee, Yoon Ha",
+   "old_series": null,
+   "old_index": null,
+   "series": "Machineries of Empire",
+   "index": 1,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 386,
+   "title": "Raven Stratagem (Machineries of Empire Book 2)",
+   "author": "Lee, Yoon Ha",
+   "old_series": null,
+   "old_index": null,
+   "series": "Machineries of Empire",
+   "index": 2,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 293,
+   "title": "The Bloodline Feud: A Merchant Princes Omnibus",
+   "author": "Stross, Charles",
+   "old_series": null,
+   "old_index": null,
+   "series": "Merchant Princes",
+   "index": 1,
+   "note": "Omnibus (orig. books 1–2)",
+   "kind": "add"
+  },
+  {
+   "id": 130,
+   "title": "The Traders' War: A Merchant Princes Omnibus",
+   "author": "Stross, Charles",
+   "old_series": null,
+   "old_index": null,
+   "series": "Merchant Princes",
+   "index": 2,
+   "note": "Omnibus (orig. books 3–4)",
+   "kind": "add"
+  },
+  {
+   "id": 160,
+   "title": "The Revolution Trade: A Merchant Princes Omnibus",
+   "author": "Stross, Charles",
+   "old_series": null,
+   "old_index": null,
+   "series": "Merchant Princes",
+   "index": 3,
+   "note": "Omnibus (orig. books 5–6)",
+   "kind": "add"
+  },
+  {
+   "id": 364,
+   "title": "Shogun (Asian Saga Book 1)",
+   "author": "Clavell, James",
+   "old_series": null,
+   "old_index": null,
+   "series": "Asian Saga",
+   "index": 1,
+   "note": "Chronological order, per the title; it was 3rd by publication",
+   "kind": "add"
+  },
+  {
+   "id": 269,
+   "title": "The Dispossessed: An Ambiguous Utopia (Hainish Cycle Book 5)",
+   "author": "Le Guin, Ursula K.",
+   "old_series": null,
+   "old_index": null,
+   "series": "Hainish Cycle",
+   "index": 5,
+   "note": "Per the title",
+   "kind": "add"
+  },
+  {
+   "id": 678,
+   "title": "The Magpie Lord",
+   "author": "KJ Charles",
+   "old_series": null,
+   "old_index": null,
+   "series": "A Charm of Magpies",
+   "index": 1,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 677,
+   "title": "Radiance",
+   "author": "Grace Draven",
+   "old_series": null,
+   "old_index": null,
+   "series": "Wraith Kings",
+   "index": 1,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 675,
+   "title": "The Wonder Engine: Book Two of the Clocktaur War",
+   "author": "T. Kingfisher",
+   "old_series": null,
+   "old_index": null,
+   "series": "The Clocktaur War",
+   "index": 2,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 656,
+   "title": "A Court of Thorns and Roses",
+   "author": "Maas, Sarah J.",
+   "old_series": null,
+   "old_index": null,
+   "series": "A Court of Thorns and Roses",
+   "index": 1,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 679,
+   "title": "The Last Binding Trilogy: A Marvellous Light, A Restless Truth, A Power Unbound",
+   "author": "Freya Marske",
+   "old_series": null,
+   "old_index": null,
+   "series": "The Last Binding",
+   "index": 1,
+   "note": "Omnibus of books 1–3",
+   "kind": "add"
+  },
+  {
+   "id": 442,
+   "title": "Glory in the Thunder (Aspects of the Divinity Book 1)",
+   "author": "Elliott, Melissa",
+   "old_series": null,
+   "old_index": null,
+   "series": "Aspects of the Divinity",
+   "index": 1,
+   "note": "Per the title",
+   "kind": "add"
+  },
+  {
+   "id": 445,
+   "title": "First Shift - Legacy (Part 6 of the Silo Series)",
+   "author": "Howey, Hugh",
+   "old_series": null,
+   "old_index": null,
+   "series": "Silo",
+   "index": 2,
+   "note": "First part of Shift (Silo #2)",
+   "kind": "add"
+  },
+  {
+   "id": 53,
+   "title": "Divine Comedy, Cary's Translation, Hell",
+   "author": "Dante Alighieri",
+   "old_series": null,
+   "old_index": null,
+   "series": "The Divine Comedy",
+   "index": 1,
+   "note": "Inferno",
+   "kind": "add"
+  },
+  {
+   "id": 25,
+   "title": "Divine Comedy, Cary's Translation, Paradise",
+   "author": "Dante Alighieri",
+   "old_series": null,
+   "old_index": null,
+   "series": "The Divine Comedy",
+   "index": 3,
+   "note": "Paradiso",
+   "kind": "add"
+  },
+  {
+   "id": 478,
+   "title": "Le Petit Nicolas (French Edition)",
+   "author": "Jean-Jacques Sempé; Goscinny, René",
+   "old_series": null,
+   "old_index": null,
+   "series": "Le Petit Nicolas",
+   "index": 1,
+   "note": "",
+   "kind": "add"
+  },
+  {
+   "id": 234,
+   "title": "The Hydrogen Sonata (A Culture Novel Book 10)",
+   "author": "Banks, Iain M.",
+   "old_series": "Culture",
+   "old_index": 9.0,
+   "series": "Culture",
+   "index": 10,
+   "note": "Was 9; Hydrogen Sonata is Culture #10 (its own title says so)",
+   "kind": "fix"
+  },
+  {
+   "id": 463,
+   "title": "Mistborn: Secret History",
+   "author": "Sanderson, Brandon",
+   "old_series": "Mistborn",
+   "old_index": 8.0,
+   "series": "Mistborn",
+   "index": 3.5,
+   "note": "Was 8; Secret History is set during/after book 3",
+   "kind": "fix"
+  },
+  {
+   "id": 649,
+   "title": "A Master of Djinn: 1 (Dead Djinn Universe)",
+   "author": "Clark, P. Djèlí",
+   "old_series": "Dead Djinn Universe",
+   "old_index": 2.0,
+   "series": "Dead Djinn Universe",
+   "index": 1,
+   "note": "Was 2; the publisher numbers A Master of Djinn #1 (the title even says ': 1')",
+   "kind": "fix"
+  },
+  {
+   "id": 576,
+   "title": "The Doomsday Book",
+   "author": "Willis, Connie",
+   "old_series": "Oxford Time Travel",
+   "old_index": 2.0,
+   "series": "Oxford Time Travel",
+   "index": 1,
+   "note": "Was 2; Doomsday Book is the first novel",
+   "kind": "fix"
+  }
+ ],
+ "series_clear": [
+  {
+   "id": 78,
+   "title": "Waiting for Godot: A Tragicomedy in Two Acts",
+   "old_series": "Beckett, Samuel",
+   "old_index": 12.0,
+   "note": "'Beckett, Samuel' is not a series"
+  },
+  {
+   "id": 321,
+   "title": "The Anatomy of Fascism",
+   "old_series": "Allen Lane History",
+   "old_index": 46.0,
+   "note": "Publisher imprint (Allen Lane History)"
+  },
+  {
+   "id": 395,
+   "title": "Proofs and Refutations",
+   "old_series": "Cambridge Philosophy Classics",
+   "old_index": 6.0,
+   "note": "Publisher imprint (Cambridge Philosophy Classics)"
+  },
+  {
+   "id": 547,
+   "title": "Arguments that Count (Inside Technology)",
+   "old_series": "Inside Technology",
+   "old_index": 26.0,
+   "note": "Publisher imprint (Inside Technology)"
+  },
+  {
+   "id": 559,
+   "title": "Seeing Like a State (Veritas Paperbacks)",
+   "old_series": "Veritas Paperbacks",
+   "old_index": 5.0,
+   "note": "Publisher imprint (Veritas Paperbacks)"
+  },
+  {
+   "id": 666,
+   "title": "1984",
+   "old_series": "The English Edition",
+   "old_index": 3.0,
+   "note": "Bogus ('The English Edition' #3)"
+  },
+  {
+   "id": 23,
+   "title": "Between the World and Me: 150 (One World Essentials)",
+   "old_series": "One World Essentials",
+   "old_index": 3.0,
+   "note": "Publisher imprint (One World Essentials)"
+  },
+  {
+   "id": 11,
+   "title": "Confronting Managerialism: How the Business Elite and Their Schools Threw Our Lives Out of Balance (Economic Controversies)",
+   "old_series": "Economic Controversies",
+   "old_index": 1.0,
+   "note": "Publisher imprint (Economic Controversies)"
+  },
+  {
+   "id": 390,
+   "title": "Racing the Beam (Platform Studies)",
+   "old_series": "Platform Studies",
+   "old_index": 1.0,
+   "note": "Publisher imprint (Platform Studies)"
+  },
+  {
+   "id": 635,
+   "title": "An Indigenous Peoples' History of the United States (ReVisioning American History)",
+   "old_series": "ReVisioning History",
+   "old_index": 3.0,
+   "note": "Publisher imprint (ReVisioning History)"
+  },
+  {
+   "id": 334,
+   "title": "The 5 Love Languages: The Secret to Love that Lasts",
+   "old_series": "The 5 Love Languages",
+   "old_index": 5.0,
+   "note": "Not a series (5 Love Languages #5)"
+  },
+  {
+   "id": 475,
+   "title": "Liar's Poker (Norton Paperback)",
+   "old_series": "Liar's Poker Series",
+   "old_index": 1.0,
+   "note": "Liar's Poker and The Big Short aren't a series"
+  },
+  {
+   "id": 294,
+   "title": "The Big Short: Inside the Doomsday Machine (movie tie-in) (Movie Tie-in Editions)",
+   "old_series": "Liar's Poker Series",
+   "old_index": 2.0,
+   "note": "Liar's Poker and The Big Short aren't a series"
+  },
+  {
+   "id": 545,
+   "title": "At the Mountains of Madness",
+   "old_series": "The Collected Works of H.P. Lovecraft",
+   "old_index": 1.0,
+   "note": "Publisher collection"
+  },
+  {
+   "id": 644,
+   "title": "Accelerando (Singularity Book 3)",
+   "old_series": "Singularity",
+   "old_index": 3.0,
+   "note": "Accelerando isn't a Singularity Sky (Eschaton) book"
+  },
+  {
+   "id": 199,
+   "title": "The Midnight Library",
+   "old_series": "The Midnight World",
+   "old_index": 1.0,
+   "note": "Bogus ('The Midnight World')"
+  },
+  {
+   "id": 201,
+   "title": "The Martian: A Novel",
+   "old_series": "The Martian Series",
+   "old_index": 1.0,
+   "note": "The Martian is standalone"
+  },
+  {
+   "id": 16,
+   "title": "Yes, Roya",
+   "old_series": "Yes, Roya",
+   "old_index": 1.0,
+   "note": "Standalone graphic novel"
+  },
+  {
+   "id": 177,
+   "title": "The Ones Who Walk Away from Omelas (A Wind's Twelve Quarters Story)",
+   "old_series": "The Wind's Twelve Quarters",
+   "old_index": 1.0,
+   "note": "The Wind's Twelve Quarters is a story collection, not a series"
+  },
+  {
+   "id": 422,
+   "title": "More Than Two",
+   "old_series": "More Than Two Essentials",
+   "old_index": 9.0,
+   "note": "The 2014 1st edition isn't part of 'More Than Two Essentials' (#9 is the 2024 2nd edition)"
+  }
+ ],
+ "series_rename": [
+  {
+   "old": "The Girl with the Dragon Tattoo (Lisbeth Salander/Millennium)",
+   "new": "Millennium",
+   "books": 3
+  },
+  {
+   "old": "The Locked Tomb Series",
+   "new": "The Locked Tomb",
+   "books": 1
+  },
+  {
+   "old": "Hell’s Library trilogy",
+   "new": "Hell's Library",
+   "books": 1
+  },
+  {
+   "old": "The Space Opera",
+   "new": "Space Opera",
+   "books": 1
+  },
+  {
+   "old": "Silo Series",
+   "new": "Silo",
+   "books": 1
+  }
+ ],
+ "titles": [
+  {
+   "id": 184,
+   "old": "1Q84 (Vintage International)",
+   "new": "1Q84"
+  },
+  {
+   "id": 664,
+   "old": "A Clash of Kings (A Song of Ice and Fire, Book 2)",
+   "new": "A Clash of Kings"
+  },
+  {
+   "id": 657,
+   "old": "A Closed and Common Orbit (Wayfarers)",
+   "new": "A Closed and Common Orbit"
+  },
+  {
+   "id": 655,
+   "old": "A Conventional Boy (Laundry Files)",
+   "new": "A Conventional Boy"
+  },
+  {
+   "id": 658,
+   "old": "A Dance with Dragons (A Song of Ice and Fire, Book 5)",
+   "new": "A Dance with Dragons"
+  },
+  {
+   "id": 553,
+   "old": "A Deadly Education (The Scholomance)",
+   "new": "A Deadly Education"
+  },
+  {
+   "id": 652,
+   "old": "A Desolation Called Peace: 2 (Teixcalaan)",
+   "new": "A Desolation Called Peace"
+  },
+  {
+   "id": 654,
+   "old": "A Feast for Crows (A Song of Ice and Fire, Book 4)",
+   "new": "A Feast for Crows"
+  },
+  {
+   "id": 653,
+   "old": "A Game of Thrones (A Song of Ice and Fire, Book 1)",
+   "new": "A Game of Thrones"
+  },
+  {
+   "id": 650,
+   "old": "A Local Habitation (October Daye Book 2)",
+   "new": "A Local Habitation"
+  },
+  {
+   "id": 649,
+   "old": "A Master of Djinn: 1 (Dead Djinn Universe)",
+   "new": "A Master of Djinn"
+  },
+  {
+   "id": 322,
+   "old": "A Memory Called Empire (Teixcalaan)",
+   "new": "A Memory Called Empire"
+  },
+  {
+   "id": 647,
+   "old": "A Prayer for the Crown-Shy (Monk & Robot)",
+   "new": "A Prayer for the Crown-Shy"
+  },
+  {
+   "id": 665,
+   "old": "A Psalm for the Wild-Built: 1 (Monk & Robot)",
+   "new": "A Psalm for the Wild-Built"
+  },
+  {
+   "id": 651,
+   "old": "A Storm of Swords (A Song of Ice and Fire, Book 3)",
+   "new": "A Storm of Swords"
+  },
+  {
+   "id": 645,
+   "old": "A Wizard of Earthsea (The Earthsea Cycle Series Book 1)",
+   "new": "A Wizard of Earthsea"
+  },
+  {
+   "id": 324,
+   "old": "Abhorsen (Old Kingdom Book 3)",
+   "new": "Abhorsen"
+  },
+  {
+   "id": 644,
+   "old": "Accelerando (Singularity Book 3)",
+   "new": "Accelerando"
+  },
+  {
+   "id": 643,
+   "old": "Ajax Penumbra 1969 (Kindle Single)",
+   "new": "Ajax Penumbra 1969"
+  },
+  {
+   "id": 640,
+   "old": "All Systems Red (Kindle Single): The Murderbot Diaries",
+   "new": "All Systems Red"
+  },
+  {
+   "id": 637,
+   "old": "Altered Carbon (Takeshi Kovacs Novels)",
+   "new": "Altered Carbon"
+  },
+  {
+   "id": 636,
+   "old": "American Queen (New Camelot Book 1)",
+   "new": "American Queen"
+  },
+  {
+   "id": 550,
+   "old": "Ancillary Justice (Imperial Radch Book 1)",
+   "new": "Ancillary Justice"
+  },
+  {
+   "id": 632,
+   "old": "Ancillary Mercy (Imperial Radch)",
+   "new": "Ancillary Mercy"
+  },
+  {
+   "id": 631,
+   "old": "Ancillary Sword (Imperial Radch Book 2)",
+   "new": "Ancillary Sword"
+  },
+  {
+   "id": 630,
+   "old": "Annihilation: A Novel (The Southern Reach Trilogy Book 1)",
+   "new": "Annihilation"
+  },
+  {
+   "id": 627,
+   "old": "Are We All Scientific Experts Now? (New Human Frontiers)",
+   "new": "Are We All Scientific Experts Now?"
+  },
+  {
+   "id": 547,
+   "old": "Arguments that Count (Inside Technology)",
+   "new": "Arguments that Count"
+  },
+  {
+   "id": 626,
+   "old": "Artificial Condition: The Murderbot Diaries",
+   "new": "Artificial Condition"
+  },
+  {
+   "id": 622,
+   "old": "Avogadro Corp: The Singularity Is Closer Than It Appears (Singularity Series Book 1)",
+   "new": "Avogadro Corp: The Singularity Is Closer Than It Appears"
+  },
+  {
+   "id": 619,
+   "old": "Barbary Station (Shieldrunner Pirates Book 1)",
+   "new": "Barbary Station"
+  },
+  {
+   "id": 543,
+   "old": "Battle Ground (Dresden Files)",
+   "new": "Battle Ground"
+  },
+  {
+   "id": 546,
+   "old": "Better Bouldering, 2nd (How To Climb Series)",
+   "new": "Better Bouldering"
+  },
+  {
+   "id": 23,
+   "old": "Between the World and Me: 150 (One World Essentials)",
+   "new": "Between the World and Me"
+  },
+  {
+   "id": 618,
+   "old": "Beyond Series Bundle (Books 1-3)",
+   "new": "Beyond Series Bundle (Books 1–3)"
+  },
+  {
+   "id": 617,
+   "old": "Beyond Series Bundle (Books 4-6)",
+   "new": "Beyond Series Bundle (Books 4–6)"
+  },
+  {
+   "id": 639,
+   "old": "Black Panther (2016-2018) #1",
+   "new": "Black Panther (2016) #1"
+  },
+  {
+   "id": 613,
+   "old": "Blindness (Harvest Book)",
+   "new": "Blindness"
+  },
+  {
+   "id": 615,
+   "old": "Blindsight (Firefall)",
+   "new": "Blindsight"
+  },
+  {
+   "id": 614,
+   "old": "Blood Song (A Raven's Shadow Novel, Book 1)",
+   "new": "Blood Song"
+  },
+  {
+   "id": 540,
+   "old": "Bridgerton Collection Volume 1 (Bridgertons)",
+   "new": "Bridgerton Collection Volume 1"
+  },
+  {
+   "id": 539,
+   "old": "Bridgerton Collection Volume 2 (Bridgertons)",
+   "new": "Bridgerton Collection Volume 2"
+  },
+  {
+   "id": 538,
+   "old": "Bridgerton Collection Volume 3 (Bridgertons)",
+   "new": "Bridgerton Collection Volume 3"
+  },
+  {
+   "id": 609,
+   "old": "Brief Cases (Dresden Files)",
+   "new": "Brief Cases"
+  },
+  {
+   "id": 606,
+   "old": "Broken Angels (Takeshi Kovacs)",
+   "new": "Broken Angels"
+  },
+  {
+   "id": 605,
+   "old": "Broken Homes (PC Peter Grant Book 4)",
+   "new": "Broken Homes"
+  },
+  {
+   "id": 600,
+   "old": "Candide in English and French by Voltaire (Unexpurgated Edition) (Halcyon Classics)",
+   "new": "Candide"
+  },
+  {
+   "id": 536,
+   "old": "Carl's Doomsday Scenario: Dungeon Crawler Carl Book 2",
+   "new": "Carl's Doomsday Scenario"
+  },
+  {
+   "id": 602,
+   "old": "Caste (Oprah's Book Club)",
+   "new": "Caste"
+  },
+  {
+   "id": 599,
+   "old": "Catching Fire (Hunger Games Trilogy, Book 2)",
+   "new": "Catching Fire"
+  },
+  {
+   "id": 598,
+   "old": "Changes (The Dresden Files, Book 12)",
+   "new": "Changes"
+  },
+  {
+   "id": 596,
+   "old": "Children of Ruin (Children of Time)",
+   "new": "Children of Ruin"
+  },
+  {
+   "id": 603,
+   "old": "CIRCE",
+   "new": "Circe"
+  },
+  {
+   "id": 593,
+   "old": "Clariel: The Lost Abhorsen (Old Kingdom Book 4)",
+   "new": "Clariel: The Lost Abhorsen"
+  },
+  {
+   "id": 534,
+   "old": "Cold Days (The Dresden Files, Book 14)",
+   "new": "Cold Days"
+  },
+  {
+   "id": 594,
+   "old": "Command and Control: Nuclear Weapons, the Damascus Accident, and the Illusion of Safety (ALA Notable Books for Adults)",
+   "new": "Command and Control: Nuclear Weapons, the Damascus Accident, and the Illusion of Safety"
+  },
+  {
+   "id": 11,
+   "old": "Confronting Managerialism: How the Business Elite and Their Schools Threw Our Lives Out of Balance (Economic Controversies)",
+   "new": "Confronting Managerialism: How the Business Elite and Their Schools Threw Our Lives Out of Balance"
+  },
+  {
+   "id": 590,
+   "old": "Crooked Kingdom (Six of Crows)",
+   "new": "Crooked Kingdom"
+  },
+  {
+   "id": 585,
+   "old": "Dark Force Rising: Star Wars (The Thrawn Trilogy): Star Wars: Volume 2 of a Three-Book Cycle (Star Wars: The Thrawn Trilogy)",
+   "new": "Dark Force Rising"
+  },
+  {
+   "id": 532,
+   "old": "Dark State (Empire Games)",
+   "new": "Dark State"
+  },
+  {
+   "id": 581,
+   "old": "Dead Lies Dreaming (Laundry Files)",
+   "new": "Dead Lies Dreaming"
+  },
+  {
+   "id": 579,
+   "old": "Dead Pig Collector (Kindle Single)",
+   "new": "Dead Pig Collector"
+  },
+  {
+   "id": 531,
+   "old": "Deal with the Devil (Mercenary Librarians)",
+   "new": "Deal with the Devil"
+  },
+  {
+   "id": 528,
+   "old": "Dreams Bigger Than Heartbreak: 2 (Unstoppable)",
+   "new": "Dreams Bigger Than Heartbreak"
+  },
+  {
+   "id": 524,
+   "old": "Echopraxia (Firefall)",
+   "new": "Echopraxia"
+  },
+  {
+   "id": 450,
+   "old": "Edgedancer: From the Stormlight Archive",
+   "new": "Edgedancer"
+  },
+  {
+   "id": 452,
+   "old": "Effective C++: 55 Specific Ways to Improve Your Programs and Designs (3rd Edition)",
+   "new": "Effective C++: 55 Specific Ways to Improve Your Programs and Designs"
+  },
+  {
+   "id": 446,
+   "old": "Escape from Yokai Land: 11 (Laundry Files)",
+   "new": "Escape from Yokai Land"
+  },
+  {
+   "id": 316,
+   "old": "Exit Strategy: The Murderbot Diaries",
+   "new": "Exit Strategy"
+  },
+  {
+   "id": 518,
+   "old": "Exploring CQRS and Event Sourcing (Microsoft patterns & practices)",
+   "new": "Exploring CQRS and Event Sourcing"
+  },
+  {
+   "id": 516,
+   "old": "False Value (Rivers of London)",
+   "new": "False Value"
+  },
+  {
+   "id": 447,
+   "old": "Fault Tolerance (Chilling Effect)",
+   "new": "Fault Tolerance"
+  },
+  {
+   "id": 445,
+   "old": "First Shift - Legacy (Part 6 of the Silo Series)",
+   "new": "First Shift: Legacy"
+  },
+  {
+   "id": 507,
+   "old": "Foxglove Summer (PC Peter Grant Book 5)",
+   "new": "Foxglove Summer"
+  },
+  {
+   "id": 506,
+   "old": "Freedom (TM) (Daemon Book 2)",
+   "new": "Freedom™"
+  },
+  {
+   "id": 444,
+   "old": "Fugitive Telemetry: 6 (The Murderbot Diaries)",
+   "new": "Fugitive Telemetry"
+  },
+  {
+   "id": 574,
+   "old": "Ghost Story (The Dresden Files, Book 13)",
+   "new": "Ghost Story"
+  },
+  {
+   "id": 317,
+   "old": "Gideon the Ninth (The Locked Tomb Trilogy)",
+   "new": "Gideon the Ninth"
+  },
+  {
+   "id": 442,
+   "old": "Glory in the Thunder (Aspects of the Divinity Book 1)",
+   "new": "Glory in the Thunder"
+  },
+  {
+   "id": 500,
+   "old": "Going Postal (Discworld Book 33)",
+   "new": "Going Postal"
+  },
+  {
+   "id": 499,
+   "old": "Goldenhand (Old Kingdom)",
+   "new": "Goldenhand"
+  },
+  {
+   "id": 440,
+   "old": "Gridlinked (Agent Cormac Book 1)",
+   "new": "Gridlinked"
+  },
+  {
+   "id": 9,
+   "old": "Harry Potter and the Chamber of Secrets (Book 2)",
+   "new": "Harry Potter and the Chamber of Secrets"
+  },
+  {
+   "id": 32,
+   "old": "Harry Potter and the Deathly Hallows (Book 7)",
+   "new": "Harry Potter and the Deathly Hallows"
+  },
+  {
+   "id": 31,
+   "old": "Harry Potter and the Goblet of Fire (Book 4)",
+   "new": "Harry Potter and the Goblet of Fire"
+  },
+  {
+   "id": 30,
+   "old": "Harry Potter and the Half-Blood Prince (Book 6)",
+   "new": "Harry Potter and the Half-Blood Prince"
+  },
+  {
+   "id": 29,
+   "old": "Harry Potter and the Order of the Phoenix (Book 5)",
+   "new": "Harry Potter and the Order of the Phoenix"
+  },
+  {
+   "id": 28,
+   "old": "Harry Potter and the Prisoner of Azkaban (Book 3)",
+   "new": "Harry Potter and the Prisoner of Azkaban"
+  },
+  {
+   "id": 27,
+   "old": "Harry Potter and the Sorcerer's Stone (Book 1)",
+   "new": "Harry Potter and the Sorcerer's Stone"
+  },
+  {
+   "id": 20,
+   "old": "Harry Potter et les Reliques de la Mort (Tome 7) (French Edition)",
+   "new": "Harry Potter et les Reliques de la Mort"
+  },
+  {
+   "id": 19,
+   "old": "Harry Potter et l’Ordre du Phénix (Tome 5) (French Edition)",
+   "new": "Harry Potter et l'Ordre du Phénix"
+  },
+  {
+   "id": 497,
+   "old": "Harry Potter à L'école des Sorciers (French Edition)",
+   "new": "Harry Potter à l'école des sorciers"
+  },
+  {
+   "id": 495,
+   "old": "Harvard Is Burning (Kindle Single)",
+   "new": "Harvard Is Burning"
+  },
+  {
+   "id": 493,
+   "old": "Heir to the Empire: Star Wars (The Thrawn Trilogy): Star Wars, Volume I (Star Wars: The Thrawn Trilogy Book 1)",
+   "new": "Heir to the Empire"
+  },
+  {
+   "id": 492,
+   "old": "Hex Appeal (Kate Daniels)",
+   "new": "Hex Appeal"
+  },
+  {
+   "id": 569,
+   "old": "Home: Habitat, Range, Niche, Territory (The Murderbot Diaries)",
+   "new": "Home: Habitat, Range, Niche, Territory"
+  },
+  {
+   "id": 567,
+   "old": "How to Live Safely in a Science Fictional Universe: A Novel",
+   "new": "How to Live Safely in a Science Fictional Universe"
+  },
+  {
+   "id": 566,
+   "old": "I and Thou, Trans. Kaufmann",
+   "new": "I and Thou"
+  },
+  {
+   "id": 431,
+   "old": "In the House of Aryaman, a Lonely Signal Burns (Sub-Inspector Ferron Mysteries Book 1)",
+   "new": "In the House of Aryaman, a Lonely Signal Burns"
+  },
+  {
+   "id": 483,
+   "old": "Invisible Sun: 3 (Empire Games)",
+   "new": "Invisible Sun"
+  },
+  {
+   "id": 481,
+   "old": "Judgment of Paris: California vs. France and the Historic 1976 Paris Tasting That Revolutionized Wine (A Gift for Wine Lovers)",
+   "new": "Judgment of Paris: California vs. France and the Historic 1976 Paris Tasting That Revolutionized Wine"
+  },
+  {
+   "id": 478,
+   "old": "Le Petit Nicolas (French Edition)",
+   "new": "Le Petit Nicolas"
+  },
+  {
+   "id": 475,
+   "old": "Liar's Poker (Norton Paperback)",
+   "new": "Liar's Poker"
+  },
+  {
+   "id": 562,
+   "old": "Lies Sleeping (Rivers of London)",
+   "new": "Lies Sleeping"
+  },
+  {
+   "id": 474,
+   "old": "Lirael (Old Kingdom Book 2)",
+   "new": "Lirael"
+  },
+  {
+   "id": 561,
+   "old": "Lock In: A Novel of the Near Future (Lock In Series)",
+   "new": "Lock In"
+  },
+  {
+   "id": 560,
+   "old": "Lost in a Good Book: A Thursday Next Novel",
+   "new": "Lost in a Good Book"
+  },
+  {
+   "id": 17,
+   "old": "Making Silicon Valley (Inside Technology)",
+   "new": "Making Silicon Valley"
+  },
+  {
+   "id": 466,
+   "old": "Memoirs of a Geisha (Vintage Contemporaries)",
+   "new": "Memoirs of a Geisha"
+  },
+  {
+   "id": 18,
+   "old": "Merriam-Webster's French-English Translation Dictionary, Kindle Edition (French Edition)",
+   "new": "Merriam-Webster's French-English Translation Dictionary"
+  },
+  {
+   "id": 427,
+   "old": "Midnight Riot (Rivers of London Book 1)",
+   "new": "Midnight Riot"
+  },
+  {
+   "id": 461,
+   "old": "Mockingjay (The Final Book of The Hunger Games)",
+   "new": "Mockingjay"
+  },
+  {
+   "id": 424,
+   "old": "Moon Over Soho (Rivers of London Book 2)",
+   "new": "Moon Over Soho"
+  },
+  {
+   "id": 462,
+   "old": "More Than a Numbers Game (Wiley Finance)",
+   "new": "More Than a Numbers Game"
+  },
+  {
+   "id": 459,
+   "old": "Mr. Penumbra's 24-Hour Bookstore: A Novel",
+   "new": "Mr. Penumbra's 24-Hour Bookstore"
+  },
+  {
+   "id": 460,
+   "old": "Network Effect (The Murderbot Diaries)",
+   "new": "Network Effect"
+  },
+  {
+   "id": 421,
+   "old": "Ninefox Gambit (Machineries of Empire Book 1)",
+   "new": "Ninefox Gambit"
+  },
+  {
+   "id": 434,
+   "old": "Oathbringer: Book Three of the Stormlight Archive",
+   "new": "Oathbringer"
+  },
+  {
+   "id": 429,
+   "old": "Off to Be the Wizard [Kindle in Motion] (Magic 2.0 Book 1)",
+   "new": "Off to Be the Wizard"
+  },
+  {
+   "id": 415,
+   "old": "One Fell Sweep (Innkeeper Chronicles Book 3)",
+   "new": "One Fell Sweep"
+  },
+  {
+   "id": 12,
+   "old": "Out Law: A Dresden Files Novella",
+   "new": "Out Law"
+  },
+  {
+   "id": 408,
+   "old": "Peace Talks (Dresden Files)",
+   "new": "Peace Talks"
+  },
+  {
+   "id": 407,
+   "old": "Perdido Street Station (New Crobuzon Book 1)",
+   "new": "Perdido Street Station"
+  },
+  {
+   "id": 404,
+   "old": "Perfectly Legal: The Covert Campaign to Rig Our Tax System to Benefit the Super Rich--and Cheat E verybody Else",
+   "new": "Perfectly Legal: The Covert Campaign to Rig Our Tax System to Benefit the Super Rich—and Cheat Everybody Else"
+  },
+  {
+   "id": 399,
+   "old": "Platform Decay (The Murderbot Diaries)",
+   "new": "Platform Decay"
+  },
+  {
+   "id": 36,
+   "old": "Pop Internationalism (The MIT Press)",
+   "new": "Pop Internationalism"
+  },
+  {
+   "id": 396,
+   "old": "Promises Stronger Than Darkness (Unstoppable)",
+   "new": "Promises Stronger Than Darkness"
+  },
+  {
+   "id": 394,
+   "old": "Proven Guilty (The Dresden Files, Book 8)",
+   "new": "Proven Guilty"
+  },
+  {
+   "id": 391,
+   "old": "Quantum of Nightmares (Laundry Files)",
+   "new": "Quantum of Nightmares"
+  },
+  {
+   "id": 390,
+   "old": "Racing the Beam (Platform Studies)",
+   "new": "Racing the Beam"
+  },
+  {
+   "id": 387,
+   "old": "Rapport: Friendship, Solidarity, Communion, Empathy (The Murderbot Diaries)",
+   "new": "Rapport: Friendship, Solidarity, Communion, Empathy"
+  },
+  {
+   "id": 386,
+   "old": "Raven Stratagem (Machineries of Empire Book 2)",
+   "new": "Raven Stratagem"
+  },
+  {
+   "id": 385,
+   "old": "Record of a Spaceborn Few (Wayfarers)",
+   "new": "Record of a Spaceborn Few"
+  },
+  {
+   "id": 382,
+   "old": "Red Rising (The Red Rising Trilogy, Book 1)",
+   "new": "Red Rising"
+  },
+  {
+   "id": 383,
+   "old": "Red Seas Under Red Skies (Gentleman Bastards, Book 2)",
+   "new": "Red Seas Under Red Skies"
+  },
+  {
+   "id": 15,
+   "old": "Redshirts (Hugo Award Winner - Best Novel)",
+   "new": "Redshirts"
+  },
+  {
+   "id": 45,
+   "old": "Revenger (The Revenger Series)",
+   "new": "Revenger"
+  },
+  {
+   "id": 378,
+   "old": "Rogue Protocol: The Murderbot Diaries",
+   "new": "Rogue Protocol"
+  },
+  {
+   "id": 377,
+   "old": "Rosemary and Rue (October Daye Book 1)",
+   "new": "Rosemary and Rue"
+  },
+  {
+   "id": 373,
+   "old": "Rule 34 (Halting State Book 2)",
+   "new": "Rule 34"
+  },
+  {
+   "id": 372,
+   "old": "Sabriel (Old Kingdom Book 1)",
+   "new": "Sabriel"
+  },
+  {
+   "id": 313,
+   "old": "Season of Skulls (Laundry Files)",
+   "new": "Season of Skulls"
+  },
+  {
+   "id": 325,
+   "old": "Seasonal Fears (Alchemical Journeys)",
+   "new": "Seasonal Fears"
+  },
+  {
+   "id": 559,
+   "old": "Seeing Like a State (Veritas Paperbacks)",
+   "new": "Seeing Like a State"
+  },
+  {
+   "id": 314,
+   "old": "Seven Surrenders: Book 2 of Terra Ignota",
+   "new": "Seven Surrenders"
+  },
+  {
+   "id": 367,
+   "old": "Seveneves: A Novel",
+   "new": "Seveneves"
+  },
+  {
+   "id": 363,
+   "old": "Shades of Milk and Honey (Glamourist Histories Book 1)",
+   "new": "Shades of Milk and Honey"
+  },
+  {
+   "id": 362,
+   "old": "Shadow & Claw: The First Half of 'The Book of the New Sun'",
+   "new": "Shadow & Claw"
+  },
+  {
+   "id": 365,
+   "old": "Shadows of Self (Mistborn)",
+   "new": "Shadows of Self"
+  },
+  {
+   "id": 364,
+   "old": "Shogun (Asian Saga Book 1)",
+   "new": "Shogun"
+  },
+  {
+   "id": 360,
+   "old": "Side Jobs (Dresden Files)",
+   "new": "Side Jobs"
+  },
+  {
+   "id": 354,
+   "old": "Skin Game (Dresden Files Book 15)",
+   "new": "Skin Game"
+  },
+  {
+   "id": 311,
+   "old": "Solve Your Child's Sleep Problems: Revised Edition: New, Revised, and Expanded Edition",
+   "new": "Solve Your Child's Sleep Problems"
+  },
+  {
+   "id": 308,
+   "old": "Stiletto: A Novel (The Rook Files Book 2)",
+   "new": "Stiletto"
+  },
+  {
+   "id": 320,
+   "old": "Storm Front (The Dresden Files, Book 1)",
+   "new": "Storm Front"
+  },
+  {
+   "id": 302,
+   "old": "Summer Knight (The Dresden Files, Book 4)",
+   "new": "Summer Knight"
+  },
+  {
+   "id": 342,
+   "old": "Sweep in Peace (Innkeeper Chronicles Book 2)",
+   "new": "Sweep in Peace"
+  },
+  {
+   "id": 344,
+   "old": "Sweep of the Blade (Innkeeper Chronicles Book 4)",
+   "new": "Sweep of the Blade"
+  },
+  {
+   "id": 341,
+   "old": "Sweep with Me (Innkeeper Chronicles Book 5)",
+   "new": "Sweep with Me"
+  },
+  {
+   "id": 340,
+   "old": "System Collapse (The Murderbot Diaries)",
+   "new": "System Collapse"
+  },
+  {
+   "id": 375,
+   "old": "SYSTEMANTICS. THE SYSTEMS BIBLE",
+   "new": "Systemantics: The Systems Bible"
+  },
+  {
+   "id": 336,
+   "old": "Talking about Machines (Collection on Technology and Work)",
+   "new": "Talking about Machines"
+  },
+  {
+   "id": 332,
+   "old": "The Abyss Beyond Dreams: A Novel of the Commonwealth (Commonwealth: Chronicle of the Fallers Book 1)",
+   "new": "The Abyss Beyond Dreams"
+  },
+  {
+   "id": 331,
+   "old": "The Aeronaut's Windlass (The Cinder Spires)",
+   "new": "The Aeronaut's Windlass"
+  },
+  {
+   "id": 329,
+   "old": "The Alloy of Law: A Mistborn Novel",
+   "new": "The Alloy of Law"
+  },
+  {
+   "id": 300,
+   "old": "The Annihilation Score: A Laundry Files Novel",
+   "new": "The Annihilation Score"
+  },
+  {
+   "id": 299,
+   "old": "The Apocalypse Codex (Laundry Files Book 4)",
+   "new": "The Apocalypse Codex"
+  },
+  {
+   "id": 303,
+   "old": "The Bands of Mourning: A Mistborn Novel",
+   "new": "The Bands of Mourning"
+  },
+  {
+   "id": 294,
+   "old": "The Big Short: Inside the Doomsday Machine (movie tie-in) (Movie Tie-in Editions)",
+   "new": "The Big Short: Inside the Doomsday Machine"
+  },
+  {
+   "id": 292,
+   "old": "The Black Prism (Lightbringer Book 1)",
+   "new": "The Black Prism"
+  },
+  {
+   "id": 287,
+   "old": "The Burning Page (The Invisible Library Novel)",
+   "new": "The Burning Page"
+  },
+  {
+   "id": 330,
+   "old": "The Butcher's Masquerade: Dungeon Crawler Carl Book 5",
+   "new": "The Butcher's Masquerade"
+  },
+  {
+   "id": 286,
+   "old": "The Calculating Stars (Lady Astronaut)",
+   "new": "The Calculating Stars"
+  },
+  {
+   "id": 284,
+   "old": "The City We Became (The Great Cities Trilogy)",
+   "new": "The City We Became"
+  },
+  {
+   "id": 281,
+   "old": "The Cuckoo's Calling (Cormoran Strike Book 1)",
+   "new": "The Cuckoo's Calling"
+  },
+  {
+   "id": 279,
+   "old": "The Dark Archive (The Invisible Library Novel)",
+   "new": "The Dark Archive"
+  },
+  {
+   "id": 273,
+   "old": "The Delirium Brief: A Laundry Files Novel",
+   "new": "The Delirium Brief"
+  },
+  {
+   "id": 272,
+   "old": "The Devil You Know: 2 (Mercenary Librarians)",
+   "new": "The Devil You Know"
+  },
+  {
+   "id": 269,
+   "old": "The Dispossessed: An Ambiguous Utopia (Hainish Cycle Book 5)",
+   "new": "The Dispossessed: An Ambiguous Utopia"
+  },
+  {
+   "id": 270,
+   "old": "The Dragon's Path (The Dagger and the Coin series Book 1)",
+   "new": "The Dragon's Path"
+  },
+  {
+   "id": 14,
+   "old": "The Dungeon Anarchist's Cookbook: Dungeon Crawler Carl Book 3",
+   "new": "The Dungeon Anarchist's Cookbook"
+  },
+  {
+   "id": 259,
+   "old": "The Eyre Affair: A Thursday Next Novel",
+   "new": "The Eyre Affair"
+  },
+  {
+   "id": 256,
+   "old": "The Fated Sky (Lady Astronaut)",
+   "new": "The Fated Sky"
+  },
+  {
+   "id": 258,
+   "old": "The Fifth Season (The Broken Earth Book 1)",
+   "new": "The Fifth Season"
+  },
+  {
+   "id": 255,
+   "old": "The Galaxy, and the Ground Within: 4 (Wayfarers)",
+   "new": "The Galaxy, and the Ground Within"
+  },
+  {
+   "id": 26,
+   "old": "The Gate of the Feral Gods: Dungeon Crawler Carl Book 4",
+   "new": "The Gate of the Feral Gods"
+  },
+  {
+   "id": 251,
+   "old": "The Gated City (Kindle Single)",
+   "new": "The Gated City"
+  },
+  {
+   "id": 252,
+   "old": "The Girl Who Kicked the Hornet's Nest (Millennium Series Book 3)",
+   "new": "The Girl Who Kicked the Hornet's Nest"
+  },
+  {
+   "id": 249,
+   "old": "The Girl Who Played with Fire (Millennium Series Book 2)",
+   "new": "The Girl Who Played with Fire"
+  },
+  {
+   "id": 248,
+   "old": "The Girl with the Dragon Tattoo (Millennium Series Book 1)",
+   "new": "The Girl with the Dragon Tattoo"
+  },
+  {
+   "id": 246,
+   "old": "The Glass Magician (The Paper Magician Series, Book 2)",
+   "new": "The Glass Magician"
+  },
+  {
+   "id": 244,
+   "old": "The Golden Enclaves (The Scholomance)",
+   "new": "The Golden Enclaves"
+  },
+  {
+   "id": 239,
+   "old": "The Hanging Tree (Rivers of London)",
+   "new": "The Hanging Tree"
+  },
+  {
+   "id": 238,
+   "old": "The Hundred Thousand Kingdoms (The Inheritance Trilogy Book 1)",
+   "new": "The Hundred Thousand Kingdoms"
+  },
+  {
+   "id": 236,
+   "old": "The Hunger Games (Hunger Games Trilogy, Book 1)",
+   "new": "The Hunger Games"
+  },
+  {
+   "id": 234,
+   "old": "The Hydrogen Sonata (A Culture Novel Book 10)",
+   "new": "The Hydrogen Sonata"
+  },
+  {
+   "id": 231,
+   "old": "The Invisible Library (The Invisible Library Novel)",
+   "new": "The Invisible Library"
+  },
+  {
+   "id": 229,
+   "old": "The King's Blood (The Dagger and the Coin series Book 2)",
+   "new": "The King's Blood"
+  },
+  {
+   "id": 227,
+   "old": "The Labyrinth Index (Laundry Files)",
+   "new": "The Labyrinth Index"
+  },
+  {
+   "id": 228,
+   "old": "The Last Command: Star Wars (The Thrawn Trilogy): Volume 3 (Star Wars: The Thrawn Trilogy)",
+   "new": "The Last Command"
+  },
+  {
+   "id": 224,
+   "old": "The Last Graduate (The Scholomance)",
+   "new": "The Last Graduate"
+  },
+  {
+   "id": 220,
+   "old": "The Law: A Dresden Files Novella",
+   "new": "The Law"
+  },
+  {
+   "id": 221,
+   "old": "The Library of the Unwritten (A Novel from Hell's Library)",
+   "new": "The Library of the Unwritten"
+  },
+  {
+   "id": 219,
+   "old": "The Lies of Locke Lamora (Gentleman Bastards, Book 1)",
+   "new": "The Lies of Locke Lamora"
+  },
+  {
+   "id": 213,
+   "old": "The Litany of Earth: A Tor.Com Original",
+   "new": "The Litany of Earth"
+  },
+  {
+   "id": 214,
+   "old": "The Long Way to a Small, Angry Planet (Wayfarers)",
+   "new": "The Long Way to a Small, Angry Planet"
+  },
+  {
+   "id": 211,
+   "old": "The Lost Plot (The Invisible Library Novel)",
+   "new": "The Lost Plot"
+  },
+  {
+   "id": 208,
+   "old": "The Luminaries (Man Booker Prize)",
+   "new": "The Luminaries"
+  },
+  {
+   "id": 207,
+   "old": "The Magician King: A Novel (The Magicians Book 2)",
+   "new": "The Magician King"
+  },
+  {
+   "id": 206,
+   "old": "The Magician's Land: A Novel (The Magicians Book 3)",
+   "new": "The Magician's Land"
+  },
+  {
+   "id": 205,
+   "old": "The Magicians: A Novel",
+   "new": "The Magicians"
+  },
+  {
+   "id": 327,
+   "old": "The Martian Contingency (Lady Astronaut)",
+   "new": "The Martian Contingency"
+  },
+  {
+   "id": 201,
+   "old": "The Martian: A Novel",
+   "new": "The Martian"
+  },
+  {
+   "id": 202,
+   "old": "The Masked City (The Invisible Library Novel)",
+   "new": "The Masked City"
+  },
+  {
+   "id": 195,
+   "old": "The Mind-Body Problem, with foreword by Jane Smiley",
+   "new": "The Mind-Body Problem"
+  },
+  {
+   "id": 193,
+   "old": "The Ministry of Time: A Novel",
+   "new": "The Ministry of Time"
+  },
+  {
+   "id": 192,
+   "old": "The Mongoliad: Book One (The Foreworld Saga) (The Mongoliad Cycle)",
+   "new": "The Mongoliad: Book One"
+  },
+  {
+   "id": 191,
+   "old": "The Mortal Word (The Invisible Library Novel)",
+   "new": "The Mortal Word"
+  },
+  {
+   "id": 190,
+   "old": "The Mythical Man-Month: Essays on Software Engineering, Anniversary Edition (2nd Edition)",
+   "new": "The Mythical Man-Month: Essays on Software Engineering, Anniversary Edition"
+  },
+  {
+   "id": 189,
+   "old": "The Name of the Wind: The Kingkiller Chronicle: Day One",
+   "new": "The Name of the Wind"
+  },
+  {
+   "id": 181,
+   "old": "The Nightmare Stacks (A Laundry Files Novel)",
+   "new": "The Nightmare Stacks"
+  },
+  {
+   "id": 180,
+   "old": "The Obelisk Gate (The Broken Earth Book 2)",
+   "new": "The Obelisk Gate"
+  },
+  {
+   "id": 179,
+   "old": "The Olympian Affair (The Cinder Spires)",
+   "new": "The Olympian Affair"
+  },
+  {
+   "id": 178,
+   "old": "The Origins of Totalitarianism (Harvest Book, Hb244)",
+   "new": "The Origins of Totalitarianism"
+  },
+  {
+   "id": 174,
+   "old": "The Paper Magician (The Paper Magician Series, Book 1)",
+   "new": "The Paper Magician"
+  },
+  {
+   "id": 171,
+   "old": "The Philosopher's Flight: A Novel (The Philosophers Series Book 1)",
+   "new": "The Philosopher's Flight"
+  },
+  {
+   "id": 170,
+   "old": "The Philosopher's War (The Philosophers Series Book 2)",
+   "new": "The Philosopher's War"
+  },
+  {
+   "id": 169,
+   "old": "The Raven Boys (The Raven Cycle, Book 1)",
+   "new": "The Raven Boys"
+  },
+  {
+   "id": 162,
+   "old": "The Regicide Report (Laundry Files)",
+   "new": "The Regicide Report"
+  },
+  {
+   "id": 161,
+   "old": "The Relentless Moon (Lady Astronaut)",
+   "new": "The Relentless Moon"
+  },
+  {
+   "id": 163,
+   "old": "The Republic of Thieves (Gentleman Bastards, Book 3)",
+   "new": "The Republic of Thieves"
+  },
+  {
+   "id": 155,
+   "old": "The Rhesus Chart (Laundry Files Book 5)",
+   "new": "The Rhesus Chart"
+  },
+  {
+   "id": 156,
+   "old": "The Rise and Fall of D.O.D.O.: A Novel",
+   "new": "The Rise and Fall of D.O.D.O."
+  },
+  {
+   "id": 154,
+   "old": "The Roman Republic (Fontana History of the Ancient World)",
+   "new": "The Roman Republic"
+  },
+  {
+   "id": 153,
+   "old": "The Rook: A Novel (The Rook Files Book 1)",
+   "new": "The Rook"
+  },
+  {
+   "id": 152,
+   "old": "The Scar (New Crobuzon Book 2)",
+   "new": "The Scar"
+  },
+  {
+   "id": 149,
+   "old": "The Secret Chapter (The Invisible Library Novel)",
+   "new": "The Secret Chapter"
+  },
+  {
+   "id": 148,
+   "old": "The Silkworm (Cormoran Strike Book 2)",
+   "new": "The Silkworm"
+  },
+  {
+   "id": 150,
+   "old": "The Slow Regard of Silent Things (The Kingkiller Chronicle)",
+   "new": "The Slow Regard of Silent Things"
+  },
+  {
+   "id": 141,
+   "old": "The Steel Remains (A Land Fit for Heroes Series Book 1)",
+   "new": "The Steel Remains"
+  },
+  {
+   "id": 140,
+   "old": "The Stone Sky (The Broken Earth)",
+   "new": "The Stone Sky"
+  },
+  {
+   "id": 139,
+   "old": "The Structure of Scientific Revolutions (50th Anniversary Edition)",
+   "new": "The Structure of Scientific Revolutions"
+  },
+  {
+   "id": 40,
+   "old": "The Thousand Eyes: 2 (The Serpent Gates)",
+   "new": "The Thousand Eyes"
+  },
+  {
+   "id": 556,
+   "old": "The Tombs of Atuan (The Earthsea Cycle Series Book 2)",
+   "new": "The Tombs of Atuan"
+  },
+  {
+   "id": 129,
+   "old": "The Traitor Baru Cormorant (The Masquerade)",
+   "new": "The Traitor Baru Cormorant"
+  },
+  {
+   "id": 127,
+   "old": "The Tyrant's Law (The Dagger and the Coin series Book 3)",
+   "new": "The Tyrant's Law"
+  },
+  {
+   "id": 124,
+   "old": "The Unspoken Name: 1 (The Serpent Gates)",
+   "new": "The Unspoken Name"
+  },
+  {
+   "id": 122,
+   "old": "The Untold Story (The Invisible Library Novel)",
+   "new": "The Untold Story"
+  },
+  {
+   "id": 123,
+   "old": "The Way of Kings (The Stormlight Archive, Book 1)",
+   "new": "The Way of Kings"
+  },
+  {
+   "id": 119,
+   "old": "The Widow's House (The Dagger and the Coin series Book 4)",
+   "new": "The Widow's House"
+  },
+  {
+   "id": 117,
+   "old": "The Will to Battle (Terra Ignota)",
+   "new": "The Will to Battle"
+  },
+  {
+   "id": 118,
+   "old": "The Wise Man's Fear (The Kingkiller Chronicle, Book 2)",
+   "new": "The Wise Man's Fear"
+  },
+  {
+   "id": 675,
+   "old": "The Wonder Engine: Book Two of the Clocktaur War",
+   "new": "The Wonder Engine"
+  },
+  {
+   "id": 115,
+   "old": "The World We Make (The Great Cities)",
+   "new": "The World We Make"
+  },
+  {
+   "id": 110,
+   "old": "Three Parts Dead (Craft Sequence Book 1)",
+   "new": "Three Parts Dead"
+  },
+  {
+   "id": 106,
+   "old": "Throne of Jade: A Novel of Temeraire",
+   "new": "Throne of Jade"
+  },
+  {
+   "id": 103,
+   "old": "Too Like the Lightning: A Novel (Terra Ignota)",
+   "new": "Too Like the Lightning"
+  },
+  {
+   "id": 97,
+   "old": "Turn Coat (The Dresden Files, Book 11)",
+   "new": "Turn Coat"
+  },
+  {
+   "id": 94,
+   "old": "Twelve Months (Dresden Files)",
+   "new": "Twelve Months"
+  },
+  {
+   "id": 91,
+   "old": "Two Serpents Rise (Craft Sequence Book 2)",
+   "new": "Two Serpents Rise"
+  },
+  {
+   "id": 88,
+   "old": "Une vie (French Edition)",
+   "new": "Une vie"
+  },
+  {
+   "id": 87,
+   "old": "Unlocked: An Oral History of Haden's Syndrome: A Tor.Com Original (Kindle Single) (Lock In Series)",
+   "new": "Unlocked: An Oral History of Haden's Syndrome"
+  },
+  {
+   "id": 86,
+   "old": "Unnatural Causes: 'Heart-wrenchingly honest' Professor Sue Black, author of All That Remains",
+   "new": "Unnatural Causes"
+  },
+  {
+   "id": 84,
+   "old": "Use of Weapons (A Culture Novel Book 3)",
+   "new": "Use of Weapons"
+  },
+  {
+   "id": 82,
+   "old": "Victories Greater Than Death: 1 (Unstoppable)",
+   "new": "Victories Greater Than Death"
+  },
+  {
+   "id": 71,
+   "old": "Whispers Under Ground (Rivers of London Book 3)",
+   "new": "Whispers Under Ground"
+  },
+  {
+   "id": 69,
+   "old": "White Hot (Hidden Legacy)",
+   "new": "White Hot"
+  },
+  {
+   "id": 68,
+   "old": "White Night (The Dresden Files, Book 9)",
+   "new": "White Night"
+  },
+  {
+   "id": 63,
+   "old": "Wildfire: 3 (Hidden Legacy)",
+   "new": "Wildfire"
+  },
+  {
+   "id": 46,
+   "old": "Witch King (The Rising World)",
+   "new": "Witch King"
+  },
+  {
+   "id": 60,
+   "old": "Woken Furies (Takeshi Kovacs Novels Book 3)",
+   "new": "Woken Furies"
+  },
+  {
+   "id": 58,
+   "old": "Wool Omnibus Edition (Wool 1 - 5) (Silo series)",
+   "new": "Wool Omnibus"
+  },
+  {
+   "id": 42,
+   "old": "You Mean I'm Not Lazy, Stupid or Crazy?!: The Classic Self-Help Book for Adults with Attention Deficit Disorder (The Classic Self-Help Book for Adults w/ Attention Deficit Disorder)",
+   "new": "You Mean I'm Not Lazy, Stupid or Crazy?!"
+  }
+ ],
+ "pubdates": [
+  {
+   "id": 670,
+   "title": "The Eye of the Bedlam Bride",
+   "old": "0101-01-01",
+   "new": "2023-02-17",
+   "note": "Ebook/audio first release (approx; worth spot-checking)"
+  },
+  {
+   "id": 680,
+   "title": "This Inevitable Ruin",
+   "old": "0101-01-01",
+   "new": "2024-02-20",
+   "note": "Ebook/audio first release (approx; worth spot-checking)"
+  },
+  {
+   "id": 677,
+   "title": "Radiance",
+   "old": "0101-01-01",
+   "new": "2015-06-10",
+   "note": "Per audiobook/Smashwords listings"
+  },
+  {
+   "id": 675,
+   "title": "The Wonder Engine: Book Two of the Clocktaur War",
+   "old": "0101-01-01",
+   "new": "2018-06-11",
+   "note": ""
+  },
+  {
+   "id": 639,
+   "title": "Black Panther (2016-2018) #1",
+   "old": "0101-01-01",
+   "new": "2016-04-06",
+   "note": "Black Panther (2016) #1"
+  },
+  {
+   "id": 16,
+   "title": "Yes, Roya",
+   "old": "0101-01-01",
+   "new": "2014-01-01",
+   "note": "Original B&W edition; year only"
+  }
+ ],
+ "publishers": [
+  {
+   "old": "Simon &amp; Schuster",
+   "new": "Simon & Schuster",
+   "books": 1
+  },
+  {
+   "old": "Simon & Schuster, Inc.",
+   "new": "Simon & Schuster",
+   "books": 1
+  },
+  {
+   "old": "Orbit/Yen",
+   "new": "Orbit / Yen",
+   "books": 1
+  },
+  {
+   "old": "The MIT Press",
+   "new": "MIT Press",
+   "books": 2
+  },
+  {
+   "old": "Cambridge, Mass. : MIT Press",
+   "new": "MIT Press",
+   "books": 1
+  },
+  {
+   "old": "Penguin Group, USA",
+   "new": "Penguin Group US",
+   "books": 4
+  },
+  {
+   "old": "HarperCollinsPublishers",
+   "new": "HarperCollins",
+   "books": 2
+  },
+  {
+   "old": "HarperCollins Publishers",
+   "new": "HarperCollins",
+   "books": 1
+  },
+  {
+   "old": "HarperCollins e-books",
+   "new": "HarperCollins",
+   "books": 2
+  },
+  {
+   "old": "ATlantic Monthly Press",
+   "new": "Atlantic Monthly Press",
+   "books": 1
+  },
+  {
+   "old": "The University Of Chicago Press, Chicago",
+   "new": "University of Chicago Press",
+   "books": 1
+  },
+  {
+   "old": "Oxford University Press - A",
+   "new": "Oxford University Press",
+   "books": 1
+  },
+  {
+   "old": "OUP Oxford",
+   "new": "Oxford University Press",
+   "books": 1
+  },
+  {
+   "old": "Globe Pequot - A",
+   "new": "Globe Pequot",
+   "books": 1
+  },
+  {
+   "old": "Verso Books",
+   "new": "Verso",
+   "books": 1
+  },
+  {
+   "old": "The Free Press",
+   "new": "Free Press",
+   "books": 1
+  },
+  {
+   "old": "Bloomsbury_US",
+   "new": "Bloomsbury Publishing",
+   "books": 1
+  },
+  {
+   "old": "Penguin Press HC, The",
+   "new": "Penguin Press",
+   "books": 1
+  },
+  {
+   "old": "Houghton Mifflin Harcourt (www.hmhco.com)",
+   "new": "Houghton Mifflin Harcourt",
+   "books": 5
+  },
+  {
+   "old": "A Tom Doherty Associates Book",
+   "new": "Tom Doherty Associates",
+   "books": 3
+  },
+  {
+   "old": "Tom Doherty Associates Co.",
+   "new": "Tom Doherty Associates",
+   "books": 1
+  },
+  {
+   "old": "Pottermore Limited",
+   "new": "Pottermore Publishing",
+   "books": 9
+  },
+  {
+   "old": "St. Martin’s Press",
+   "new": "St. Martin's Press",
+   "books": 1
+  },
+  {
+   "old": "Pearson Education (USA)",
+   "new": "Pearson Education",
+   "books": 1
+  },
+  {
+   "old": "Cleis Press [Start]",
+   "new": "Cleis Press",
+   "books": 1
+  },
+  {
+   "old": "Unknown",
+   "new": null,
+   "books": 1
+  }
+ ],
+ "misc": [
+  {
+   "op": "set_language",
+   "id": 17,
+   "title": "Making Silicon Valley (Inside Technology)",
+   "value": "eng",
+   "note": "Only book with no language set"
+  },
+  {
+   "op": "remove_tags",
+   "tags": [
+    "https://archive.org/details/memoriesthatshap0000pugh",
+    "IBM computers -- History; IBM 360 (Computer) -- History; Computer industry -- United States -- History",
+    "ebook"
+   ],
+   "note": "A URL tag, an un-split LCSH string (its parts already exist as separate tags), and a meaningless 'ebook' tag"
+  },
+  {
+   "op": "delete_book",
+   "id": 1,
+   "title": "Quick Start Guide",
+   "note": "Calibre's bundled 'Quick Start Guide' sample book"
+  }
+ ]
+}

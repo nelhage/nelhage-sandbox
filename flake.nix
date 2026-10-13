@@ -99,6 +99,10 @@
           regexle = pythonEnv;
           mnist-subliminal = pythonEnv;
 
+          # Calibre library metadata cleanup. Talks to the library via the
+          # system `calibredb`; Python is for analysis and plan generation.
+          calibremeta = pythonEnv;
+
           # Wiki log dump -> git repository. `git` replays the revisions via
           # fast-import.
           collusion-wiki = withPackages [ pkgs.git ] pythonEnv;
